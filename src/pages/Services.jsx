@@ -1,4 +1,5 @@
-import { API_BASE_URL } from '../config/api.js';`nimport VisitorNavbar from '../components/VisitorNavbar.jsx'
+import { API_BASE_URL } from '../config/api.js'
+import VisitorNavbar from '../components/VisitorNavbar.jsx'
 import PromoPopup from '../components/PromoPopup.jsx'
 import '../styles/neon.css'
 import { useState, useEffect } from 'react'
@@ -55,7 +56,7 @@ function ServicesPricingPlans(){
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const response = await fetch('${API_BASE_URL}/pricing')
+        const response = await fetch(`${API_BASE_URL}/pricing`)
         const data = await response.json()
         setPlans(data.plans || [])
       } catch (error) {
