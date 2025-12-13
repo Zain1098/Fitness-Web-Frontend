@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Backend Status Check</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .status { padding: 15px; margin: 10px 0; border-radius: 5px; }
+    .success { background: #4caf50; }
+    .error { background: #f44336; }
+    .warning { background: #ff9800; }
+    button {
+      padding: 10px 20px;
+      background: #ff6b35;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover { opacity: 0.8; }
+    pre { background: #333; padding: 10px; border-radius: 5px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Backend Status Check</h1>
+  
+  <button onclick="checkHealth()">Check Health</button>
+  <button onclick="checkChat()">Check Chat API</button>
+  <button onclick="checkAll()">Check All</button>
+  
+  <div id="results"></div>
+
+  <script>
+    const API_URL = 'http://localhost:5000'
+    
+    async function checkHealth() {
+      const results = document.getElementById('results')
+      results.innerHTML = '<div class="status warning">⏳ Checking health endpoint...</div>'
+      
+      try {
+        const res = await fetch(`${API_URL}/api/health`)
+        const data = await res.json()
+        
+        if (data.ok) {
+          results.innerHTML = '<div class="status success">✅ Backend is running!</div>'
+        } else {
+          results.innerHTML = '<div class="status error">❌ Backend responded but health check failed</div>'
+        }
+      } catch (error) {
+        results.innerHTML = `
+          <div class="status error">
+            ❌ Cannot connect to backend!<br><br>
+            <strong>Error:</strong> ${error.message}<br><br>
+            <strong>Solution:</strong> Start backend with:<br>
+            <pre>cd Backend
+npm run dev</pre>
+          </div>
+        `
+      }
+    }
+    
+    async function checkChat() {
+      const results = document.getElementById('results')
+      results.innerHTML = '<div class="status warning">⏳ Testing chat endpoint...</div>'
+      
+      try {
+        const res = await fetch(`${API_URL}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Hello', history: [] })
+        })
+        
+        const data = await res.json()
+        
+        if (data.reply) {
+          results.innerHTML = `
+            <div class="status success">
+              ✅ Chat API is working!<br><br>
+              <strong>Response:</strong><br>
+              <pre>${data.reply}</pre>
+            </div>
+          `
+        } else {
+          results.innerHTML = `
+            <div class="status error">
+              ❌ Chat API error<br><br>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>
+          `
+        }
+      } catch (error) {
+        results.innerHTML = `
+          <div class="status error">
+            ❌ Chat API failed!<br><br>
+            <strong>Error:</strong> ${error.message}
+          </div>
+        `
+      }
+    }
+    
+    async function checkAll() {
+      await checkHealth()
+      await new Promise(r => setTimeout(r, 1000))
+      await checkChat()
+    }
+  </script>
+</body>
+</html>

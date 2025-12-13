@@ -1,0 +1,13 @@
+{
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "lib": "@/lib"
+  },
+  "registries": {
+    "@scrollxui": "https://www.scrollxui.dev/registry/{name}.json"
+  }
+}

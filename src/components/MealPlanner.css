@@ -1,0 +1,341 @@
+.meal-planner {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.week-navigation h3 {
+  font-size: 1.3rem;
+  color: #fff;
+  margin: 0;
+}
+
+.nav-btn, .current-week-btn {
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.nav-btn:hover, .current-week-btn:hover {
+  background: rgba(255, 107, 53, 0.2);
+  border-color: #ff6b35;
+}
+
+.current-week-btn {
+  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  border-color: transparent;
+}
+
+.nutrition-goals {
+  margin-bottom: 25px;
+}
+
+.nutrition-goals h4 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.goal-item {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.goal-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.goal-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.goal-label {
+  font-size: 0.8rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 15px;
+}
+
+.day-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 15px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-card.today {
+  border-color: #ff6b35;
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+}
+
+.day-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.day-header {
+  text-align: center;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.day-header h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.day-header p {
+  font-size: 0.8rem;
+  color: #ccc;
+  margin: 0;
+}
+
+.today-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff6b35;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.day-progress {
+  margin-bottom: 15px;
+}
+
+.progress-item {
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 0.8rem;
+  color: #ccc;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.calories { background: linear-gradient(90deg, #ff6b35, #ff8c42); }
+
+.day-meals {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meal-slot {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.meal-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.meal-icon {
+  font-size: 1rem;
+}
+
+.meal-name {
+  font-size: 0.8rem;
+  color: #ccc;
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.meal-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.item-name {
+  color: #fff;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-calories {
+  color: #ff6b35;
+  font-weight: 500;
+}
+
+.more-items {
+  font-size: 0.7rem;
+  color: #888;
+  font-style: italic;
+}
+
+.empty-meal {
+  text-align: center;
+}
+
+.add-meal-btn {
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.add-meal-btn:hover {
+  border-color: #ff6b35;
+  color: #ff6b35;
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.day-summary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.macro-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.macro {
+  font-size: 0.7rem;
+  color: #ccc;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+  color: #ccc;
+}
+
+@media (max-width: 1200px) {
+  .week-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .week-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .goals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .planner-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .week-navigation {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .week-navigation h3 {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .goals-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .meal-planner {
+    padding: 15px;
+  }
+  
+  .day-card {
+    min-height: 350px;
+  }
+}

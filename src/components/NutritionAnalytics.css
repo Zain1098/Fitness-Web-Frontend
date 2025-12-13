@@ -1,0 +1,463 @@
+.nutrition-analytics {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.analytics-header h3 {
+  font-size: 1.4rem;
+  color: #fff;
+  margin: 0;
+}
+
+.time-range-selector {
+  display: flex;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.range-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.range-btn:hover {
+  color: #fff;
+}
+
+.range-btn.active {
+  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  color: #fff;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.analytics-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.analytics-card h4 {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Score Card */
+.score-card {
+  text-align: center;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.score-inner {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.score-max {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.score-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Average Card */
+.average-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.avg-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.avg-icon {
+  font-size: 1.5rem;
+}
+
+.avg-value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.avg-label {
+  font-size: 0.8rem;
+  color: #ccc;
+  text-transform: uppercase;
+}
+
+/* Streaks Card */
+.streaks-display {
+  display: flex;
+  gap: 20px;
+  justify-content: space-around;
+}
+
+.streak-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.streak-icon {
+  font-size: 2rem;
+}
+
+.streak-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.streak-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.streak-label {
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+/* Meal Distribution */
+.meal-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.meal-dist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meal-dist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meal-icon {
+  font-size: 1.2rem;
+}
+
+.meal-name {
+  flex: 1;
+  margin-left: 8px;
+  color: #fff;
+  text-transform: capitalize;
+}
+
+.meal-percentage {
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.meal-dist-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.meal-dist-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b35, #ff8c42);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Top Foods */
+.top-foods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.top-food-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.food-rank {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.food-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.food-name {
+  color: #fff;
+  font-weight: 500;
+}
+
+.food-stats {
+  color: #ccc;
+  font-size: 0.8rem;
+}
+
+/* Deficiencies */
+.deficiencies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deficiency-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #ff6b6b;
+}
+
+.deficiency-icon {
+  font-size: 1.2rem;
+}
+
+.deficiency-name {
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.no-deficiencies {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #4caf50;
+  color: #4caf50;
+}
+
+.success-icon {
+  font-size: 1.2rem;
+}
+
+/* Achievements */
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border-left: 3px solid #ffc107;
+}
+
+.achievement-icon {
+  font-size: 1.5rem;
+}
+
+.achievement-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.achievement-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.achievement-desc {
+  color: #ccc;
+  font-size: 0.8rem;
+}
+
+.achievement-date {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+/* Insights */
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+.insight-icon {
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .analytics-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .time-range-selector {
+    justify-content: center;
+  }
+  
+  .average-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .streaks-display {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .streak-item {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .nutrition-analytics {
+    padding: 15px;
+  }
+  
+  .analytics-card {
+    padding: 15px;
+  }
+  
+  .score-circle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .score-inner {
+    width: 75px;
+    height: 75px;
+  }
+  
+  .score-value {
+    font-size: 1.5rem;
+  }
+  
+  .achievement-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

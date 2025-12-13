@@ -1,0 +1,269 @@
+/* Global Text Visibility Fixes for All Pages */
+
+/* Fix all select/dropdown text visibility */
+select,
+select option,
+.setting-input,
+.filter-select,
+.meal-select,
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="date"],
+textarea {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dropdown options - dark background with white text */
+select option {
+  background: #1a1a1a !important;
+  color: #fff !important;
+  padding: 8px !important;
+}
+
+/* Placeholder text */
+::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1 !important;
+}
+
+:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+::-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Focus states */
+select:focus,
+input:focus,
+textarea:focus {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  outline: 2px solid #ff6b35 !important;
+}
+
+/* Disabled states */
+select:disabled,
+input:disabled,
+textarea:disabled {
+  color: rgba(255, 255, 255, 0.4) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  cursor: not-allowed !important;
+}
+
+/* Read-only states */
+select[readonly],
+input[readonly],
+textarea[readonly] {
+  color: rgba(255, 255, 255, 0.7) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Autofill fix for Chrome */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1a1a1a inset !important;
+  -webkit-text-fill-color: #fff !important;
+  caret-color: #fff !important;
+}
+
+/* Date input text color */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* Number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  filter: invert(1);
+}
+
+/* Text selection */
+::selection {
+  background: rgba(255, 107, 53, 0.3);
+  color: #fff;
+}
+
+::-moz-selection {
+  background: rgba(255, 107, 53, 0.3);
+  color: #fff;
+}
+
+/* Modal/Dialog text */
+.modal input,
+.modal select,
+.modal textarea,
+.dialog input,
+.dialog select,
+.dialog textarea {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Form labels */
+label {
+  color: #ccc !important;
+}
+
+/* Button text */
+button {
+  color: inherit;
+}
+
+/* Table text */
+table,
+th,
+td {
+  color: #fff !important;
+}
+
+/* Card text */
+.card,
+.panel,
+.section {
+  color: #fff;
+}
+
+/* List items */
+li {
+  color: inherit;
+}
+
+/* Links */
+a {
+  color: inherit;
+}
+
+a:hover {
+  color: #ff6b35;
+}
+
+/* Specific page fixes */
+
+/* Settings page */
+.settings-page select,
+.settings-page input,
+.settings-page textarea {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Nutrition page */
+.nutrition-page select,
+.nutrition-page input {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Exercises page */
+.exercises-page select,
+.exercises-page input {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Workouts page */
+.workouts-page select,
+.workouts-page input {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Progress page */
+.progress-page select,
+.progress-page input {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dashboard page */
+.dashboard-page select,
+.dashboard-page input {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Contact page */
+.ff-form-grid input,
+.ff-form-grid textarea,
+.ff-form-grid select {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure all text is visible on dark backgrounds */
+body,
+html {
+  color: #fff;
+}
+
+/* Fix for any remaining invisible text */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure proper contrast */
+.text-dark {
+  color: #fff !important;
+}
+
+.bg-dark {
+  background: #1a1a1a !important;
+}
+
+/* Fix for React Select / Custom Dropdowns */
+.react-select__control,
+.react-select__menu,
+.react-select__option {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.react-select__single-value,
+.react-select__placeholder {
+  color: #fff !important;
+}
+
+.react-select__option--is-focused {
+  background: rgba(255, 107, 53, 0.2) !important;
+}
+
+.react-select__option--is-selected {
+  background: rgba(255, 107, 53, 0.4) !important;
+}
+
+/* Fix for any custom styled inputs */
+[class*="input"],
+[class*="Input"],
+[class*="select"],
+[class*="Select"],
+[class*="dropdown"],
+[class*="Dropdown"] {
+  color: #fff !important;
+}
+
+/* Ensure visibility in all states */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Hover states */
+input:not([type="checkbox"]):not([type="radio"]):hover,
+select:hover,
+textarea:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test FitForge Chatbot API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    h1 { color: #ff6b35; }
+    .container {
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #444;
+      background: #333;
+      color: #fff;
+      font-size: 14px;
+    }
+    button {
+      background: linear-gradient(135deg, #ff6b35, #ff8c42);
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { opacity: 0.9; }
+    .response {
+      margin-top: 20px;
+      padding: 15px;
+      background: #333;
+      border-radius: 5px;
+      border-left: 4px solid #ff6b35;
+      white-space: pre-wrap;
+    }
+    .error { border-left-color: #f44336; }
+    .loading { opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Test FitForge Chatbot</h1>
+    <p>Backend API ko test karne ke liye:</p>
+    
+    <input 
+      type="text" 
+      id="apiUrl" 
+      value="http://localhost:5000/api/chat" 
+      placeholder="API URL"
+    />
+    
+    <input 
+      type="text" 
+      id="message" 
+      placeholder="Type your message..."
+      onkeypress="if(event.key==='Enter') sendMessage()"
+    />
+    
+    <button onclick="sendMessage()">Send Message</button>
+    
+    <div id="response"></div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const apiUrl = document.getElementById('apiUrl').value
+      const message = document.getElementById('message').value
+      const responseDiv = document.getElementById('response')
+      
+      if (!message.trim()) {
+        alert('Please enter a message')
+        return
+      }
+      
+      responseDiv.innerHTML = '<div class="response loading">⏳ Sending...</div>'
+      
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, history: [] })
+        })
+        
+        const data = await res.json()
+        
+        if (data.reply) {
+          responseDiv.innerHTML = `
+            <div class="response">
+              <strong>✅ Response:</strong><br><br>${data.reply}
+            </div>
+          `
+        } else {
+          throw new Error(data.error || 'No reply received')
+        }
+      } catch (error) {
+        responseDiv.innerHTML = `
+          <div class="response error">
+            <strong>❌ Error:</strong><br><br>${error.message}
+          </div>
+        `
+      }
+    }
+  </script>
+</body>
+</html>

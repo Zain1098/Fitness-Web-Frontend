@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Under Maintenance - FitForge</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+    }
+    h1 {
+      font-size: 48px;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Under Maintenance</h1>
+    <p>We'll be back soon!</p>
+  </div>
+  <script>
+    // Check immediately on load
+    checkMaintenance();
+    
+    // Then check every 5 seconds
+    setInterval(checkMaintenance, 5000);
+    
+    async function checkMaintenance() {
+      try {
+        const res = await fetch('http://localhost:5000/api/maintenance');
+        const data = await res.json();
+        
+        if (!data.maintenanceMode) {
+          // Maintenance disabled - redirect to home
+          window.location.replace('/');
+        }
+      } catch (err) {
+        console.error('Failed to check maintenance');
+      }
+    }
+  </script>
+</body>
+</html>
