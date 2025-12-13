@@ -56,7 +56,7 @@ function ServicesPricingPlans(){
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const response = await fetch(`${API_BASE_URL}/pricing`)
+        const response = await fetch(API_BASE_URL + '/pricing')
         const data = await response.json()
         setPlans(data.plans || [])
       } catch (error) {

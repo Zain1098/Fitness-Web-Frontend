@@ -72,7 +72,7 @@ function ContactFormSection(){
     
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/contact/submit`, {
+      const response = await fetch(API_BASE_URL + '/contact/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
