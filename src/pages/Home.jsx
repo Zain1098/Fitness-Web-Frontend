@@ -16,6 +16,7 @@ import { EffectCards, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/effect-cards'
 import 'swiper/css/pagination'
+import { API_BASE_URL } from '../config/api.js'
 
 function WhyTracking() {
   const ref = useRef(null);
@@ -209,7 +210,7 @@ function StreaksDiscipline() {
             <h2 className="ff-title">Time Is Slipping Away</h2>
             <p className="ff-sub">Every day you wait, you lose momentum. Start your fitness journey now — don’t let regret be your future.</p>
             <Link to="/register" className="ff-btn" onClick={() => {
-              fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+              fetch('${API_BASE_URL}/track/click', { method: 'POST' });
             }}>Register Now</Link>
           </div>
         </div>
@@ -295,7 +296,7 @@ function SocialProof() {
             <Typewriter text={paragraph} speed={28} className="ff-type" />
             <div style={{ marginTop:'18px' }}>
               <Link to="/register" className="ff-btn" onClick={() => {
-                fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                fetch('${API_BASE_URL}/track/click', { method: 'POST' });
               }}>Start Now</Link>
             </div>
           </div>
@@ -315,7 +316,7 @@ function PricingPlans({ setAuthModalOpen }) {
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const response = await fetch('http://localhost:5000/api/pricing')
+        const response = await fetch('${API_BASE_URL}/pricing')
         const data = await response.json()
         setPlans(data.plans || [])
       } catch (error) {
@@ -376,7 +377,7 @@ function FinalCTA() {
         <h2 className="ff-title">Ready To Train With Intelligence?</h2>
         <p className="ff-sub">Own your progress with neon-clear tracking and disciplined streaks.</p>
         <a href="#contact" className="ff-btn" onClick={() => {
-          fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+          fetch('${API_BASE_URL}/track/click', { method: 'POST' });
         }}>Start Tracking</a>
       </div>
     </section>
@@ -558,7 +559,7 @@ function Home() {
                     <span>Shape your body</span>
                     <h1>Be <strong>strong</strong> traning hard</h1>
                     <a href="#contact" className="primary-btn" onClick={() => {
-                      fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                      fetch('${API_BASE_URL}/track/click', { method: 'POST' });
                     }}>Get info</a>
                   </div>
                 </div>
