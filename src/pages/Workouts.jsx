@@ -168,7 +168,7 @@ export default function Workouts() {
             <button 
               className="create-workout-btn"
               onClick={() => {
-                fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                api('/track/click', { method: 'POST', token });
                 setShowCreateForm(!showCreateForm);
               }}
             >
@@ -204,7 +204,7 @@ export default function Workouts() {
               </div>
             </div>
             <div className="stat-card clickable" onClick={() => {
-              fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+              api('/track/click', { method: 'POST', token });
               navigate('/exercises');
             }}>
               <div className="stat-icon">🔍</div>
@@ -281,7 +281,7 @@ export default function Workouts() {
                     <button 
                       className="add-exercise-btn"
                       onClick={() => {
-                        fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                        api('/track/click', { method: 'POST', token });
                         addExerciseToList();
                       }}
                     >
@@ -328,7 +328,7 @@ export default function Workouts() {
                   <button 
                     className="btn-primary"
                     onClick={() => {
-                      fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                      api('/track/click', { method: 'POST', token });
                       createWorkout();
                     }}
                     disabled={exercises.length === 0}
@@ -356,7 +356,7 @@ export default function Workouts() {
                 <button 
                   className="create-first-btn"
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     setShowCreateForm(true);
                   }}
                 >

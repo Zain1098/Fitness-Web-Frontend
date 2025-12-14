@@ -249,7 +249,7 @@ export default function Nutrition() {
             <button 
               className={`tab-btn ${activeTab === 'tracker' ? 'active' : ''}`}
               onClick={() => {
-                fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                api('/track/click', { method: 'POST', token });
                 setActiveTab('tracker');
               }}
             >
@@ -320,7 +320,7 @@ export default function Nutrition() {
               <div className="quick-actions">
                 <button 
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     setShowFoodDatabase(!showFoodDatabase);
                   }}
                   className="quick-btn"
@@ -329,7 +329,7 @@ export default function Nutrition() {
                 </button>
                 <button 
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     quickAddMeal('Water', { calories: 0, protein: 0, carbs: 0, fats: 0 });
                   }}
                   className="quick-btn"
@@ -429,7 +429,7 @@ export default function Nutrition() {
               <div className="meal-shortcuts">
                 <button 
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     quickAddMeal('Quick Breakfast', { calories: 350, protein: 20, carbs: 40, fats: 12 }, 'breakfast');
                   }}
                   className="shortcut-btn breakfast"
@@ -438,7 +438,7 @@ export default function Nutrition() {
                 </button>
                 <button 
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     quickAddMeal('Quick Lunch', { calories: 500, protein: 30, carbs: 50, fats: 18 }, 'lunch');
                   }}
                   className="shortcut-btn lunch"
@@ -447,7 +447,7 @@ export default function Nutrition() {
                 </button>
                 <button 
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     quickAddMeal('Quick Dinner', { calories: 600, protein: 35, carbs: 60, fats: 20 }, 'dinner');
                   }}
                   className="shortcut-btn dinner"
@@ -570,7 +570,7 @@ export default function Nutrition() {
                 </button>
                 <button 
                   onClick={() => {
-                    fetch('http://localhost:5000/api/track/click', { method: 'POST' });
+                    api('/track/click', { method: 'POST', token });
                     addMeal();
                   }} 
                   disabled={adding || !food.trim()}

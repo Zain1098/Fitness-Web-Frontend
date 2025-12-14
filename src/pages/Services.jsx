@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api.js'
+import { api } from '@/api/client.js'
 import VisitorNavbar from '../components/VisitorNavbar.jsx'
 import PromoPopup from '../components/PromoPopup.jsx'
 import '../styles/neon.css'
@@ -56,16 +56,15 @@ function ServicesPricingPlans(){
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const response = await fetch(API_BASE_URL + '/pricing')
-        const data = await response.json()
-        setPlans(data.plans || [])
+        const data = await api('/pricing');
+        setPlans(data.plans || []);
       } catch (error) {
-        console.error('Failed to fetch plans:', error)
+        console.error('Failed to fetch plans:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    fetchPlans()
+    fetchPlans();
   }, [])
   
   const handlePlanClick = (plan) => {
