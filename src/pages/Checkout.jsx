@@ -3,10 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import { showToast } from '../components/Toast.jsx'
-import { loadStripe } from '@stripe/stripe-js'
 import styled, { keyframes } from 'styled-components'
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key')
 
 const PLANS = {
   basic: { name: 'Basic', price: 9.99, features: ['AI Workout Plans', 'Custom Meal Plans', 'Priority Support'] },
@@ -55,33 +52,7 @@ export default function Checkout() {
   }
 
   const handleCheckout = async () => {
-    try {
-      setLoading(true)
-      
-      if (promoApplied) {
-        await api('/promo/apply', {
-          method: 'POST',
-          body: { code: promoApplied.code },
-          token
-        })
-      }
-      
-      const response = await api('/payment/create-checkout-session', {
-        method: 'POST',
-        body: { plan },
-        token
-      })
-      
-      if (response.url) {
-        window.location.href = response.url
-      } else {
-        showToast('Failed to create checkout session', 'error')
-        setLoading(false)
-      }
-    } catch (error) {
-      showToast(error.message || 'Payment failed', 'error')
-      setLoading(false)
-    }
+    showToast('Payment system temporarily unavailable. Coming soon!', 'info')
   }
 
   if (!plan || !PLANS[plan]) return null
