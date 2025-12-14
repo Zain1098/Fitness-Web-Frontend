@@ -71,8 +71,13 @@ export default function FitnessChatbot() {
       
       if (data.reply) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
+      } else if (data.error) {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: "I'm having some technical difficulties right now. Please try again in a moment! 🔧\n\nIn the meantime, you can:\n💪 Browse workout plans\n🥗 Check nutrition tips\n📊 Track your progress"
+        }])
       } else {
-        throw new Error(data.error || 'No reply from server')
+        throw new Error('No reply from server')
       }
     } catch (error) {
       console.error('Chat error:', error)
