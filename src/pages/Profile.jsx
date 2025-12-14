@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { logActivity } from '../utils/activityLogger.js'
+import { API_BASE_URL } from '../config/api.js'
 
 export default function Profile(){
   const { token } = useAuth()
@@ -9,13 +10,13 @@ export default function Profile(){
   const [status, setStatus] = useState('')
   useEffect(()=>{
     if(!token){ window.dispatchEvent(new Event('auth:open')); return }
-    fetch((import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/settings', { headers:{ Authorization:`Bearer ${token}` } })
+    fetch(API_BASE_URL + '/settings', { headers:{ Authorization:`Bearer ${token}` } })
       .then(r=>r.json()).then(setPrefs).catch(()=>{})
   },[token])
   async function save(){
     setStatus('Saving...')
     try{
-      const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/settings', { method:'PUT', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body: JSON.stringify(prefs) })
+      const res = await fetch(API_BASE_URL + '/settings', { method:'PUT', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body: JSON.stringify(prefs) })
       const data = await res.json()
       setPrefs(data)
       setStatus('Saved')

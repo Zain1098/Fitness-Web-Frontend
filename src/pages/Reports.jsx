@@ -1,10 +1,11 @@
 import { useAuth } from '../context/AuthContext.jsx'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
+import { API_BASE_URL } from '../config/api.js'
 
 export default function Reports(){
   const { token, user } = useAuth()
   if(!user) return null
-  const download = ()=>{ window.open((import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/reports/workouts.csv', '_blank') }
+  const download = ()=>{ window.open(API_BASE_URL + '/reports/workouts.csv', '_blank') }
   return (
     <>
     <DashboardNavbar />
