@@ -82,13 +82,19 @@ export default function Progress() {
     setShowMMCalculator(false)
   }
 
+  const [onboardingData, setOnboardingData] = useState(null)
+
   const loadProgress = async () => {
     if (!token) return
     try {
       setLoading(true)
-      const data = await api('/progress', { token })
-      setEntries(data || [])
-      calculateStats(data || [])
+      const [progressData, onboarding] = await Promise.all([
+        api('/progress', { token }),
+        api('/user/onboarding', { token }).catch(() => ({ data: null }))
+      ])
+      setEntries(progressData || [])
+      setOnboardingData(onboarding?.data)
+      calculateStats(progressData || [])
     } catch (err) {
       setError('Failed to load progress data')
       setTimeout(() => setError(''), 3000)
@@ -234,34 +240,100 @@ export default function Progress() {
           {/* Tab Content */}
           {activeTab === 'overview' && (
             <div className="tab-content fade-in">
-          {/* Stats Cards */}
-          <div className="stats-grid">
-            <div className="stat-card weight">
-              <div className="stat-icon">⚖️</div>
-              <div className="stat-info">
-                <span className="stat-value">{convertWeight(stats.currentWeight)} {getWeightUnit()}</span>
-                <span className="stat-label">Current Weight</span>
-                {stats.weightChange !== 0 && (
-                  <span className={`stat-change ${stats.weightChange > 0 ? 'up' : 'down'}`}>
-                    {stats.weightChange > 0 ? '↑' : '↓'} {convertWeight(Math.abs(stats.weightChange))} {getWeightUnit()}
-                  </span>
+          {/* Onboarding Stats */}
+          {onboardingData && (
+            <div className="onboarding-stats">
+              <h2>🎯 Your Fitness Profile</h2>
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-icon">👤</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{onboardingData.age} yrs</span>
+                    <span className="stat-label">Age</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon">📏</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{convertHeight(onboardingData.height)} {getHeightUnit()}</span>
+                    <span className="stat-label">Height</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon">⚖️</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{convertWeight(onboardingData.weight)} {getWeightUnit()}</span>
+                    <span className="stat-label">Starting Weight</span>
+                  </div>
+                </div>
+                {onboardingData.target_weight && (
+                  <div className="stat-card">
+                    <div className="stat-icon">🎯</div>
+                    <div className="stat-info">
+                      <span className="stat-value">{convertWeight(onboardingData.target_weight)} {getWeightUnit()}</span>
+                      <span className="stat-label">Target Weight</span>
+                    </div>
+                  </div>
                 )}
+                <div className="stat-card">
+                  <div className="stat-icon">💪</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{onboardingData.fitness_level}</span>
+                    <span className="stat-label">Fitness Level</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon">🎯</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{onboardingData.goal?.replace('_', ' ')}</span>
+                    <span className="stat-label">Goal</span>
+                  </div>
+                </div>
               </div>
+              {onboardingData.focus_areas?.length > 0 && (
+                <div className="focus-areas">
+                  <h3>🎯 Focus Areas</h3>
+                  <div className="focus-tags">
+                    {onboardingData.focus_areas.map((area, idx) => (
+                      <span key={idx} className="focus-tag">{area}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            
-            <div className="stat-card entries">
-              <div className="stat-icon">📊</div>
-              <div className="stat-info">
-                <span className="stat-value">{stats.totalEntries}</span>
-                <span className="stat-label">Total Entries</span>
+          )}
+
+          {/* Current Stats */}
+          <div className="current-stats">
+            <h2>📊 Current Progress</h2>
+            <div className="stats-grid">
+              <div className="stat-card weight">
+                <div className="stat-icon">⚖️</div>
+                <div className="stat-info">
+                  <span className="stat-value">{convertWeight(stats.currentWeight || onboardingData?.weight || 0)} {getWeightUnit()}</span>
+                  <span className="stat-label">Current Weight</span>
+                  {stats.weightChange !== 0 && (
+                    <span className={`stat-change ${stats.weightChange > 0 ? 'up' : 'down'}`}>
+                      {stats.weightChange > 0 ? '↑' : '↓'} {convertWeight(Math.abs(stats.weightChange))} {getWeightUnit()}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            
-            <div className="stat-card streak">
-              <div className="stat-icon">🔥</div>
-              <div className="stat-info">
-                <span className="stat-value">{stats.streak}</span>
-                <span className="stat-label">Week Streak</span>
+              
+              <div className="stat-card entries">
+                <div className="stat-icon">📊</div>
+                <div className="stat-info">
+                  <span className="stat-value">{stats.totalEntries}</span>
+                  <span className="stat-label">Total Entries</span>
+                </div>
+              </div>
+              
+              <div className="stat-card streak">
+                <div className="stat-icon">🔥</div>
+                <div className="stat-info">
+                  <span className="stat-value">{stats.streak}</span>
+                  <span className="stat-label">Week Streak</span>
+                </div>
               </div>
             </div>
           </div>
