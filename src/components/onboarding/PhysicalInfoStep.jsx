@@ -73,7 +73,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
             <LabelRow>
               <Label>Height</Label>
               <UnitToggle onClick={toggleHeightUnit}>
-                {heightUnit === 'cm' ? 'Switch to ft' : 'Switch to cm'}
+                {heightUnit === 'cm' ? '📏 ft/in' : '📏 cm'}
               </UnitToggle>
             </LabelRow>
             {heightUnit === 'cm' ? (
@@ -122,7 +122,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
             <LabelRow>
               <Label>Weight</Label>
               <UnitToggle onClick={toggleWeightUnit}>
-                {weightUnit === 'kg' ? 'Switch to lbs' : 'Switch to kg'}
+                {weightUnit === 'kg' ? '⚖️ lbs' : '⚖️ kg'}
               </UnitToggle>
             </LabelRow>
             <InputWrapper>
@@ -172,7 +172,11 @@ const StepWrapper = styled.div`
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
+  padding: 20px;
   animation: ${fadeIn} 0.6s ease;
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `
 
 const Content = styled.div`
@@ -209,6 +213,10 @@ const FormGrid = styled.div`
   display: grid;
   gap: 30px;
   margin-bottom: 50px;
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-bottom: 30px;
+  }
 `
 
 const InputGroup = styled.div`
@@ -310,6 +318,11 @@ const ButtonGroup = styled.div`
   gap: 20px;
   justify-content: center;
   margin-top: 40px;
+  flex-wrap: wrap;
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-top: 30px;
+  }
 `
 
 const Button = styled.button`
@@ -334,6 +347,11 @@ const Button = styled.button`
   
   &:active {
     transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 15px 30px;
+    font-size: 1rem;
   }
 `
 

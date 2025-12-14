@@ -31,6 +31,12 @@ export default function CompleteStep({ data }) {
             workout_frequency: data.workoutFrequency,
             equipment: data.equipment || [],
             location: data.location,
+            body_measurements: data.bodyMeasurements || {},
+            body_fat_percentage: data.bodyFatPercentage || null,
+            medical_conditions: data.medicalConditions || [],
+            injuries: data.injuries || '',
+            workout_time_preference: data.workoutTimePreference || '',
+            motivation: data.motivation || '',
             dietary_preference: data.dietaryPreference || 'none',
             water_intake_goal: parseInt(data.waterIntakeGoal) || 8,
             sleep_goal: parseFloat(data.sleepGoal) || 8,
@@ -166,8 +172,12 @@ const StepWrapper = styled.div`
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
+  padding: 20px;
   animation: ${fadeIn} 0.6s ease;
   position: relative;
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `
 
 const Content = styled.div`
@@ -266,6 +276,10 @@ const StatsGrid = styled.div`
   margin-bottom: 50px;
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
   }
 `
 

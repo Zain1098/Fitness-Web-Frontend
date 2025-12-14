@@ -80,7 +80,11 @@ const StepWrapper = styled.div`
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
   animation: ${fadeIn} 0.6s ease;
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `
 
 const Content = styled.div`
@@ -120,6 +124,7 @@ const OptionsGrid = styled.div`
   margin-bottom: 50px;
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 `
 
@@ -213,6 +218,11 @@ const ButtonGroup = styled.div`
   gap: 20px;
   justify-content: center;
   margin-top: 40px;
+  flex-wrap: wrap;
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-top: 30px;
+  }
 `
 
 const Button = styled.button`
@@ -237,6 +247,11 @@ const Button = styled.button`
   
   &:active {
     transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 15px 30px;
+    font-size: 1rem;
   }
 `
 

@@ -2,15 +2,14 @@ import styled, { keyframes, css } from 'styled-components'
 
 export default function WorkoutFrequencyStep({ data, updateData, nextStep, prevStep }) {
   const frequencies = [
-    { value: '1-2', label: '1-2 days/week', desc: 'Light activity', icon: '🌙', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    { value: '3-4', label: '3-4 days/week', desc: 'Moderate activity', icon: '⭐', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+    { value: '1-2', label: '1-2 days/week', desc: 'Light activity', icon: '💪', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+    { value: '3-4', label: '3-4 days/week', desc: 'Moderate activity', icon: '🏋️', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
     { value: '5-6', label: '5-6 days/week', desc: 'High activity', icon: '🔥', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
     { value: '7', label: 'Every day', desc: 'Very high activity', icon: '⚡', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }
   ]
 
   const handleSelect = (value) => {
     updateData('workoutFrequency', value)
-    setTimeout(() => nextStep(), 400)
   }
 
   return (
@@ -38,9 +37,14 @@ export default function WorkoutFrequencyStep({ data, updateData, nextStep, prevS
           ))}
         </OptionsGrid>
 
-        <BackButton onClick={prevStep}>
-          <span>←</span> Back
-        </BackButton>
+        <ButtonGroup>
+          <BackButton onClick={prevStep}>
+            <span>←</span> Back
+          </BackButton>
+          <NextButton onClick={nextStep} disabled={!data.workoutFrequency}>
+            Next <span>→</span>
+          </NextButton>
+        </ButtonGroup>
       </Content>
     </StepWrapper>
   )
@@ -65,7 +69,11 @@ const StepWrapper = styled.div`
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
   animation: ${fadeIn} 0.6s ease;
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `
 
 const Content = styled.div`
@@ -102,9 +110,10 @@ const OptionsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 25px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 `
 
@@ -188,7 +197,19 @@ const CheckMark = styled.div`
   animation: ${pulse} 0.4s ease;
 `
 
-const BackButton = styled.button`
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  @media (max-width: 768px) {
+    gap: 15px;
+    margin-top: 30px;
+  }
+`
+
+const Button = styled.button`
   padding: 18px 40px;
   border-radius: 15px;
   font-size: 1.1rem;
@@ -196,12 +217,9 @@ const BackButton = styled.button`
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.2);
   
   span {
     font-size: 1.3rem;
@@ -209,11 +227,41 @@ const BackButton = styled.button`
   
   &:hover {
     transform: translateY(-3px);
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.4);
   }
   
   &:active {
     transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 15px 30px;
+    font-size: 1rem;
+  }
+`
+
+const BackButton = styled(Button)`
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.2);
+  
+  &:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.4);
+  }
+`
+
+const NextButton = styled(Button)`
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  box-shadow: 0 10px 40px rgba(102,126,234,0.4);
+  
+  &:hover {
+    box-shadow: 0 15px 50px rgba(102,126,234,0.6);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 `

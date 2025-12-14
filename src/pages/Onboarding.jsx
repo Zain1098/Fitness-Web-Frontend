@@ -111,7 +111,8 @@ const Container = styled.div`
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   &::before {
     content: '';
     position: absolute;
@@ -161,4 +162,8 @@ const StepContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  @media (max-width: 768px) {
+    padding: 30px 15px;
+    min-height: calc(100vh - 4px);
+  }
 `

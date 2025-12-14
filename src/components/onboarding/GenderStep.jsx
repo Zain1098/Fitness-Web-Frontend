@@ -59,7 +59,11 @@ const StepWrapper = styled.div`
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+  padding: 20px;
   animation: ${fadeIn} 0.6s ease;
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 `
 
 const Content = styled.div`
@@ -100,6 +104,7 @@ const OptionsGrid = styled.div`
   margin-top: 40px;
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 `
 
