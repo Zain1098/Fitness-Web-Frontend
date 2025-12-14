@@ -525,15 +525,13 @@ export default function Exercises() {
                   </div>
                   
                   <div className="exercise-actions">
-                    {(exercise.instructions?.length > 0 || exercise.videoUrl) && (
-                      <button 
-                        className="action-btn view-btn"
-                        onClick={() => setSelectedExercise(exercise)}
-                        title="View details"
-                      >
-                        👁️
-                      </button>
-                    )}
+                    <button 
+                      className="action-btn view-btn"
+                      onClick={() => setSelectedExercise(exercise)}
+                      title="View details"
+                    >
+                      👁️
+                    </button>
                     <button 
                       className="action-btn save-btn"
                       onClick={() => saveExercise(exercise)}
@@ -1025,37 +1023,42 @@ export default function Exercises() {
                 <div className="modal-body">
                   <div className="exercise-info">
                     <span className="info-item">
-                      {getEquipmentIcon(selectedExercise.equipment)} {selectedExercise.equipment}
+                      {getEquipmentIcon(selectedExercise.equipment)} <strong>{selectedExercise.equipment}</strong>
                     </span>
                     <span className="info-item">
-                      🎯 {selectedExercise.target}
+                      🎯 <strong>{selectedExercise.target}</strong>
                     </span>
                     <span className="info-item">
-                      📊 {selectedExercise.type}
+                      📊 <strong>{selectedExercise.type}</strong>
                     </span>
-
                   </div>
                   
-                  {selectedExercise.videoUrl && (
+                  {selectedExercise.videoUrl ? (
                     <div className="exercise-video">
                       <video 
                         src={selectedExercise.videoUrl} 
                         controls 
                         poster={selectedExercise.gifUrl || selectedExercise.imageUrl}
+                        style={{ width: '100%', borderRadius: '12px', maxHeight: '400px' }}
                       />
                     </div>
-                  )}
-                  
-                  {!selectedExercise.videoUrl && (
+                  ) : (
                     <div className="exercise-image-large">
                       <img 
                         src={selectedExercise.gifUrl} 
                         alt={selectedExercise.name}
-                        style={{ width: '100%', borderRadius: '12px' }}
+                        style={{ width: '100%', borderRadius: '12px', maxHeight: '400px', objectFit: 'contain', background: '#1a1a1a' }}
+                        onError={(e) => {
+                          e.target.style.display = 'none'
+                          e.target.parentElement.innerHTML = `<div style="padding: 60px; text-align: center; background: linear-gradient(135deg, #ff6b35, #ff8c42); border-radius: 12px;"><div style="font-size: 5rem; margin-bottom: 20px;">${selectedExercise.icon}</div><h3 style="color: white;">${selectedExercise.name}</h3></div>`
+                        }}
                       />
-                      {selectedExercise.description && (
-                        <p className="exercise-description">{selectedExercise.description}</p>
-                      )}
+                    </div>
+                  )}
+                  
+                  {selectedExercise.description && (
+                    <div className="modal-section">
+                      <p className="exercise-description" style={{ fontSize: '1.1rem', color: '#ccc', lineHeight: '1.6' }}>{selectedExercise.description}</p>
                     </div>
                   )}
                   
@@ -1072,10 +1075,10 @@ export default function Exercises() {
                   
                   {selectedExercise.instructions && selectedExercise.instructions.length > 0 && (
                     <div className="modal-section">
-                      <h4>📋 Instructions</h4>
-                      <ol className="instructions-list">
+                      <h4>📋 How to Perform</h4>
+                      <ol className="instructions-list" style={{ paddingLeft: '20px' }}>
                         {selectedExercise.instructions.map((step, idx) => (
-                          <li key={idx}>{step}</li>
+                          <li key={idx} style={{ marginBottom: '12px', lineHeight: '1.6', color: '#ddd' }}>{step}</li>
                         ))}
                       </ol>
                     </div>
@@ -1083,10 +1086,10 @@ export default function Exercises() {
                   
                   {selectedExercise.exerciseTips && selectedExercise.exerciseTips.length > 0 && (
                     <div className="modal-section">
-                      <h4>💡 Tips</h4>
-                      <ul className="tips-list">
+                      <h4>💡 Pro Tips</h4>
+                      <ul className="tips-list" style={{ paddingLeft: '20px' }}>
                         {selectedExercise.exerciseTips.map((tip, idx) => (
-                          <li key={idx}>{tip}</li>
+                          <li key={idx} style={{ marginBottom: '10px', lineHeight: '1.6', color: '#ddd' }}>{tip}</li>
                         ))}
                       </ul>
                     </div>
@@ -1095,13 +1098,34 @@ export default function Exercises() {
                   {selectedExercise.variations && selectedExercise.variations.length > 0 && (
                     <div className="modal-section">
                       <h4>🔄 Variations</h4>
-                      <ul className="variations-list">
+                      <ul className="variations-list" style={{ paddingLeft: '20px' }}>
                         {selectedExercise.variations.map((variation, idx) => (
-                          <li key={idx}>{variation}</li>
+                          <li key={idx} style={{ marginBottom: '10px', lineHeight: '1.6', color: '#ddd' }}>{variation}</li>
                         ))}
                       </ul>
                     </div>
                   )}
+                  
+                  <div className="modal-section">
+                    <h4>📊 Recommended Sets & Reps</h4>
+                    <div style={{ display: 'flex', gap: '20px', padding: '15px', background: 'rgba(255,107,53,0.1)', borderRadius: '10px', border: '1px solid rgba(255,107,53,0.3)' }}>
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '5px' }}>💪</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>{selectedExercise.sets || 3}</div>
+                        <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Sets</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '5px' }}>🔢</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>{selectedExercise.reps || 10}</div>
+                        <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Reps</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '5px' }}>⏱️</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>{selectedExercise.rest || 60}s</div>
+                        <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Rest</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="modal-footer">
