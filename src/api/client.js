@@ -6,9 +6,7 @@ const base = API_BASE_URL
 export async function api(path, { method = 'GET', body, token } = {}) {
   try {
     const headers = {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store',
-      'Pragma': 'no-cache',
+      'Content-Type': 'application/json'
     }
     
     if (token) {
@@ -19,8 +17,7 @@ export async function api(path, { method = 'GET', body, token } = {}) {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
-      credentials: 'include',
-      cache: 'no-store'
+      credentials: 'include'
     })
     
     let data = null
