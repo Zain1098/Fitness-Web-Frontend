@@ -27,10 +27,15 @@ export default function Nutrition() {
   const [mealType, setMealType] = useState('breakfast')
   const [food, setFood] = useState('')
   const [quantity, setQuantity] = useState('100')
+  const [baseQuantity, setBaseQuantity] = useState('100')
   const [calories, setCalories] = useState('')
   const [protein, setProtein] = useState('')
   const [carbs, setCarbs] = useState('')
   const [fats, setFats] = useState('')
+  const [baseCalories, setBaseCalories] = useState('')
+  const [baseProtein, setBaseProtein] = useState('')
+  const [baseCarbs, setBaseCarbs] = useState('')
+  const [baseFats, setBaseFats] = useState('')
   
   // Stats
   const [dailyStats, setDailyStats] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 })
@@ -82,6 +87,20 @@ export default function Nutrition() {
   const addMeal = async () => {
     if (!food.trim()) {
       setError('Please enter a food item')
+      clearMessages()
+      return
+    }
+    
+    // Check for duplicate meal (same food, same meal type, same day)
+    const today = new Date().toDateString()
+    const isDuplicate = entries.some(entry => 
+      new Date(entry.date).toDateString() === today &&
+      entry.mealType === mealType &&
+      entry.items?.some(item => item.name.toLowerCase() === food.trim().toLowerCase())
+    )
+    
+    if (isDuplicate) {
+      setError('This food item already added to this meal today!')
       clearMessages()
       return
     }
@@ -139,15 +158,28 @@ export default function Nutrition() {
     
     try {
       setFetching(true)
-      const searchQuery = `${quantity}g ${food.trim()}`
+      const searchQuery = `100g ${food.trim()}`
       const data = await api(`/nutrition-lookup?ingr=${encodeURIComponent(searchQuery)}`, { token })
       
       if (data.calories) {
-        setCalories(Math.round(data.calories).toString())
+        const cal = Math.round(data.calories)
         const nutrients = data.totalNutrients || {}
-        setProtein(Math.round(nutrients.PROCNT?.quantity || 0).toString())
-        setCarbs(Math.round(nutrients.CHOCDF?.quantity || 0).toString())
-        setFats(Math.round(nutrients.FAT?.quantity || 0).toString())
+        const prot = Math.round(nutrients.PROCNT?.quantity || 0)
+        const carb = Math.round(nutrients.CHOCDF?.quantity || 0)
+        const fat = Math.round(nutrients.FAT?.quantity || 0)
+        
+        setBaseQuantity('100')
+        setBaseCalories(cal.toString())
+        setBaseProtein(prot.toString())
+        setBaseCarbs(carb.toString())
+        setBaseFats(fat.toString())
+        
+        const multiplier = Number(quantity) / 100
+        setCalories(Math.round(cal * multiplier).toString())
+        setProtein(Math.round(prot * multiplier).toString())
+        setCarbs(Math.round(carb * multiplier).toString())
+        setFats(Math.round(fat * multiplier).toString())
+        
         setSuccess('Nutrition data fetched!')
       } else {
         setError('No nutrition data found for this food')
@@ -158,6 +190,17 @@ export default function Nutrition() {
       clearMessages()
     } finally {
       setFetching(false)
+    }
+  }
+  
+  const handleQuantityChange = (newQuantity) => {
+    setQuantity(newQuantity)
+    if (baseCalories && baseQuantity) {
+      const multiplier = Number(newQuantity) / Number(baseQuantity)
+      setCalories(Math.round(Number(baseCalories) * multiplier).toString())
+      setProtein(Math.round(Number(baseProtein) * multiplier).toString())
+      setCarbs(Math.round(Number(baseCarbs) * multiplier).toString())
+      setFats(Math.round(Number(baseFats) * multiplier).toString())
     }
   }
 
@@ -177,6 +220,11 @@ export default function Nutrition() {
   const handleFoodSelect = (selectedFood) => {
     setFood(selectedFood.name)
     setQuantity('100')
+    setBaseQuantity('100')
+    setBaseCalories(selectedFood.calories.toString())
+    setBaseProtein(selectedFood.protein.toString())
+    setBaseCarbs(selectedFood.carbs.toString())
+    setBaseFats(selectedFood.fats.toString())
     setCalories(selectedFood.calories.toString())
     setProtein(selectedFood.protein.toString())
     setCarbs(selectedFood.carbs.toString())
@@ -316,7 +364,7 @@ export default function Nutrition() {
               {/* Daily Stats */}
               <div className="daily-stats">
             <div className="stats-header">
-              <h2>📊 Today's Summary</h2>
+              <h2>📊 Today's Nutrition</h2>
               <div className="quick-actions">
                 <button 
                   onClick={() => {
@@ -324,29 +372,30 @@ export default function Nutrition() {
                     setShowFoodDatabase(!showFoodDatabase);
                   }}
                   className="quick-btn"
+                  title="Browse our curated food database"
                 >
                   🍽️ Browse Foods
                 </button>
                 <button 
-                  onClick={() => {
-                    api('/track/click', { method: 'POST', token });
-                    quickAddMeal('Water', { calories: 0, protein: 0, carbs: 0, fats: 0 });
-                  }}
+                  onClick={() => setActiveTab('planner')}
                   className="quick-btn"
+                  title="Plan your weekly meals"
                 >
-                  💧 Add Water
+                  📅 Meal Planner
                 </button>
                 <button 
                   onClick={() => setActiveTab('recipes')}
                   className="quick-btn"
+                  title="Build custom recipes"
                 >
-                  👨🍳 Create Recipe
+                  👨🍳 Recipes
                 </button>
                 <button 
                   onClick={() => setActiveTab('analytics')}
                   className="quick-btn"
+                  title="View detailed nutrition analytics"
                 >
-                  📊 View Analytics
+                  📊 Analytics
                 </button>
               </div>
             </div>
@@ -433,6 +482,7 @@ export default function Nutrition() {
                     quickAddMeal('Quick Breakfast', { calories: 350, protein: 20, carbs: 40, fats: 12 }, 'breakfast');
                   }}
                   className="shortcut-btn breakfast"
+                  title="350 cal • 20g protein • 40g carbs • 12g fats"
                 >
                   🌅 Quick Breakfast
                 </button>
@@ -442,6 +492,7 @@ export default function Nutrition() {
                     quickAddMeal('Quick Lunch', { calories: 500, protein: 30, carbs: 50, fats: 18 }, 'lunch');
                   }}
                   className="shortcut-btn lunch"
+                  title="500 cal • 30g protein • 50g carbs • 18g fats"
                 >
                   ☀️ Quick Lunch
                 </button>
@@ -451,6 +502,7 @@ export default function Nutrition() {
                     quickAddMeal('Quick Dinner', { calories: 600, protein: 35, carbs: 60, fats: 20 }, 'dinner');
                   }}
                   className="shortcut-btn dinner"
+                  title="600 cal • 35g protein • 60g carbs • 20g fats"
                 >
                   🌙 Quick Dinner
                 </button>
@@ -495,7 +547,7 @@ export default function Nutrition() {
                   <input
                     type="number"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onChange={(e) => handleQuantityChange(e.target.value)}
                     placeholder="100"
                     className="form-input"
                   />
@@ -562,13 +614,6 @@ export default function Nutrition() {
                   🍽️ Browse Database
                 </button>
                 <button 
-                  onClick={() => alert('Barcode scanner coming soon! This will allow you to scan product barcodes for instant nutrition data.')}
-                  className="btn-secondary"
-                  title="Scan product barcode (Coming Soon)"
-                >
-                  📱 Scan Barcode
-                </button>
-                <button 
                   onClick={() => {
                     api('/track/click', { method: 'POST', token });
                     addMeal();
@@ -598,25 +643,25 @@ export default function Nutrition() {
 
           {/* Nutrition Entries */}
           <div className="entries-section">
-            <h2>📝 Nutrition History</h2>
+            <h2>📝 Today's Meals</h2>
             {loading ? (
               <div className="loading">🔄 Loading nutrition entries...</div>
             ) : Object.keys(groupedEntries).length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">🍽️</div>
-                <h3>No nutrition entries yet</h3>
+                <h3>No meals logged today</h3>
                 <p>Start tracking your meals to see them here!</p>
               </div>
             ) : (
               <div className="entries-list">
                 {Object.entries(groupedEntries)
+                  .filter(([date]) => new Date(date).toDateString() === new Date().toDateString())
                   .sort(([a], [b]) => new Date(b) - new Date(a))
                   .map(([date, dayEntries]) => (
                     <div key={date} className="day-group">
                       <h3 className="day-header">
-                        📅 {new Date(date).toLocaleDateString('en-US', {
+                        📅 Today - {new Date(date).toLocaleDateString('en-US', {
                           weekday: 'long',
-                          year: 'numeric',
                           month: 'long',
                           day: 'numeric'
                         })}

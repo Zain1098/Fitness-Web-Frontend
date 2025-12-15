@@ -89,70 +89,57 @@
   margin-bottom: 15px;
 }
 
-.quick-ingredients {
-  margin-bottom: 20px;
-}
 
-.quick-ingredients p {
-  font-size: 0.9rem;
-  color: #ccc;
-  margin-bottom: 10px;
-}
-
-.quick-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.quick-ingredient-btn {
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ccc;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.8rem;
-}
-
-.quick-ingredient-btn:hover {
-  background: rgba(255, 107, 53, 0.2);
-  border-color: #ff6b35;
-  color: #fff;
-  transform: translateY(-2px);
-}
 
 .ingredient-form {
   display: flex;
-  gap: 15px;
-  align-items: end;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
-.ingredient-inputs {
-  display: flex;
+.ingredient-name-input {
+  width: 100%;
+}
+
+.ingredient-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
   gap: 10px;
-  flex: 1;
-  min-width: 300px;
 }
 
-.nutrition-inputs {
-  display: flex;
-  gap: 8px;
+.ingredient-row:last-of-type {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fetch-btn {
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(33, 150, 243, 0.2);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.fetch-btn:hover {
+  background: rgba(33, 150, 243, 0.3);
+  border-color: #2196f3;
+  transform: scale(1.05);
 }
 
 .add-ingredient-btn {
-  padding: 10px 16px;
+  padding: 12px 20px;
   border: none;
   border-radius: 8px;
   background: linear-gradient(45deg, #4caf50, #66bb6a);
   color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 500;
-  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.95rem;
+  width: 100%;
 }
 
 .add-ingredient-btn:hover {
@@ -163,58 +150,73 @@
 .ingredients-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 300px;
+  gap: 8px;
+  max-height: 350px;
   overflow-y: auto;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .ingredient-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  padding: 12px;
+  gap: 12px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
-.ingredient-info {
+.ingredient-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.ingredient-main {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1;
 }
 
 .ingredient-name {
-  font-weight: 500;
+  font-weight: 600;
   color: #fff;
+  font-size: 0.95rem;
 }
 
 .ingredient-amount {
   font-size: 0.8rem;
-  color: #ccc;
+  color: #aaa;
 }
 
 .ingredient-nutrition {
   display: flex;
-  gap: 10px;
-  font-size: 0.8rem;
+  gap: 8px;
+  font-size: 0.75rem;
   color: #ccc;
+  flex-wrap: wrap;
 }
 
 .remove-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.3);
   color: #ff6b6b;
   cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
+  padding: 6px 10px;
+  border-radius: 6px;
   transition: all 0.3s ease;
+  font-size: 0.9rem;
+  min-width: 32px;
+  height: 32px;
 }
 
 .remove-btn:hover {
-  background: rgba(255, 107, 107, 0.2);
-  transform: scale(1.1);
+  background: rgba(255, 107, 107, 0.3);
+  border-color: #ff6b6b;
+  transform: scale(1.05);
 }
 
 .instructions-section {
@@ -385,17 +387,12 @@
     grid-template-columns: 1fr;
   }
   
-  .ingredient-form {
-    flex-direction: column;
-    align-items: stretch;
+  .ingredient-row {
+    grid-template-columns: 1fr;
   }
   
-  .ingredient-inputs {
-    min-width: auto;
-  }
-  
-  .nutrition-inputs {
-    justify-content: space-between;
+  .ingredient-row:last-of-type {
+    grid-template-columns: 1fr 1fr;
   }
   
   .nutrition-cards {
@@ -421,23 +418,21 @@
     padding: 15px;
   }
   
-  .ingredient-inputs {
-    flex-direction: column;
-  }
-  
-  .nutrition-inputs {
-    flex-direction: column;
+  .ingredient-row:last-of-type {
+    grid-template-columns: 1fr;
   }
   
   .ingredient-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
   
   .ingredient-nutrition {
-    align-self: stretch;
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+  
+  .remove-btn {
+    width: 100%;
   }
   
   .meal-actions {

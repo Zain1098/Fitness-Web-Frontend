@@ -15,6 +15,7 @@ export default function NutritionGoals() {
   })
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showInfo, setShowInfo] = useState(false)
   const [tempGoals, setTempGoals] = useState(goals)
 
   // Calculate goals based on user profile
@@ -131,12 +132,22 @@ export default function NutritionGoals() {
   return (
     <div className="nutrition-goals">
       <div className="goals-header">
-        <h3>🎯 Nutrition Goals</h3>
+        <div>
+          <h3>🎯 Daily Nutrition Goals</h3>
+          <p className="goals-subtitle">Set your daily targets based on your fitness goals</p>
+        </div>
         <div className="header-actions">
+          <button 
+            onClick={() => setShowInfo(!showInfo)}
+            className="info-btn"
+            title="Learn how auto-calculate works"
+          >
+            {showInfo ? '❌ Close Info' : 'ℹ️ How it Works'}
+          </button>
           <button 
             onClick={calculateGoals}
             className="calculate-btn"
-            title="Calculate based on your profile"
+            title="Auto-calculate based on your weight, height, age & activity level"
           >
             🧮 Auto Calculate
           </button>
@@ -144,24 +155,60 @@ export default function NutritionGoals() {
             onClick={() => setEditing(!editing)}
             className={`edit-btn ${editing ? 'active' : ''}`}
           >
-            {editing ? '❌ Cancel' : '✏️ Edit'}
+            {editing ? '❌ Cancel' : '✏️ Edit Goals'}
           </button>
         </div>
       </div>
+      
+      {showInfo && (
+        <div className="calculation-info">
+          <div className="info-card">
+            <h4>📐 How Auto-Calculate Works:</h4>
+            <ul>
+              <li><strong>Step 1:</strong> Calculates your BMR (Basal Metabolic Rate) using Mifflin-St Jeor formula</li>
+              <li><strong>Step 2:</strong> Multiplies by your activity level to get TDEE (Total Daily Energy Expenditure)</li>
+              <li><strong>Step 3:</strong> Adjusts calories based on your goal:
+                <ul>
+                  <li>Weight Loss: -500 cal/day (1 lb/week)</li>
+                  <li>Weight Gain: +500 cal/day (1 lb/week)</li>
+                  <li>Maintenance: No change</li>
+                </ul>
+              </li>
+              <li><strong>Step 4:</strong> Distributes macros: 30% Protein, 40% Carbs, 30% Fats</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {editing && (
         <div className="goal-presets">
-          <h4>Quick Presets:</h4>
+          <h4>⚡ Quick Presets:</h4>
+          <p className="preset-hint">Choose a preset based on your fitness goal</p>
           <div className="preset-buttons">
-            {Object.keys(goalPresets).map(preset => (
-              <button
-                key={preset}
-                onClick={() => applyPreset(preset)}
-                className="preset-btn"
-              >
-                {preset}
-              </button>
-            ))}
+            <button
+              onClick={() => applyPreset('Weight Loss')}
+              className="preset-btn weight-loss"
+              title="Lower calories, higher protein, lower carbs"
+            >
+              🔥 Weight Loss
+              <span className="preset-desc">-20% calories, +20% protein</span>
+            </button>
+            <button
+              onClick={() => applyPreset('Muscle Gain')}
+              className="preset-btn muscle-gain"
+              title="Higher calories, much higher protein"
+            >
+              💪 Muscle Gain
+              <span className="preset-desc">+15% calories, +50% protein</span>
+            </button>
+            <button
+              onClick={() => applyPreset('Maintenance')}
+              className="preset-btn maintenance"
+              title="Balanced macros for maintaining weight"
+            >
+              ⚖️ Maintenance
+              <span className="preset-desc">Balanced nutrition</span>
+            </button>
           </div>
         </div>
       )}

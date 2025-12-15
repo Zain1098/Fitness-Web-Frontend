@@ -149,6 +149,18 @@ export default function Progress() {
       return
     }
     
+    // Check for duplicate entry (same day)
+    const today = new Date().toDateString()
+    const isDuplicate = entries.some(entry => 
+      new Date(entry.date).toDateString() === today
+    )
+    
+    if (isDuplicate) {
+      setError('Progress already recorded for today!')
+      setTimeout(() => setError(''), 3000)
+      return
+    }
+    
     try {
       await api('/progress', {
         method: 'POST',

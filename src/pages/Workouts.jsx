@@ -91,11 +91,25 @@ export default function Workouts() {
       return
     }
     
+    // Check for duplicate workout
+    const workoutTitle = workoutName.trim() || `${category} Workout`
+    const isDuplicate = workouts.some(w => 
+      w.name === workoutTitle && 
+      w.exercises?.length === exercises.length &&
+      new Date(w.date).toDateString() === new Date().toDateString()
+    )
+    
+    if (isDuplicate) {
+      setError('This workout already exists for today!')
+      setTimeout(() => setError(''), 3000)
+      return
+    }
+    
     try {
       await api('/workouts', {
         method: 'POST',
         body: {
-          name: workoutName.trim() || `${category} Workout`,
+          name: workoutTitle,
           category,
           exercises
         },
@@ -105,7 +119,7 @@ export default function Workouts() {
       setSuccess('Workout created successfully!')
       setTimeout(() => setSuccess(''), 3000)
       logActivity('workout_created', `Created ${category} workout with ${exercises.length} exercises`, 'fitness', user);
-      logActivity('Workout Completed', `User completed ${workoutName.trim() || `${category} Workout`}`, 'user_action', user.username);
+      logActivity('Workout Completed', `User completed ${workoutTitle}`, 'user_action', user.username);
       
       // Reset form
       setWorkoutName('')

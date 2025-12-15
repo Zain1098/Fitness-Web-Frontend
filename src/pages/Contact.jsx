@@ -70,6 +70,17 @@ function ContactFormSection(){
       return
     }
     
+    // Check for duplicate submission (within 5 minutes)
+    const lastSubmission = localStorage.getItem('lastContactSubmission')
+    if (lastSubmission) {
+      const lastData = JSON.parse(lastSubmission)
+      const timeDiff = Date.now() - lastData.timestamp
+      if (timeDiff < 5 * 60 * 1000 && lastData.email === formData.email && lastData.subject === formData.subject) {
+        setError('You already submitted this message recently. Please wait a few minutes.')
+        return
+      }
+    }
+    
     setLoading(true)
     try {
       const response = await fetch(API_BASE_URL + '/contact/submit', {
@@ -81,6 +92,13 @@ function ContactFormSection(){
       const data = await response.json()
       
       if (response.ok) {
+        // Store submission info
+        localStorage.setItem('lastContactSubmission', JSON.stringify({
+          email: formData.email,
+          subject: formData.subject,
+          timestamp: Date.now()
+        }))
+        
         setStatus(data.message || 'Message sent successfully!')
         setFormData({ name: '', email: '', subject: '', message: '' })
         setErrors({})

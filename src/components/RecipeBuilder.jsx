@@ -159,25 +159,26 @@ export default function RecipeBuilder() {
     }
   }
 
-  const quickIngredients = [
-    { name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fats: 3.6 },
-    { name: 'Brown Rice', calories: 111, protein: 2.6, carbs: 23, fats: 0.9 },
-    { name: 'Olive Oil', calories: 884, protein: 0, carbs: 0, fats: 100 },
-    { name: 'Onion', calories: 40, protein: 1.1, carbs: 9.3, fats: 0.1 },
-    { name: 'Garlic', calories: 149, protein: 6.4, carbs: 33, fats: 0.5 },
-    { name: 'Tomato', calories: 18, protein: 0.9, carbs: 3.9, fats: 0.2 }
-  ]
-
-  const addQuickIngredient = (ingredient) => {
-    setNewIngredient({
-      name: ingredient.name,
-      quantity: '100',
-      unit: 'g',
-      calories: ingredient.calories.toString(),
-      protein: ingredient.protein.toString(),
-      carbs: ingredient.carbs.toString(),
-      fats: ingredient.fats.toString()
-    })
+  const fetchIngredientNutrition = async () => {
+    if (!newIngredient.name.trim()) return
+    
+    try {
+      const searchQuery = `100g ${newIngredient.name.trim()}`
+      const data = await api(`/nutrition-lookup?ingr=${encodeURIComponent(searchQuery)}`, { token })
+      
+      if (data.calories) {
+        const nutrients = data.totalNutrients || {}
+        setNewIngredient(prev => ({
+          ...prev,
+          calories: Math.round(data.calories).toString(),
+          protein: Math.round(nutrients.PROCNT?.quantity || 0).toString(),
+          carbs: Math.round(nutrients.CHOCDF?.quantity || 0).toString(),
+          fats: Math.round(nutrients.FAT?.quantity || 0).toString()
+        }))
+      }
+    } catch (err) {
+      console.error('Failed to fetch nutrition:', err)
+    }
   }
 
   const totalNutrition = calculateTotalNutrition()
@@ -228,105 +229,95 @@ export default function RecipeBuilder() {
 
         <div className="ingredients-section">
           <h4>🥘 Ingredients</h4>
-          
-          <div className="quick-ingredients">
-            <p>Quick Add:</p>
-            <div className="quick-buttons">
-              {quickIngredients.map(ingredient => (
-                <button
-                  key={ingredient.name}
-                  onClick={() => addQuickIngredient(ingredient)}
-                  className="quick-ingredient-btn"
-                >
-                  {ingredient.name}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="ingredient-form">
-            <div className="ingredient-inputs">
-              <input
-                type="text"
-                value={newIngredient.name}
-                onChange={(e) => setNewIngredient(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ingredient name"
-                className="form-input"
-              />
+            <input
+              type="text"
+              value={newIngredient.name}
+              onChange={(e) => setNewIngredient(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Ingredient name (e.g., Chicken Breast)"
+              className="form-input ingredient-name-input"
+            />
+            <div className="ingredient-row">
               <input
                 type="number"
                 value={newIngredient.quantity}
                 onChange={(e) => setNewIngredient(prev => ({ ...prev, quantity: e.target.value }))}
-                placeholder="Qty"
-                className="form-input small"
+                placeholder="Quantity"
+                className="form-input"
               />
               <select
                 value={newIngredient.unit}
                 onChange={(e) => setNewIngredient(prev => ({ ...prev, unit: e.target.value }))}
-                className="form-select small"
+                className="form-select"
               >
                 {units.map(unit => (
                   <option key={unit} value={unit}>{unit}</option>
                 ))}
               </select>
+              <button onClick={fetchIngredientNutrition} className="fetch-btn" title="Auto-fill nutrition">
+                🔍
+              </button>
             </div>
-            
-            <div className="nutrition-inputs">
+            <div className="ingredient-row">
               <input
                 type="number"
                 value={newIngredient.calories}
                 onChange={(e) => setNewIngredient(prev => ({ ...prev, calories: e.target.value }))}
-                placeholder="Cal"
-                className="form-input small"
+                placeholder="Calories"
+                className="form-input"
               />
               <input
                 type="number"
                 value={newIngredient.protein}
                 onChange={(e) => setNewIngredient(prev => ({ ...prev, protein: e.target.value }))}
-                placeholder="Protein"
-                className="form-input small"
+                placeholder="Protein (g)"
+                className="form-input"
               />
               <input
                 type="number"
                 value={newIngredient.carbs}
                 onChange={(e) => setNewIngredient(prev => ({ ...prev, carbs: e.target.value }))}
-                placeholder="Carbs"
-                className="form-input small"
+                placeholder="Carbs (g)"
+                className="form-input"
               />
               <input
                 type="number"
                 value={newIngredient.fats}
                 onChange={(e) => setNewIngredient(prev => ({ ...prev, fats: e.target.value }))}
-                placeholder="Fats"
-                className="form-input small"
+                placeholder="Fats (g)"
+                className="form-input"
               />
             </div>
-            
             <button onClick={addIngredient} className="add-ingredient-btn">
-              ➕ Add
+              ➕ Add Ingredient
             </button>
           </div>
 
-          <div className="ingredients-list">
-            {recipe.ingredients.map(ingredient => (
-              <div key={ingredient.id} className="ingredient-item">
-                <div className="ingredient-info">
-                  <span className="ingredient-name">{ingredient.name}</span>
-                  <span className="ingredient-amount">{ingredient.quantity}{ingredient.unit}</span>
+          {recipe.ingredients.length > 0 && (
+            <div className="ingredients-list">
+              {recipe.ingredients.map(ingredient => (
+                <div key={ingredient.id} className="ingredient-item">
+                  <div className="ingredient-main">
+                    <span className="ingredient-name">{ingredient.name}</span>
+                    <span className="ingredient-amount">{ingredient.quantity}{ingredient.unit}</span>
+                  </div>
+                  <div className="ingredient-nutrition">
+                    <span>🔥 {Math.round(ingredient.calories * ingredient.quantity / 100)}</span>
+                    <span>💪 {Math.round(ingredient.protein * ingredient.quantity / 100 * 10) / 10}g</span>
+                    <span>🌾 {Math.round(ingredient.carbs * ingredient.quantity / 100 * 10) / 10}g</span>
+                    <span>🥑 {Math.round(ingredient.fats * ingredient.quantity / 100 * 10) / 10}g</span>
+                  </div>
+                  <button
+                    onClick={() => removeIngredient(ingredient.id)}
+                    className="remove-btn"
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div className="ingredient-nutrition">
-                  <span>🔥 {Math.round(ingredient.calories * ingredient.quantity / 100)}</span>
-                  <span>💪 {Math.round(ingredient.protein * ingredient.quantity / 100 * 10) / 10}g</span>
-                </div>
-                <button
-                  onClick={() => removeIngredient(ingredient.id)}
-                  className="remove-btn"
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="instructions-section">

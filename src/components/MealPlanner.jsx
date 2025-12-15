@@ -6,6 +6,13 @@ import './MealPlanner.css'
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snacks']
 
+const MEAL_ICONS = {
+  breakfast: '🌅',
+  lunch: '☀️',
+  dinner: '🌙',
+  snacks: '🍎'
+}
+
 export default function MealPlanner() {
   const { token } = useAuth()
   const [currentWeek, setCurrentWeek] = useState(getWeekDates())
@@ -20,8 +27,9 @@ export default function MealPlanner() {
 
   function getWeekDates() {
     const today = new Date()
+    const day = today.getDay()
     const monday = new Date(today)
-    monday.setDate(today.getDate() - today.getDay() + 1)
+    monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
     
     const week = []
     for (let i = 0; i < 7; i++) {
@@ -36,11 +44,7 @@ export default function MealPlanner() {
     if (!token) return
     try {
       setLoading(true)
-      // Load meal plan for current week
-      const startDate = currentWeek[0].toISOString().split('T')[0]
-      const endDate = currentWeek[6].toISOString().split('T')[0]
-      
-      const response = await api(`/nutrition?startDate=${startDate}&endDate=${endDate}`, { token })
+      const response = await api('/nutrition', { token })
       const entries = response.items || response || []
       
       // Group by date and meal type
@@ -61,7 +65,11 @@ export default function MealPlanner() {
 
   useEffect(() => {
     loadMealPlan()
-  }, [currentWeek, token])
+  }, [token])
+  
+  useEffect(() => {
+    loadMealPlan()
+  }, [currentWeek])
 
   const getMealIcon = (mealType) => {
     const icons = {
@@ -111,161 +119,90 @@ export default function MealPlanner() {
     )
   }
 
-  const addQuickMeal = async (date, mealType, mealName, nutrition) => {
-    try {
-      await api('/nutrition', {
-        method: 'POST',
-        body: {
-          date: date.toISOString(),
-          mealType,
-          items: [{
-            name: mealName,
-            quantity: 100,
-            ...nutrition
-          }]
-        },
-        token
-      })
-      loadMealPlan()
-    } catch (err) {
-      console.error('Failed to add meal:', err)
-    }
-  }
+
 
   return (
     <div className="meal-planner">
       <div className="planner-header">
-        <div className="week-navigation">
-          <button onClick={() => navigateWeek(-1)} className="nav-btn">
-            ⬅️ Previous Week
-          </button>
-          <h3>
-            📅 Week of {currentWeek[0].toLocaleDateString('en-US', { 
-              month: 'short', 
-              day: 'numeric' 
-            })} - {currentWeek[6].toLocaleDateString('en-US', { 
-              month: 'short', 
-              day: 'numeric' 
-            })}
-          </h3>
-          <button onClick={() => navigateWeek(1)} className="nav-btn">
-            Next Week ➡️
-          </button>
+        <div>
+          <h3>📅 Weekly Meal Overview</h3>
+          <p className="planner-subtitle">View your logged meals from the Nutrition Tracker</p>
         </div>
-        
-        {!isCurrentWeek() && (
-          <button 
-            onClick={() => setCurrentWeek(getWeekDates())} 
-            className="current-week-btn"
-          >
-            📍 Go to Current Week
+        <div className="week-navigation">
+          <button onClick={() => navigateWeek(-1)} className="nav-btn" title="Previous week">
+            ⬅️
           </button>
-        )}
-      </div>
-
-      <div className="nutrition-goals">
-        <h4>🎯 Daily Nutrition Goals</h4>
-        <div className="goals-grid">
-          <div className="goal-item">
-            <span className="goal-icon">🔥</span>
-            <span className="goal-value">{goals.calories}</span>
-            <span className="goal-label">Calories</span>
-          </div>
-          <div className="goal-item">
-            <span className="goal-icon">💪</span>
-            <span className="goal-value">{goals.protein}g</span>
-            <span className="goal-label">Protein</span>
-          </div>
-          <div className="goal-item">
-            <span className="goal-icon">🌾</span>
-            <span className="goal-value">{goals.carbs}g</span>
-            <span className="goal-label">Carbs</span>
-          </div>
-          <div className="goal-item">
-            <span className="goal-icon">🥑</span>
-            <span className="goal-value">{goals.fats}g</span>
-            <span className="goal-label">Fats</span>
-          </div>
+          <span className="week-label">
+            {currentWeek[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - 
+            {currentWeek[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </span>
+          <button onClick={() => navigateWeek(1)} className="nav-btn" title="Next week">
+            ➡️
+          </button>
+          {!isCurrentWeek() && (
+            <button onClick={() => setCurrentWeek(getWeekDates())} className="today-btn" title="Go to current week">
+              📍 Today
+            </button>
+          )}
         </div>
       </div>
 
       {loading ? (
-        <div className="loading">🔄 Loading meal plan...</div>
+        <div className="loading">🔄 Loading...</div>
       ) : (
-        <div className="week-grid">
-          {currentWeek.map((date, index) => {
-            const dayTotals = calculateDayTotals(date)
-            const isToday = date.toDateString() === new Date().toDateString()
-            
-            return (
-              <div key={date.toDateString()} className={`day-card ${isToday ? 'today' : ''}`}>
-                <div className="day-header">
-                  <h4>{DAYS_OF_WEEK[index]}</h4>
-                  <p>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                  {isToday && <span className="today-badge">Today</span>}
-                </div>
-
-                <div className="day-progress">
-                  <div className="progress-item">
-                    <span className="progress-label">🔥 {Math.round(dayTotals.calories)}/{goals.calories}</span>
-                    <div className="progress-bar">
-                      <div 
-                        className="progress-fill calories" 
-                        style={{ width: `${getProgressPercentage(dayTotals.calories, goals.calories)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="day-meals">
-                  {MEAL_TYPES.map(mealType => {
-                    const dateStr = date.toDateString()
-                    const meals = mealPlan[dateStr]?.[mealType] || []
-                    
-                    return (
-                      <div key={mealType} className="meal-slot">
-                        <div className="meal-header">
-                          <span className="meal-icon">{getMealIcon(mealType)}</span>
-                          <span className="meal-name">{mealType}</span>
-                        </div>
-                        
-                        {meals.length > 0 ? (
-                          <div className="meal-items">
-                            {meals.slice(0, 2).map((item, idx) => (
-                              <div key={idx} className="meal-item">
-                                <span className="item-name">{item.name}</span>
-                                <span className="item-calories">{item.calories || 0} cal</span>
-                              </div>
-                            ))}
-                            {meals.length > 2 && (
-                              <div className="more-items">+{meals.length - 2} more</div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="empty-meal">
-                            <button 
-                              className="add-meal-btn"
-                              onClick={() => addQuickMeal(date, mealType, 'Quick Meal', { calories: 300, protein: 20, carbs: 30, fats: 10 })}
-                            >
-                              ➕ Add Meal
-                            </button>
-                          </div>
-                        )}
+        <div className="week-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>🌅 Breakfast</th>
+                <th>☀️ Lunch</th>
+                <th>🌙 Dinner</th>
+                <th>🍎 Snacks</th>
+                <th>🔥 Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentWeek.map((date, index) => {
+                const dayTotals = calculateDayTotals(date)
+                const isToday = date.toDateString() === new Date().toDateString()
+                const dateStr = date.toDateString()
+                
+                return (
+                  <tr key={dateStr} className={isToday ? 'today-row' : ''}>
+                    <td className="day-cell">
+                      <div className="day-name">{DAYS_OF_WEEK[index].slice(0, 3)}</div>
+                      <div className="day-date">{date.getDate()}</div>
+                      {isToday && <span className="today-dot">•</span>}
+                    </td>
+                    {MEAL_TYPES.map(mealType => {
+                      const meals = mealPlan[dateStr]?.[mealType] || []
+                      const mealCals = meals.reduce((sum, m) => sum + (m.calories || 0), 0)
+                      
+                      return (
+                        <td key={mealType} className="meal-cell">
+                          {meals.length > 0 ? (
+                            <div className="meal-info">
+                              <div className="meal-count">{meals.length} item{meals.length > 1 ? 's' : ''}</div>
+                              <div className="meal-cals">{Math.round(mealCals)} cal</div>
+                            </div>
+                          ) : (
+                            <div className="meal-empty">-</div>
+                          )}
+                        </td>
+                      )
+                    })}
+                    <td className="total-cell">
+                      <div className="total-cals">{Math.round(dayTotals.calories)}</div>
+                      <div className="total-macros">
+                        P:{Math.round(dayTotals.protein)} C:{Math.round(dayTotals.carbs)} F:{Math.round(dayTotals.fats)}
                       </div>
-                    )
-                  })}
-                </div>
-
-                <div className="day-summary">
-                  <div className="macro-summary">
-                    <span className="macro">💪 {Math.round(dayTotals.protein)}g</span>
-                    <span className="macro">🌾 {Math.round(dayTotals.carbs)}g</span>
-                    <span className="macro">🥑 {Math.round(dayTotals.fats)}g</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
