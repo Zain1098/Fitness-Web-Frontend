@@ -19,5 +19,6 @@ export const API_ENDPOINTS = {
   exercises: '/exercises',
   chat: '/chat',
   tracker: '/tracker',
-  reports: '/reports'
+  reports: '/reports',
+  recipes: '/recipes'
 }

@@ -52,6 +52,8 @@
   background: linear-gradient(45deg, #ff6b35, #ff8c42);
   color: #fff;
   border-color: transparent;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  font-weight: 600;
 }
 
 .foods-grid {
@@ -97,8 +99,14 @@
 }
 
 .food-image {
-  font-size: 2.5rem;
+  font-size: 3rem;
   flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.food-card:hover .food-image {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .food-info {
@@ -107,9 +115,17 @@
 
 .food-info h4 {
   font-size: 1rem;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: #fff;
   font-weight: 600;
+}
+
+.food-local-name {
+  font-size: 0.85rem;
+  color: #ff8c42;
+  margin-bottom: 4px;
+  font-weight: 500;
+  font-style: italic;
 }
 
 .food-serving {

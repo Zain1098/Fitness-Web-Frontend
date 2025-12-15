@@ -22,43 +22,125 @@ export default function NutritionAnalytics() {
     if (!token) return
     try {
       setLoading(true)
-      const response = await api(`/nutrition/analytics?range=${timeRange}`, { token })
+      const entries = await api('/nutrition', { token })
+      const data = entries.items || entries || []
       
-      const mockAnalytics = {
-        weeklyAverage: { calories: 1850, protein: 125, carbs: 220, fats: 65 },
-        monthlyTrend: [],
-        topFoods: [
-          { name: 'Chicken Breast', frequency: 15, calories: 2475 },
-          { name: 'Brown Rice', frequency: 12, calories: 1332 },
-          { name: 'Broccoli', frequency: 10, calories: 340 },
-          { name: 'Greek Yogurt', frequency: 8, calories: 472 },
-          { name: 'Almonds', frequency: 6, calories: 3474 }
-        ],
-        mealDistribution: { breakfast: 25, lunch: 35, dinner: 30, snacks: 10 },
-        nutritionScore: 85,
-        streaks: { current: 5, longest: 12 },
-        deficiencies: ['Vitamin D', 'Omega-3', 'Fiber'],
-        achievements: [
-          { name: 'Protein Goal Master', description: 'Hit protein goal 7 days in a row', icon: '💪', date: '2024-01-07' },
-          { name: 'Consistent Tracker', description: 'Logged meals for 30 days straight', icon: '📊', date: '2024-01-05' },
-          { name: 'Balanced Eater', description: 'Maintained macro balance for a week', icon: '⚖️', date: '2024-01-03' }
-        ]
+      const days = timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 365
+      const cutoffDate = new Date()
+      cutoffDate.setDate(cutoffDate.getDate() - days)
+      
+      const recentEntries = data.filter(e => new Date(e.date) >= cutoffDate)
+      
+      // Calculate averages
+      const totals = { calories: 0, protein: 0, carbs: 0, fats: 0, days: 0 }
+      const dailyTotals = {}
+      
+      recentEntries.forEach(entry => {
+        const dateKey = new Date(entry.date).toDateString()
+        if (!dailyTotals[dateKey]) {
+          dailyTotals[dateKey] = { calories: 0, protein: 0, carbs: 0, fats: 0 }
+        }
+        entry.items?.forEach(item => {
+          dailyTotals[dateKey].calories += item.calories || 0
+          dailyTotals[dateKey].protein += item.protein || 0
+          dailyTotals[dateKey].carbs += item.carbs || 0
+          dailyTotals[dateKey].fats += item.fats || 0
+        })
+      })
+      
+      const dayCount = Object.keys(dailyTotals).length || 1
+      Object.values(dailyTotals).forEach(day => {
+        totals.calories += day.calories
+        totals.protein += day.protein
+        totals.carbs += day.carbs
+        totals.fats += day.fats
+      })
+      
+      const weeklyAverage = {
+        calories: Math.round(totals.calories / dayCount),
+        protein: Math.round(totals.protein / dayCount),
+        carbs: Math.round(totals.carbs / dayCount),
+        fats: Math.round(totals.fats / dayCount)
       }
       
-      setAnalytics(mockAnalytics)
+      // Top foods
+      const foodFreq = {}
+      recentEntries.forEach(entry => {
+        entry.items?.forEach(item => {
+          if (!foodFreq[item.name]) {
+            foodFreq[item.name] = { frequency: 0, calories: 0 }
+          }
+          foodFreq[item.name].frequency++
+          foodFreq[item.name].calories += item.calories || 0
+        })
+      })
+      
+      const topFoods = Object.entries(foodFreq)
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.frequency - a.frequency)
+        .slice(0, 5)
+      
+      // Meal distribution
+      const mealCounts = { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 }
+      recentEntries.forEach(entry => {
+        mealCounts[entry.mealType] = (mealCounts[entry.mealType] || 0) + 1
+      })
+      const totalMeals = Object.values(mealCounts).reduce((a, b) => a + b, 0) || 1
+      const mealDistribution = {
+        breakfast: Math.round((mealCounts.breakfast / totalMeals) * 100),
+        lunch: Math.round((mealCounts.lunch / totalMeals) * 100),
+        dinner: Math.round((mealCounts.dinner / totalMeals) * 100),
+        snacks: Math.round((mealCounts.snacks / totalMeals) * 100)
+      }
+      
+      // Streaks
+      const sortedDates = Object.keys(dailyTotals).sort((a, b) => new Date(b) - new Date(a))
+      let currentStreak = 0
+      let longestStreak = 0
+      let tempStreak = 0
+      
+      for (let i = 0; i < sortedDates.length; i++) {
+        const date = new Date(sortedDates[i])
+        const expectedDate = new Date()
+        expectedDate.setDate(expectedDate.getDate() - i)
+        
+        if (date.toDateString() === expectedDate.toDateString()) {
+          currentStreak++
+          tempStreak++
+          longestStreak = Math.max(longestStreak, tempStreak)
+        } else {
+          if (i === 0) currentStreak = 0
+          tempStreak = 0
+        }
+      }
+      
+      // Nutrition score
+      let score = 50
+      if (weeklyAverage.protein >= 100) score += 15
+      if (weeklyAverage.calories >= 1500 && weeklyAverage.calories <= 2500) score += 15
+      if (currentStreak >= 3) score += 10
+      if (dayCount >= days * 0.8) score += 10
+      
+      setAnalytics({
+        weeklyAverage,
+        topFoods,
+        mealDistribution,
+        nutritionScore: Math.min(100, score),
+        streaks: { current: currentStreak, longest: longestStreak },
+        deficiencies: weeklyAverage.protein < 80 ? ['Protein'] : [],
+        achievements: []
+      })
     } catch (err) {
       console.error('Failed to load analytics:', err)
-      const fallbackData = {
+      setAnalytics({
         weeklyAverage: { calories: 0, protein: 0, carbs: 0, fats: 0 },
-        monthlyTrend: [],
         topFoods: [],
         mealDistribution: { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 },
         nutritionScore: 0,
         streaks: { current: 0, longest: 0 },
         deficiencies: [],
         achievements: []
-      }
-      setAnalytics(fallbackData)
+      })
     } finally {
       setLoading(false)
     }
@@ -253,43 +335,78 @@ export default function NutritionAnalytics() {
           </div>
         </div>
 
-        {/* Achievements */}
-        <div className="analytics-card achievements-card">
-          <h4>🏆 Recent Achievements</h4>
-          <div className="achievements-list">
-            {analytics.achievements.map((achievement, index) => (
-              <div key={index} className="achievement-item">
-                <span className="achievement-icon">{achievement.icon}</span>
-                <div className="achievement-info">
-                  <span className="achievement-name">{achievement.name}</span>
-                  <span className="achievement-desc">{achievement.description}</span>
-                  <span className="achievement-date">{new Date(achievement.date).toLocaleDateString()}</span>
-                </div>
+        {/* Macro Balance */}
+        <div className="analytics-card macro-balance-card">
+          <h4>⚖️ Macro Balance</h4>
+          <div className="macro-chart">
+            <div className="macro-bar">
+              <div className="macro-segment protein" style={{width: `${(analytics.weeklyAverage.protein * 4 / (analytics.weeklyAverage.calories || 1) * 100)}%`}}>
+                <span className="macro-label">P</span>
               </div>
-            ))}
+              <div className="macro-segment carbs" style={{width: `${(analytics.weeklyAverage.carbs * 4 / (analytics.weeklyAverage.calories || 1) * 100)}%`}}>
+                <span className="macro-label">C</span>
+              </div>
+              <div className="macro-segment fats" style={{width: `${(analytics.weeklyAverage.fats * 9 / (analytics.weeklyAverage.calories || 1) * 100)}%`}}>
+                <span className="macro-label">F</span>
+              </div>
+            </div>
+            <div className="macro-legend">
+              <div className="legend-item">
+                <span className="legend-color protein"></span>
+                <span>Protein {Math.round(analytics.weeklyAverage.protein * 4 / (analytics.weeklyAverage.calories || 1) * 100)}%</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color carbs"></span>
+                <span>Carbs {Math.round(analytics.weeklyAverage.carbs * 4 / (analytics.weeklyAverage.calories || 1) * 100)}%</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color fats"></span>
+                <span>Fats {Math.round(analytics.weeklyAverage.fats * 9 / (analytics.weeklyAverage.calories || 1) * 100)}%</span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Quick Insights */}
         <div className="analytics-card insights-card">
-          <h4>💡 Quick Insights</h4>
+          <h4>💡 Smart Insights</h4>
           <div className="insights-list">
-            <div className="insight-item">
-              <span className="insight-icon">📈</span>
-              <span>Your protein intake is 15% above target - great for muscle building!</span>
-            </div>
-            <div className="insight-item">
-              <span className="insight-icon">💧</span>
-              <span>Consider increasing water intake by 2 glasses daily.</span>
-            </div>
-            <div className="insight-item">
-              <span className="insight-icon">🥬</span>
-              <span>Add more leafy greens for better micronutrient balance.</span>
-            </div>
-            <div className="insight-item">
-              <span className="insight-icon">⏰</span>
-              <span>Your meal timing is consistent - keep it up!</span>
-            </div>
+            {analytics.weeklyAverage.protein >= 100 && (
+              <div className="insight-item positive">
+                <span className="insight-icon">💪</span>
+                <span>Excellent protein intake! Great for muscle recovery.</span>
+              </div>
+            )}
+            {analytics.weeklyAverage.protein < 80 && (
+              <div className="insight-item warning">
+                <span className="insight-icon">⚠️</span>
+                <span>Protein intake is low. Aim for 100-150g daily.</span>
+              </div>
+            )}
+            {analytics.streaks.current >= 7 && (
+              <div className="insight-item positive">
+                <span className="insight-icon">🔥</span>
+                <span>{analytics.streaks.current} day streak! Consistency is key.</span>
+              </div>
+            )}
+            {analytics.weeklyAverage.calories < 1500 && (
+              <div className="insight-item warning">
+                <span className="insight-icon">🍽️</span>
+                <span>Calorie intake seems low. Consider eating more.</span>
+              </div>
+            )}
+            {analytics.weeklyAverage.calories > 2500 && (
+              <div className="insight-item warning">
+                <span className="insight-icon">⚠️</span>
+                <span>High calorie intake. Monitor portion sizes.</span>
+              </div>
+            )}
+            {analytics.topFoods.length > 0 && (
+              <div className="insight-item">
+                <span className="insight-icon">🍽️</span>
+                <span>Most eaten: {analytics.topFoods[0]?.name} ({analytics.topFoods[0]?.frequency}x)</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

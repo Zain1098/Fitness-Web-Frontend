@@ -2,53 +2,63 @@ import { useState, useEffect } from 'react'
 import './FoodDatabase.css'
 
 const FOOD_CATEGORIES = {
+  'Pakistani Dishes': [
+    { name: 'Chicken Biryani', localName: 'Murgh Biryani', calories: 200, protein: 12, carbs: 28, fats: 5, image: '🍛', per: '100g' },
+    { name: 'Beef Nihari', localName: 'Nihari', calories: 235, protein: 18, carbs: 8, fats: 15, image: '🍲', per: '100g' },
+    { name: 'Chicken Karahi', localName: 'Murgh Karahi', calories: 180, protein: 20, carbs: 6, fats: 9, image: '🍗', per: '100g' },
+    { name: 'Daal Chawal', localName: 'Daal Chawal', calories: 130, protein: 6, carbs: 22, fats: 2, image: '🍚', per: '100g' },
+    { name: 'Haleem', localName: 'Haleem', calories: 150, protein: 10, carbs: 15, fats: 6, image: '🥘', per: '100g' },
+    { name: 'Chapli Kabab', localName: 'Chapli Kabab', calories: 280, protein: 22, carbs: 8, fats: 18, image: '🥙', per: '100g' }
+  ],
   'Proteins': [
-    { name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fats: 3.6, image: '🍗', per: '100g' },
-    { name: 'Salmon', calories: 208, protein: 20, carbs: 0, fats: 13, image: '🐟', per: '100g' },
-    { name: 'Eggs', calories: 155, protein: 13, carbs: 1.1, fats: 11, image: '🥚', per: '100g' },
-    { name: 'Greek Yogurt', calories: 59, protein: 10, carbs: 3.6, fats: 0.4, image: '🥛', per: '100g' },
-    { name: 'Tofu', calories: 76, protein: 8, carbs: 1.9, fats: 4.8, image: '🧈', per: '100g' },
-    { name: 'Lean Beef', calories: 250, protein: 26, carbs: 0, fats: 15, image: '🥩', per: '100g' }
+    { name: 'Chicken Breast', localName: 'Murgh', calories: 165, protein: 31, carbs: 0, fats: 3.6, image: '🍗', per: '100g' },
+    { name: 'Beef', localName: 'Gosht', calories: 250, protein: 26, carbs: 0, fats: 15, image: '🥩', per: '100g' },
+    { name: 'Mutton', localName: 'Bakra Gosht', calories: 294, protein: 25, carbs: 0, fats: 21, image: '🍖', per: '100g' },
+    { name: 'Fish', localName: 'Machli', calories: 206, protein: 22, carbs: 0, fats: 12, image: '🐟', per: '100g' },
+    { name: 'Eggs', localName: 'Anday', calories: 155, protein: 13, carbs: 1.1, fats: 11, image: '🥚', per: '100g' },
+    { name: 'Lentils', localName: 'Daal', calories: 116, protein: 9, carbs: 20, fats: 0.4, image: '🫘', per: '100g' }
   ],
   'Carbohydrates': [
-    { name: 'Brown Rice', calories: 111, protein: 2.6, carbs: 23, fats: 0.9, image: '🍚', per: '100g' },
-    { name: 'Oats', calories: 389, protein: 17, carbs: 66, fats: 7, image: '🥣', per: '100g' },
-    { name: 'Sweet Potato', calories: 86, protein: 1.6, carbs: 20, fats: 0.1, image: '🍠', per: '100g' },
-    { name: 'Quinoa', calories: 120, protein: 4.4, carbs: 22, fats: 1.9, image: '🌾', per: '100g' },
-    { name: 'Whole Wheat Bread', calories: 247, protein: 13, carbs: 41, fats: 4.2, image: '🍞', per: '100g' },
-    { name: 'Banana', calories: 89, protein: 1.1, carbs: 23, fats: 0.3, image: '🍌', per: '100g' }
+    { name: 'White Rice', localName: 'Chawal', calories: 130, protein: 2.7, carbs: 28, fats: 0.3, image: '🍚', per: '100g' },
+    { name: 'Roti', localName: 'Roti/Chapati', calories: 120, protein: 3.5, carbs: 24, fats: 1.2, image: '🫓', per: '1 piece' },
+    { name: 'Naan', localName: 'Naan', calories: 262, protein: 9, carbs: 46, fats: 5, image: '🥖', per: '100g' },
+    { name: 'Paratha', localName: 'Paratha', calories: 320, protein: 6, carbs: 38, fats: 15, image: '🥞', per: '100g' },
+    { name: 'Potato', localName: 'Aloo', calories: 77, protein: 2, carbs: 17, fats: 0.1, image: '🥔', per: '100g' },
+    { name: 'Banana', localName: 'Kela', calories: 89, protein: 1.1, carbs: 23, fats: 0.3, image: '🍌', per: '100g' }
   ],
   'Vegetables': [
-    { name: 'Broccoli', calories: 34, protein: 2.8, carbs: 7, fats: 0.4, image: '🥦', per: '100g' },
-    { name: 'Spinach', calories: 23, protein: 2.9, carbs: 3.6, fats: 0.4, image: '🥬', per: '100g' },
-    { name: 'Carrots', calories: 41, protein: 0.9, carbs: 10, fats: 0.2, image: '🥕', per: '100g' },
-    { name: 'Bell Pepper', calories: 31, protein: 1, carbs: 7, fats: 0.3, image: '🫑', per: '100g' },
-    { name: 'Tomato', calories: 18, protein: 0.9, carbs: 3.9, fats: 0.2, image: '🍅', per: '100g' },
-    { name: 'Cucumber', calories: 16, protein: 0.7, carbs: 4, fats: 0.1, image: '🥒', per: '100g' }
+    { name: 'Tomato', localName: 'Timater', calories: 18, protein: 0.9, carbs: 3.9, fats: 0.2, image: '🍅', per: '100g' },
+    { name: 'Onion', localName: 'Pyaz', calories: 40, protein: 1.1, carbs: 9, fats: 0.1, image: '🧅', per: '100g' },
+    { name: 'Spinach', localName: 'Palak', calories: 23, protein: 2.9, carbs: 3.6, fats: 0.4, image: '🥬', per: '100g' },
+    { name: 'Okra', localName: 'Bhindi', calories: 33, protein: 1.9, carbs: 7, fats: 0.2, image: '🫛', per: '100g' },
+    { name: 'Eggplant', localName: 'Baigan', calories: 25, protein: 1, carbs: 6, fats: 0.2, image: '🍆', per: '100g' },
+    { name: 'Cucumber', localName: 'Kheera', calories: 16, protein: 0.7, carbs: 4, fats: 0.1, image: '🥒', per: '100g' },
+    { name: 'Carrot', localName: 'Gajar', calories: 41, protein: 0.9, carbs: 10, fats: 0.2, image: '🥕', per: '100g' },
+    { name: 'Peas', localName: 'Matar', calories: 81, protein: 5, carbs: 14, fats: 0.4, image: '🫛', per: '100g' }
   ],
   'Fruits': [
-    { name: 'Apple', calories: 52, protein: 0.3, carbs: 14, fats: 0.2, image: '🍎', per: '100g' },
-    { name: 'Orange', calories: 47, protein: 0.9, carbs: 12, fats: 0.1, image: '🍊', per: '100g' },
-    { name: 'Berries Mix', calories: 57, protein: 0.7, carbs: 14, fats: 0.3, image: '🫐', per: '100g' },
-    { name: 'Mango', calories: 60, protein: 0.8, carbs: 15, fats: 0.4, image: '🥭', per: '100g' },
-    { name: 'Grapes', calories: 62, protein: 0.6, carbs: 16, fats: 0.2, image: '🍇', per: '100g' },
-    { name: 'Avocado', calories: 160, protein: 2, carbs: 9, fats: 15, image: '🥑', per: '100g' }
-  ],
-  'Nuts & Seeds': [
-    { name: 'Almonds', calories: 579, protein: 21, carbs: 22, fats: 50, image: '🥜', per: '100g' },
-    { name: 'Walnuts', calories: 654, protein: 15, carbs: 14, fats: 65, image: '🌰', per: '100g' },
-    { name: 'Chia Seeds', calories: 486, protein: 17, carbs: 42, fats: 31, image: '🌱', per: '100g' },
-    { name: 'Peanut Butter', calories: 588, protein: 25, carbs: 20, fats: 50, image: '🥜', per: '100g' },
-    { name: 'Sunflower Seeds', calories: 584, protein: 21, carbs: 20, fats: 51, image: '🌻', per: '100g' },
-    { name: 'Cashews', calories: 553, protein: 18, carbs: 30, fats: 44, image: '🥜', per: '100g' }
+    { name: 'Mango', localName: 'Aam', calories: 60, protein: 0.8, carbs: 15, fats: 0.4, image: '🥭', per: '100g' },
+    { name: 'Apple', localName: 'Seb', calories: 52, protein: 0.3, carbs: 14, fats: 0.2, image: '🍎', per: '100g' },
+    { name: 'Orange', localName: 'Sangtara', calories: 47, protein: 0.9, carbs: 12, fats: 0.1, image: '🍊', per: '100g' },
+    { name: 'Guava', localName: 'Amrood', calories: 68, protein: 2.6, carbs: 14, fats: 1, image: '🍐', per: '100g' },
+    { name: 'Watermelon', localName: 'Tarbooz', calories: 30, protein: 0.6, carbs: 8, fats: 0.2, image: '🍉', per: '100g' },
+    { name: 'Grapes', localName: 'Angoor', calories: 69, protein: 0.7, carbs: 18, fats: 0.2, image: '🍇', per: '100g' }
   ],
   'Dairy': [
-    { name: 'Milk (2%)', calories: 50, protein: 3.4, carbs: 5, fats: 2, image: '🥛', per: '100ml' },
-    { name: 'Cheddar Cheese', calories: 403, protein: 25, carbs: 1.3, fats: 33, image: '🧀', per: '100g' },
-    { name: 'Cottage Cheese', calories: 98, protein: 11, carbs: 3.4, fats: 4.3, image: '🧀', per: '100g' },
-    { name: 'Butter', calories: 717, protein: 0.9, carbs: 0.1, fats: 81, image: '🧈', per: '100g' },
-    { name: 'Yogurt', calories: 59, protein: 10, carbs: 3.6, fats: 0.4, image: '🥛', per: '100g' },
-    { name: 'Mozzarella', calories: 300, protein: 22, carbs: 2.2, fats: 22, image: '🧀', per: '100g' }
+    { name: 'Milk', localName: 'Doodh', calories: 61, protein: 3.2, carbs: 4.8, fats: 3.3, image: '🥛', per: '100ml' },
+    { name: 'Yogurt', localName: 'Dahi', calories: 59, protein: 10, carbs: 3.6, fats: 0.4, image: '🥣', per: '100g' },
+    { name: 'Butter', localName: 'Makkhan', calories: 717, protein: 0.9, carbs: 0.1, fats: 81, image: '🧈', per: '100g' },
+    { name: 'Cheese', localName: 'Paneer', calories: 265, protein: 18, carbs: 3, fats: 20, image: '🧀', per: '100g' },
+    { name: 'Cream', localName: 'Malai', calories: 340, protein: 2.2, carbs: 3, fats: 36, image: '🥛', per: '100g' },
+    { name: 'Lassi', localName: 'Lassi', calories: 60, protein: 3, carbs: 8, fats: 1.5, image: '🥤', per: '100ml' }
+  ],
+  'Nuts & Snacks': [
+    { name: 'Almonds', localName: 'Badam', calories: 579, protein: 21, carbs: 22, fats: 50, image: '🥜', per: '100g' },
+    { name: 'Cashews', localName: 'Kaju', calories: 553, protein: 18, carbs: 30, fats: 44, image: '🥜', per: '100g' },
+    { name: 'Pistachios', localName: 'Pista', calories: 560, protein: 20, carbs: 28, fats: 45, image: '🥜', per: '100g' },
+    { name: 'Peanuts', localName: 'Moongphali', calories: 567, protein: 26, carbs: 16, fats: 49, image: '🥜', per: '100g' },
+    { name: 'Samosa', localName: 'Samosa', calories: 262, protein: 5, carbs: 28, fats: 15, image: '🥟', per: '100g' },
+    { name: 'Pakora', localName: 'Pakora', calories: 280, protein: 6, carbs: 30, fats: 16, image: '🍤', per: '100g' }
   ]
 }
 
@@ -69,7 +79,8 @@ export default function FoodDatabase({ onSelectFood, searchTerm = '' }) {
 
     if (searchTerm) {
       foods = foods.filter(food => 
-        food.name.toLowerCase().includes(searchTerm.toLowerCase())
+        food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        food.localName?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -107,6 +118,7 @@ export default function FoodDatabase({ onSelectFood, searchTerm = '' }) {
             <div className="food-image">{food.image}</div>
             <div className="food-info">
               <h4>{food.name}</h4>
+              {food.localName && <p className="food-local-name">{food.localName}</p>}
               <p className="food-serving">Per {food.per}</p>
               <div className="food-macros">
                 <span className="macro calories">🔥 {food.calories}</span>

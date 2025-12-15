@@ -329,48 +329,78 @@
   font-size: 1.2rem;
 }
 
-/* Achievements */
-.achievements-list {
+/* Macro Balance */
+.macro-chart {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
 }
 
-.achievement-item {
+.macro-bar {
+  display: flex;
+  height: 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.macro-segment {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  border-left: 3px solid #ffc107;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.achievement-icon {
-  font-size: 1.5rem;
+.macro-segment.protein {
+  background: linear-gradient(90deg, #ff6b6b, #ff8787);
 }
 
-.achievement-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.macro-segment.carbs {
+  background: linear-gradient(90deg, #4ecdc4, #44a3a0);
 }
 
-.achievement-name {
+.macro-segment.fats {
+  background: linear-gradient(90deg, #ffd93d, #ffb700);
+}
+
+.macro-label {
   color: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
-.achievement-desc {
+.macro-legend {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
   color: #ccc;
-  font-size: 0.8rem;
 }
 
-.achievement-date {
-  color: #888;
-  font-size: 0.75rem;
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-color.protein {
+  background: #ff6b6b;
+}
+
+.legend-color.carbs {
+  background: #4ecdc4;
+}
+
+.legend-color.fats {
+  background: #ffd93d;
 }
 
 /* Insights */
@@ -390,6 +420,17 @@
   font-size: 0.9rem;
   color: #ccc;
   line-height: 1.4;
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.insight-item.positive {
+  background: rgba(76, 175, 80, 0.1);
+  border-left-color: #4caf50;
+}
+
+.insight-item.warning {
+  background: rgba(255, 152, 0, 0.1);
+  border-left-color: #ff9800;
 }
 
 .insight-icon {

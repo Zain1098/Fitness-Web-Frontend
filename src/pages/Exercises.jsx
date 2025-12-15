@@ -8,14 +8,10 @@ import './Exercises.css'
 const MUSCLE_GROUPS = {
   chest: { icon: '💪', name: 'Chest', color: '#ff6b35' },
   back: { icon: '🏋️', name: 'Back', color: '#4caf50' },
-  'lower legs': { icon: '🦵', name: 'Lower Legs', color: '#2196f3' },
-  'upper legs': { icon: '🦵', name: 'Upper Legs', color: '#2196f3' },
+  legs: { icon: '🦵', name: 'Legs', color: '#2196f3' },
   shoulders: { icon: '🤸', name: 'Shoulders', color: '#ff9800' },
-  'upper arms': { icon: '💪', name: 'Upper Arms', color: '#9c27b0' },
-  'lower arms': { icon: '💪', name: 'Lower Arms', color: '#9c27b0' },
-  waist: { icon: '🔥', name: 'Waist', color: '#f44336' },
-  cardio: { icon: '❤️', name: 'Cardio', color: '#e91e63' },
-  neck: { icon: '🦒', name: 'Neck', color: '#795548' }
+  arms: { icon: '💪', name: 'Arms', color: '#9c27b0' },
+  core: { icon: '🔥', name: 'Core', color: '#f44336' }
 }
 
 const EQUIPMENT_ICONS = {
@@ -91,75 +87,42 @@ export default function Exercises() {
       else setLoadingMore(true)
       
       const limit = 24
-      const offset = pageNum * limit
-      
-      // Fetch from free-exercise-db JSON
-      const response = await fetch('https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json')
-      let allData = await response.json()
-      
-      // Filter by muscle group
-      if (selectedGroup !== 'all') {
-        allData = allData.filter(ex => 
-          ex.primaryMuscles?.some(m => m.toLowerCase().includes(selectedGroup)) ||
-          ex.category?.toLowerCase() === selectedGroup
-        )
-      }
-      
-      // Filter by equipment
-      if (selectedEquipment !== 'all') {
-        allData = allData.filter(ex => 
-          ex.equipment?.toLowerCase().includes(selectedEquipment)
-        )
-      }
-      
-      // Filter by search query
-      if (searchQuery) {
-        allData = allData.filter(ex => 
-          ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ex.primaryMuscles?.some(m => m.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-      }
-      
-      // Paginate
-      const data = allData.slice(offset, offset + limit)
-      
-      // Map to our format
-      const newExercises = data.map(ex => {
-        const bodyPartIcons = {
-          'waist': '🔥', 'chest': '💪', 'back': '🏋️', 'core': '🔥',
-          'upper legs': '🦵', 'lower legs': '🦵', 'shoulders': '🤸', 'legs': '🦵',
-          'upper arms': '💪', 'lower arms': '💪', 'cardio': '❤️', 'neck': '🦒', 'arms': '💪'
-        }
-        const primaryMuscle = ex.primaryMuscles?.[0]?.toLowerCase() || 'other'
-        const baseUrl = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/'
-        const gifUrl = ex.images?.[0] ? `${baseUrl}${ex.images[0]}` : `${baseUrl}${ex.id}/images/0.jpg`
-        
-        return {
-          _id: ex.id,
-          name: ex.name,
-          gifUrl: gifUrl,
-          imageUrl: gifUrl,
-          icon: bodyPartIcons[primaryMuscle] || '🏋️',
-          target: ex.primaryMuscles?.[0] || 'general',
-          bodyPart: primaryMuscle,
-          equipment: ex.equipment || 'bodyweight',
-          secondaryMuscles: ex.secondaryMuscles || [],
-          instructions: ex.instructions || [],
-          description: `${ex.name} - ${ex.category || 'strength'} exercise`,
-          group: primaryMuscle,
-          type: ex.category || 'strength',
-          difficulty: 'intermediate',
-          sets: 3,
-          reps: 10
-        }
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        page: pageNum.toString()
       })
       
-      if (!append && newExercises.length > 0) {
-        console.log('First exercise:', newExercises[0].name, 'gifUrl:', newExercises[0].gifUrl)
-      }
+      if (selectedGroup !== 'all') params.append('group', selectedGroup)
+      if (selectedEquipment !== 'all') params.append('equipment', selectedEquipment)
+      if (selectedDifficulty !== 'all') params.append('difficulty', selectedDifficulty)
+      if (searchQuery) params.append('q', searchQuery)
+      
+      const response = await api(`/exercises?${params.toString()}`, { token })
+      const data = Array.isArray(response) ? response : (response.items || [])
+      
+      const newExercises = data.map(ex => ({
+        _id: ex._id || ex.id,
+        name: ex.name,
+        gifUrl: ex.imageUrl || ex.gifUrl || 'https://via.placeholder.com/300x200?text=Exercise',
+        imageUrl: ex.imageUrl || ex.gifUrl || 'https://via.placeholder.com/300x200?text=Exercise',
+        icon: MUSCLE_GROUPS[ex.group]?.icon || '🏋️',
+        target: ex.target || 'general',
+        bodyPart: ex.group || 'core',
+        equipment: ex.equipment || 'bodyweight',
+        secondaryMuscles: ex.secondaryMuscles || [],
+        instructions: ex.instructions || [],
+        description: `${ex.name} - ${ex.type || 'strength'} exercise`,
+        group: ex.group || 'core',
+        type: ex.type || 'strength',
+        difficulty: ex.difficulty || 'intermediate',
+        sets: 3,
+        reps: 10
+      }))
       
       if (append) {
-        setExercises(prev => [...prev, ...newExercises])
+        const allExercises = [...exercises, ...newExercises]
+        setExercises(allExercises)
+        calculateStats(allExercises)
       } else {
         setExercises(newExercises)
         calculateStats(newExercises)
@@ -170,8 +133,8 @@ export default function Exercises() {
       
     } catch (err) {
       console.error('Failed to load exercises:', err)
-      setError('Failed to load exercises')
-      setTimeout(() => setError(''), 3000)
+      setError(`Failed to load exercises: ${err.message}`)
+      setTimeout(() => setError(''), 5000)
     } finally {
       setLoading(false)
       setLoadingMore(false)
@@ -181,7 +144,7 @@ export default function Exercises() {
   const calculateStats = (data) => {
     const byGroup = {}
     data.forEach(ex => {
-      const group = ex.group || 'other'
+      const group = ex.group || ex.bodyPart || 'other'
       byGroup[group] = (byGroup[group] || 0) + 1
     })
     setStats({ total: data.length, byGroup })
@@ -624,14 +587,10 @@ export default function Exercises() {
                   <option value="all">🎯 All Groups</option>
                   <option value="chest">💪 Chest</option>
                   <option value="back">🏋️ Back</option>
-                  <option value="upper legs">🦵 Upper Legs</option>
-                  <option value="lower legs">🦵 Lower Legs</option>
+                  <option value="legs">🦵 Legs</option>
                   <option value="shoulders">🤸 Shoulders</option>
-                  <option value="upper arms">💪 Upper Arms</option>
-                  <option value="lower arms">💪 Lower Arms</option>
-                  <option value="waist">🔥 Waist</option>
-                  <option value="cardio">❤️ Cardio</option>
-                  <option value="neck">🦒 Neck</option>
+                  <option value="arms">💪 Arms</option>
+                  <option value="core">🔥 Core</option>
                 </select>
               </div>
               
