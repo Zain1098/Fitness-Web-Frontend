@@ -35,7 +35,7 @@ export default function Progress() {
     streak: 0
   })
   
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('record')
   const [showBFCalculator, setShowBFCalculator] = useState(false)
   const [showMMCalculator, setShowMMCalculator] = useState(false)
   
@@ -220,28 +220,28 @@ export default function Progress() {
           {/* Navigation Tabs */}
           <div className="progress-tabs">
             <button 
-              className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
+              className={`tab-btn ${activeTab === 'record' ? 'active' : ''}`}
+              onClick={() => setActiveTab('record')}
             >
-              📊 Overview
+              ➕ Record Progress
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'timeline' ? 'active' : ''}`}
+              onClick={() => setActiveTab('timeline')}
+            >
+              📜 Timeline
             </button>
             <button 
               className={`tab-btn ${activeTab === 'charts' ? 'active' : ''}`}
               onClick={() => setActiveTab('charts')}
             >
-              📈 Charts
+              📈 Charts & Analytics
             </button>
             <button 
               className={`tab-btn ${activeTab === 'photos' ? 'active' : ''}`}
               onClick={() => setActiveTab('photos')}
             >
-              📸 Progress Photos
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'measurements' ? 'active' : ''}`}
-              onClick={() => setActiveTab('measurements')}
-            >
-              📏 Measurements
+              📸 Photos
             </button>
           </div>
 
@@ -250,10 +250,210 @@ export default function Progress() {
           {success && <div className="message success">{success}</div>}
 
           {/* Tab Content */}
-          {activeTab === 'overview' && (
+          {activeTab === 'record' && (
+            <div className="tab-content fade-in">
+              {/* Quick Stats */}
+              <div className="quick-stats-grid">
+                <div className="quick-stat-card">
+                  <div className="stat-icon">⚖️</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{convertWeight(stats.currentWeight || onboardingData?.weight || 0)} {getWeightUnit()}</span>
+                    <span className="stat-label">Current Weight</span>
+                  </div>
+                </div>
+                <div className="quick-stat-card">
+                  <div className="stat-icon">🎯</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{onboardingData?.target_weight ? convertWeight(onboardingData.target_weight) + ' ' + getWeightUnit() : 'Not Set'}</span>
+                    <span className="stat-label">Target Weight</span>
+                  </div>
+                </div>
+                <div className="quick-stat-card">
+                  <div className="stat-icon">📊</div>
+                  <div className="stat-info">
+                    <span className="stat-value">{stats.totalEntries}</span>
+                    <span className="stat-label">Total Records</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Record Form */}
+              <div className="record-section">
+                <h2>➕ Record Today's Progress</h2>
+                <div className="record-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Weight *</label>
+                      <div className="input-with-unit">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                          placeholder="Enter weight"
+                          className="form-input"
+                        />
+                        <span className="unit-label">{getWeightUnit()}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Body Fat %</label>
+                      <div className="input-with-btn">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={bodyFat}
+                          onChange={(e) => setBodyFat(e.target.value)}
+                          placeholder="Optional"
+                          className="form-input"
+                        />
+                        <button type="button" className="calc-btn" onClick={() => setShowBFCalculator(!showBFCalculator)} title="Calculate">
+                          🧮
+                        </button>
+                      </div>
+                      {showBFCalculator && (
+                        <div className="calculator-popup">
+                          <h4>Body Fat Calculator</h4>
+                          <select value={gender} onChange={(e) => setGender(e.target.value)} className="calc-input">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </select>
+                          <input type="number" placeholder={`Height (${getHeightUnit()})`} value={height} onChange={(e) => setHeight(e.target.value)} className="calc-input" />
+                          <input type="number" placeholder={`Neck (${getHeightUnit()})`} value={neck} onChange={(e) => setNeck(e.target.value)} className="calc-input" />
+                          <input type="number" placeholder={`Waist (${getHeightUnit()})`} value={waistCalc} onChange={(e) => setWaistCalc(e.target.value)} className="calc-input" />
+                          {gender === 'female' && (
+                            <input type="number" placeholder={`Hip (${getHeightUnit()})`} value={hipCalc} onChange={(e) => setHipCalc(e.target.value)} className="calc-input" />
+                          )}
+                          <button onClick={calculateBodyFat} className="calc-submit-btn">Calculate</button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Muscle Mass</label>
+                      <div className="input-with-unit">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={muscle}
+                          onChange={(e) => setMuscle(e.target.value)}
+                          placeholder="Optional"
+                          className="form-input"
+                        />
+                        <span className="unit-label">{getWeightUnit()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Body Measurements */}
+                  <div className="measurements-section">
+                    <h3>📏 Body Measurements (Optional)</h3>
+                    <div className="measurements-grid">
+                      <div className="form-group">
+                        <label>💪 Arms</label>
+                        <div className="input-with-unit">
+                          <input type="number" step="0.1" value={arms} onChange={(e) => setArms(e.target.value)} className="form-input" />
+                          <span className="unit-label">{getHeightUnit()}</span>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>👕 Chest</label>
+                        <div className="input-with-unit">
+                          <input type="number" step="0.1" value={chest} onChange={(e) => setChest(e.target.value)} className="form-input" />
+                          <span className="unit-label">{getHeightUnit()}</span>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>👖 Waist</label>
+                        <div className="input-with-unit">
+                          <input type="number" step="0.1" value={waist} onChange={(e) => setWaist(e.target.value)} className="form-input" />
+                          <span className="unit-label">{getHeightUnit()}</span>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>🎯 Hips</label>
+                        <div className="input-with-unit">
+                          <input type="number" step="0.1" value={hips} onChange={(e) => setHips(e.target.value)} className="form-input" />
+                          <span className="unit-label">{getHeightUnit()}</span>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>🦵 Thighs</label>
+                        <div className="input-with-unit">
+                          <input type="number" step="0.1" value={thighs} onChange={(e) => setThighs(e.target.value)} className="form-input" />
+                          <span className="unit-label">{getHeightUnit()}</span>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>🦵 Calves</label>
+                        <div className="input-with-unit">
+                          <input type="number" step="0.1" value={calves} onChange={(e) => setCalves(e.target.value)} className="form-input" />
+                          <span className="unit-label">{getHeightUnit()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Notes</label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="How are you feeling? Any achievements?"
+                      className="form-textarea"
+                      rows="3"
+                    />
+                  </div>
+                  
+                  <button 
+                    className="btn-primary btn-large"
+                    onClick={addProgress}
+                    disabled={!weight.trim()}
+                  >
+                    💾 Save Progress
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'timeline' && (
             <div className="tab-content fade-in">
           {/* Onboarding Stats */}
-          {onboardingData && (
+          {/* Stats Summary */}
+          <div className="timeline-stats-summary">
+            <div className="summary-card">
+              <div className="summary-icon">⚖️</div>
+              <div className="summary-content">
+                <span className="summary-value">{convertWeight(stats.currentWeight || 0)} {getWeightUnit()}</span>
+                <span className="summary-label">Current</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <div className="summary-icon">📈</div>
+              <div className="summary-content">
+                <span className="summary-value">{stats.weightChange !== 0 ? (stats.weightChange > 0 ? '+' : '') + convertWeight(stats.weightChange).toFixed(1) : '0'} {getWeightUnit()}</span>
+                <span className="summary-label">Change</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <div className="summary-icon">📊</div>
+              <div className="summary-content">
+                <span className="summary-value">{stats.totalEntries}</span>
+                <span className="summary-label">Records</span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <div className="summary-icon">🔥</div>
+              <div className="summary-content">
+                <span className="summary-value">{stats.streak}</span>
+                <span className="summary-label">Week Streak</span>
+              </div>
+            </div>
+          </div>
+
+          {onboardingData && false && (
             <div className="onboarding-stats">
               <h2>🎯 Your Fitness Profile</h2>
               <div className="stats-grid">
@@ -315,7 +515,137 @@ export default function Progress() {
             </div>
           )}
 
+          {/* Timeline Section */}
+          <div className="timeline-section-new">
+            <h2>📜 Progress Timeline</h2>
+            
+            {/* Stats Summary */}
+            <div className="timeline-stats-summary">
+              <div className="summary-card">
+                <div className="summary-icon">⚖️</div>
+                <div className="summary-content">
+                  <span className="summary-value">{convertWeight(stats.currentWeight || 0)} {getWeightUnit()}</span>
+                  <span className="summary-label">Current</span>
+                </div>
+              </div>
+              <div className="summary-card">
+                <div className="summary-icon">📈</div>
+                <div className="summary-content">
+                  <span className="summary-value">{stats.weightChange !== 0 ? (stats.weightChange > 0 ? '+' : '') + convertWeight(stats.weightChange).toFixed(1) : '0'} {getWeightUnit()}</span>
+                  <span className="summary-label">Change</span>
+                </div>
+              </div>
+              <div className="summary-card">
+                <div className="summary-icon">📊</div>
+                <div className="summary-content">
+                  <span className="summary-value">{stats.totalEntries}</span>
+                  <span className="summary-label">Records</span>
+                </div>
+              </div>
+              <div className="summary-card">
+                <div className="summary-icon">🔥</div>
+                <div className="summary-content">
+                  <span className="summary-value">{stats.streak}</span>
+                  <span className="summary-label">Week Streak</span>
+                </div>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="loading-state">
+                <div className="loading-spinner">🔄</div>
+                <p>Loading progress data...</p>
+              </div>
+            ) : entries.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">📈</div>
+                <h3>No progress entries yet</h3>
+                <p>Start tracking your progress in the Record tab!</p>
+                <button className="btn-primary" onClick={() => setActiveTab('record')} style={{ marginTop: '20px' }}>
+                  ➕ Record Progress
+                </button>
+              </div>
+            ) : (
+              <div className="timeline-list">
+                {entries
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map((entry) => (
+                    <div key={entry._id} className="timeline-card">
+                      <div className="timeline-card-header">
+                        <div className="timeline-date-badge">
+                          📅 {formatDate(entry.date)}
+                        </div>
+                        <button 
+                          className="delete-icon-btn"
+                          onClick={() => deleteEntry(entry._id)}
+                          title="Delete"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                      
+                      <div className="timeline-card-body">
+                        <div className="metric-row">
+                          <div className="metric-item primary">
+                            <span className="metric-icon">⚖️</span>
+                            <div className="metric-info">
+                              <span className="metric-value">{convertWeight(entry.weight || 0)} {getWeightUnit()}</span>
+                              <span className="metric-label">Weight</span>
+                            </div>
+                          </div>
+                          
+                          {entry.bodyFat > 0 && (
+                            <div className="metric-item">
+                              <span className="metric-icon">📊</span>
+                              <div className="metric-info">
+                                <span className="metric-value">{entry.bodyFat}%</span>
+                                <span className="metric-label">Body Fat</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {entry.muscle > 0 && (
+                            <div className="metric-item">
+                              <span className="metric-icon">💪</span>
+                              <div className="metric-info">
+                                <span className="metric-value">{convertWeight(entry.muscle)} {getWeightUnit()}</span>
+                                <span className="metric-label">Muscle</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {(entry.arms || entry.chest || entry.waist || entry.hips || entry.thighs || entry.calves) && (
+                          <div className="measurements-row">
+                            <h4>📏 Measurements</h4>
+                            <div className="measurements-list">
+                              {entry.arms && <span>💪 Arms: {convertHeight(entry.arms)} {getHeightUnit()}</span>}
+                              {entry.chest && <span>👕 Chest: {convertHeight(entry.chest)} {getHeightUnit()}</span>}
+                              {entry.waist && <span>👖 Waist: {convertHeight(entry.waist)} {getHeightUnit()}</span>}
+                              {entry.hips && <span>🎯 Hips: {convertHeight(entry.hips)} {getHeightUnit()}</span>}
+                              {entry.thighs && <span>🦵 Thighs: {convertHeight(entry.thighs)} {getHeightUnit()}</span>}
+                              {entry.calves && <span>🦵 Calves: {convertHeight(entry.calves)} {getHeightUnit()}</span>}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {entry.notes && (
+                          <div className="notes-row">
+                            <span className="notes-icon">📝</span>
+                            <p>{entry.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+            </div>
+          )}
+
           {/* Current Stats */}
+          {false && (
           <div className="current-stats">
             <h2>📊 Current Progress</h2>
             <div className="stats-grid">
@@ -350,7 +680,7 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* Add Progress Form */}
+          {false && (
           <div className="add-progress-section">
             <h2>➕ Record Progress</h2>
             <div className="progress-form">
@@ -448,7 +778,8 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* Progress Timeline */}
+          )}
+          {false && (
           <div className="timeline-section">
             <h2>📅 Progress Timeline</h2>
             {loading ? (
@@ -546,46 +877,162 @@ export default function Progress() {
             <div className="tab-content fade-in">
               <div className="charts-container">
                 <h2>📈 Progress Charts</h2>
-                <div className="charts-grid">
-                  <div className="chart-card">
-                    <h3>Weight Trend</h3>
-                    <div className="chart-placeholder">
-                      <div className="chart-line">
-                        {entries.slice(0, 10).reverse().map((entry, idx) => (
-                          <div 
-                            key={idx} 
-                            className="chart-bar"
-                            style={{ height: `${(entry.weight / 100) * 100}%` }}
-                            title={`${entry.weight} kg`}
-                          >
-                            <span className="bar-label">{entry.weight}</span>
+                {entries.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">📊</div>
+                    <h3>No data to visualize yet</h3>
+                    <p>Start tracking your progress to see beautiful charts!</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="charts-grid">
+                      <div className="chart-card full-width">
+                        <h3>⚖️ Weight Trend (Last 30 Days)</h3>
+                        <div className="line-chart">
+                          <div className="chart-y-axis">
+                            {[...Array(5)].map((_, i) => {
+                              const maxWeight = Math.max(...entries.slice(0, 30).map(e => e.weight || 0))
+                              const minWeight = Math.min(...entries.slice(0, 30).map(e => e.weight || 0).filter(w => w > 0))
+                              const step = (maxWeight - minWeight) / 4
+                              const value = maxWeight - (i * step)
+                              return (
+                                <div key={i} className="y-label">
+                                  {convertWeight(value).toFixed(1)}
+                                </div>
+                              )
+                            })}
                           </div>
-                        ))}
-                      </div>
-                      {entries.length === 0 && <p className="no-data">📉 No data yet. Start tracking!</p>}
-                    </div>
-                  </div>
-                  
-                  <div className="chart-card">
-                    <h3>Body Composition</h3>
-                    <div className="composition-stats">
-                      <div className="comp-item">
-                        <span className="comp-icon">💪</span>
-                        <div>
-                          <span className="comp-label">Muscle Mass</span>
-                          <span className="comp-value">{convertWeight(entries[0]?.muscle || 0)} {getWeightUnit()}</span>
+                          <div className="chart-area">
+                            <svg viewBox="0 0 600 200" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id="weightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.3" />
+                                  <stop offset="100%" stopColor="#ff6b35" stopOpacity="0.05" />
+                                </linearGradient>
+                              </defs>
+                              {entries.slice(0, 30).reverse().length > 1 && (() => {
+                                const data = entries.slice(0, 30).reverse().filter(e => e.weight > 0)
+                                const maxWeight = Math.max(...data.map(e => e.weight))
+                                const minWeight = Math.min(...data.map(e => e.weight))
+                                const range = maxWeight - minWeight || 1
+                                const points = data.map((e, i) => {
+                                  const x = (i / (data.length - 1)) * 600
+                                  const y = 200 - ((e.weight - minWeight) / range) * 180
+                                  return `${x},${y}`
+                                }).join(' ')
+                                const areaPoints = `0,200 ${points} 600,200`
+                                return (
+                                  <>
+                                    <polyline points={points} fill="none" stroke="#ff6b35" strokeWidth="3" />
+                                    <polygon points={areaPoints} fill="url(#weightGradient)" />
+                                    {data.map((e, i) => {
+                                      const x = (i / (data.length - 1)) * 600
+                                      const y = 200 - ((e.weight - minWeight) / range) * 180
+                                      return (
+                                        <circle key={i} cx={x} cy={y} r="4" fill="#ff6b35">
+                                          <title>{convertWeight(e.weight)} {getWeightUnit()} - {formatDate(e.date)}</title>
+                                        </circle>
+                                      )
+                                    })}
+                                  </>
+                                )
+                              })()}
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="chart-footer">
+                          <span>📅 {formatDate(entries[Math.min(29, entries.length - 1)]?.date)}</span>
+                          <span>→</span>
+                          <span>📅 {formatDate(entries[0]?.date)}</span>
                         </div>
                       </div>
-                      <div className="comp-item">
-                        <span className="comp-icon">📉</span>
-                        <div>
-                          <span className="comp-label">Body Fat</span>
-                          <span className="comp-value">{entries[0]?.bodyFat || 0}%</span>
+                      
+                      <div className="chart-card">
+                        <h3>📊 Body Fat % Progress</h3>
+                        <div className="progress-comparison">
+                          {entries.filter(e => e.bodyFat > 0).length > 0 ? (
+                            <>
+                              <div className="comparison-item">
+                                <span className="comparison-label">Latest</span>
+                                <div className="circular-progress" style={{'--progress': entries.find(e => e.bodyFat > 0)?.bodyFat || 0}}>
+                                  <span className="progress-value">{entries.find(e => e.bodyFat > 0)?.bodyFat || 0}%</span>
+                                </div>
+                              </div>
+                              {entries.filter(e => e.bodyFat > 0).length > 1 && (
+                                <>
+                                  <div className="comparison-arrow">→</div>
+                                  <div className="comparison-item">
+                                    <span className="comparison-label">Starting</span>
+                                    <div className="circular-progress" style={{'--progress': entries.filter(e => e.bodyFat > 0)[entries.filter(e => e.bodyFat > 0).length - 1]?.bodyFat || 0}}>
+                                      <span className="progress-value">{entries.filter(e => e.bodyFat > 0)[entries.filter(e => e.bodyFat > 0).length - 1]?.bodyFat || 0}%</span>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <p className="no-data">No body fat data recorded</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="chart-card">
+                        <h3>💪 Muscle Mass Trend</h3>
+                        <div className="bar-chart-horizontal">
+                          {entries.filter(e => e.muscle > 0).slice(0, 10).map((entry, idx) => (
+                            <div key={idx} className="bar-item">
+                              <span className="bar-date">{formatDate(entry.date)}</span>
+                              <div className="bar-track">
+                                <div 
+                                  className="bar-fill muscle"
+                                  style={{ width: `${(entry.muscle / Math.max(...entries.filter(e => e.muscle > 0).map(e => e.muscle))) * 100}%` }}
+                                >
+                                  <span className="bar-value">{convertWeight(entry.muscle)} {getWeightUnit()}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {entries.filter(e => e.muscle > 0).length === 0 && <p className="no-data">No muscle mass data recorded</p>}
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                    
+                    {/* Monthly Comparison */}
+                    {entries.length >= 30 && (
+                      <div className="comparison-section">
+                        <h3>📊 Monthly Comparison</h3>
+                        <div className="comparison-grid">
+                          <div className="comparison-card">
+                            <div className="comparison-header">This Month</div>
+                            <div className="comparison-stats">
+                              <div className="stat-row">
+                                <span>Avg Weight:</span>
+                                <span className="stat-value">{convertWeight(entries.slice(0, 30).reduce((sum, e) => sum + (e.weight || 0), 0) / Math.min(30, entries.length)).toFixed(1)} {getWeightUnit()}</span>
+                              </div>
+                              <div className="stat-row">
+                                <span>Entries:</span>
+                                <span className="stat-value">{Math.min(30, entries.length)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="comparison-card">
+                            <div className="comparison-header">Last Month</div>
+                            <div className="comparison-stats">
+                              <div className="stat-row">
+                                <span>Avg Weight:</span>
+                                <span className="stat-value">{convertWeight(entries.slice(30, 60).reduce((sum, e) => sum + (e.weight || 0), 0) / Math.min(30, entries.slice(30).length)).toFixed(1)} {getWeightUnit()}</span>
+                              </div>
+                              <div className="stat-row">
+                                <span>Entries:</span>
+                                <span className="stat-value">{Math.min(30, entries.slice(30).length)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -598,23 +1045,87 @@ export default function Progress() {
                 <div className="photos-upload">
                   <div className="upload-box">
                     <div className="upload-icon">📷</div>
-                    <p>Upload progress photos</p>
-                    <button className="upload-btn">📁 Choose Photos</button>
-                    <p className="upload-hint">Coming Soon - Upload front, side, and back photos</p>
+                    <p>Upload progress photos (Front, Side, Back)</p>
+                    <input 
+                      type="file" 
+                      id="photo-upload" 
+                      accept="image/*" 
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files)
+                        if (files.length === 0) return
+                        
+                        try {
+                          setLoading(true)
+                          const photoUrls = []
+                          
+                          for (const file of files) {
+                            const reader = new FileReader()
+                            const base64 = await new Promise((resolve) => {
+                              reader.onloadend = () => resolve(reader.result)
+                              reader.readAsDataURL(file)
+                            })
+                            photoUrls.push({ url: base64, type: 'front' })
+                          }
+                          
+                          await api('/progress', {
+                            method: 'POST',
+                            body: { photos: photoUrls },
+                            token
+                          })
+                          
+                          setSuccess('Photos uploaded!')
+                          setTimeout(() => setSuccess(''), 2000)
+                          loadProgress()
+                        } catch (err) {
+                          setError('Failed to upload photos')
+                          setTimeout(() => setError(''), 3000)
+                        } finally {
+                          setLoading(false)
+                        }
+                      }}
+                    />
+                    <button className="upload-btn" onClick={() => document.getElementById('photo-upload').click()}>
+                      📁 Choose Photos
+                    </button>
+                    <p className="upload-hint">Select one or more photos to upload</p>
                   </div>
                 </div>
                 <div className="photos-grid">
-                  <div className="photo-placeholder">
-                    <span>📸</span>
-                    <p>No photos yet</p>
-                  </div>
+                  {entries.filter(e => e.photos && e.photos.length > 0).length === 0 ? (
+                    <div className="photo-placeholder">
+                      <span>📸</span>
+                      <p>No photos yet</p>
+                      <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '10px' }}>Upload your first progress photo above</p>
+                    </div>
+                  ) : (
+                    entries
+                      .filter(e => e.photos && e.photos.length > 0)
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))
+                      .map((entry) => (
+                        <div key={entry._id} className="photo-entry">
+                          <div className="photo-date">
+                            📅 {formatDate(entry.date)}
+                            {entry.weight && <span className="photo-weight">⚖️ {convertWeight(entry.weight)} {getWeightUnit()}</span>}
+                          </div>
+                          <div className="photo-images">
+                            {entry.photos.map((photo, idx) => (
+                              <div key={idx} className="photo-item">
+                                <img src={photo.url} alt={`Progress ${photo.type}`} />
+                                <span className="photo-type">{photo.type}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Measurements Tab */}
-          {activeTab === 'measurements' && (
+          {false && activeTab === 'measurements' && (
             <div className="tab-content fade-in">
               <div className="measurements-container">
                 <h2>📏 Body Measurements</h2>

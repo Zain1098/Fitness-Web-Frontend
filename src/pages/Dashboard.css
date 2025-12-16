@@ -412,9 +412,68 @@
 }
 
 /* Responsive */
+/* Tracker Preview Section */
+.tracker-preview-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tracker-preview-section h2 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin: 0;
+}
+
+.tracker-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.tracker-quick-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.tracker-quick-card:hover {
+  background: rgba(255, 107, 53, 0.1);
+  border-color: #ff6b35;
+  transform: translateY(-3px);
+}
+
+.tracker-icon {
+  font-size: 2rem;
+}
+
+.tracker-label {
+  font-size: 0.9rem;
+  color: #ccc;
+  font-weight: 600;
+}
+
+.tracker-value {
+  font-size: 0.85rem;
+  color: #ff6b35;
+}
+
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 15px;
+  }
+  
+  .tracker-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .dashboard-header {

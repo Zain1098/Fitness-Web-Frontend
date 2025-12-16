@@ -1965,3 +1965,243 @@
   background: rgba(255, 107, 53, 0.3);
   transform: translateY(-2px);
 }
+
+
+/* History & Analytics */
+.history-analytics-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  color: #fff;
+}
+
+.analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.analytics-stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s;
+}
+
+.analytics-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.analytics-stat-card.highlight {
+  background: rgba(255, 107, 53, 0.15);
+  border-color: rgba(255, 107, 53, 0.4);
+}
+
+.insights-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.insight-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.insight-card h3 {
+  font-size: 1rem;
+  margin-bottom: 15px;
+  color: #ff6b35;
+}
+
+.insight-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+
+.insight-label {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.history-timeline-section {
+  background: rgba(20, 20, 20, 0.85);
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.history-timeline-section h3 {
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.history-timeline {
+  position: relative;
+  padding-left: 40px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.history-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-timeline::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.history-timeline::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 53, 0.5);
+  border-radius: 3px;
+}
+
+.history-timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #ff6b35, transparent);
+}
+
+.history-timeline-item {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -40px;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #1a1a1a;
+  z-index: 1;
+}
+
+.timeline-number {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.timeline-content {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+}
+
+.timeline-content:hover {
+  transform: translateX(5px);
+  border-color: #ff6b35;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.timeline-header h4 {
+  font-size: 1.1rem;
+  color: #fff;
+  margin: 0 0 5px 0;
+}
+
+.timeline-date {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.workout-badge {
+  padding: 4px 12px;
+  background: rgba(255, 107, 53, 0.2);
+  border: 1px solid #ff6b35;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #ff6b35;
+  text-transform: capitalize;
+}
+
+.timeline-stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: #ccc;
+  flex-wrap: wrap;
+}
+
+.timeline-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timeline-exercise {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.timeline-exercise .ex-name {
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.timeline-exercise .ex-details {
+  font-size: 0.85rem;
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .analytics-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .insights-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .history-timeline {
+    padding-left: 30px;
+  }
+  
+  .timeline-marker {
+    left: -30px;
+    width: 28px;
+    height: 28px;
+  }
+}

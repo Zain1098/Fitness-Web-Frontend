@@ -20,6 +20,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import Exercises from './pages/Exercises.jsx'
 import SavedExercises from './pages/SavedExercises.jsx'
 import DailyTracker from './pages/DailyTracker.jsx'
+import TrackerAnalytics from './pages/TrackerAnalytics.jsx'
 import MaintenancePage from './pages/MaintenancePage.jsx'
 import Checkout from './pages/Checkout.jsx'
 
@@ -82,6 +83,7 @@ function App() {
       <Route path="/exercises" element={<Exercises />} />
       <Route path="/exercises/saved" element={<SavedExercises />} />
       <Route path="/tracker" element={<DailyTracker />} />
+      <Route path="/tracker/analytics" element={<TrackerAnalytics />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/checkout" element={<Checkout />} />

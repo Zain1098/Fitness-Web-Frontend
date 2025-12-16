@@ -5,32 +5,51 @@ import { api } from '../api/client.js'
 import { showToast } from '../components/Toast.jsx'
 import styled, { keyframes } from 'styled-components'
 
-const PLANS = {
-  basic: { name: 'Basic', price: 9.99, features: ['AI Workout Plans', 'Custom Meal Plans', 'Priority Support'] },
-  pro: { name: 'Pro', price: 19.99, features: ['Advanced Analytics', 'Video Tutorials', '1-on-1 Coaching', 'No Ads'] },
-  premium: { name: 'Premium', price: 29.99, features: ['Personalized Training', 'Nutrition Consultation', 'Exclusive Content', 'Early Access'] }
-}
-
 export default function Checkout() {
   const [searchParams] = useSearchParams()
-  const plan = searchParams.get('plan')
+  const planId = searchParams.get('plan')
+  const isAnnual = searchParams.get('annual') === 'true'
   const navigate = useNavigate()
   const { user, token } = useAuth()
   const [loading, setLoading] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [promoApplied, setPromoApplied] = useState(null)
   const [promoLoading, setPromoLoading] = useState(false)
+  const [plans, setPlans] = useState([])
+  const [plansLoading, setPlansLoading] = useState(true)
+  const [selectedPlan, setSelectedPlan] = useState(null)
 
   useEffect(() => {
     if (!user) {
       showToast('Please login to continue', 'error')
       navigate('/?auth=login')
     }
-    if (!plan || !PLANS[plan]) {
-      showToast('Invalid plan selected', 'error')
-      navigate('/services')
+  }, [user, navigate])
+
+  // Fetch plans from backend
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const data = await api('/pricing')
+        setPlans(data.plans || [])
+        if (planId) {
+          const plan = data.plans.find(p => p.planId === planId)
+          setSelectedPlan(plan)
+        }
+      } catch (error) {
+        console.error('Failed to fetch plans:', error)
+        showToast('Failed to load pricing', 'error')
+      } finally {
+        setPlansLoading(false)
+      }
     }
-  }, [user, plan, navigate])
+    fetchPlans()
+  }, [planId])
+
+  if (!planId || plansLoading) return <Container><Card><Title>Loading...</Title></Card></Container>
+  if (!selectedPlan) {
+    return <Container><Card><Title>Invalid plan selected</Title></Card></Container>
+  }
 
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return
@@ -38,7 +57,7 @@ export default function Checkout() {
       setPromoLoading(true)
       const response = await api('/promo/validate', {
         method: 'POST',
-        body: { code: promoCode, plan },
+        body: { code: promoCode, plan: planId, billingCycle: isAnnual ? 'annual' : 'monthly' },
         token
       })
       setPromoApplied(response)
@@ -55,12 +74,10 @@ export default function Checkout() {
     showToast('Payment system temporarily unavailable. Coming soon!', 'info')
   }
 
-  if (!plan || !PLANS[plan]) return null
-
-  const selectedPlan = PLANS[plan]
-  const originalPrice = selectedPlan.price
+  const originalPrice = isAnnual ? selectedPlan.annualPrice : selectedPlan.monthlyPrice
   const discount = promoApplied ? (promoApplied.discountType === 'percentage' ? (originalPrice * promoApplied.discount / 100) : promoApplied.discount) : 0
   const finalPrice = Math.max(0, originalPrice - discount)
+  const billingPeriod = isAnnual ? 'year' : 'month'
 
   return (
     <Container>
@@ -71,10 +88,13 @@ export default function Checkout() {
         </Header>
 
         <PlanSummary>
-          <PlanBadge>{selectedPlan.name} Plan</PlanBadge>
-          <PlanPrice>${selectedPlan.price}<span>/month</span></PlanPrice>
+          <PlanBadge>
+            {selectedPlan.name} Plan {isAnnual && <span style={{fontSize:'0.8em', opacity:0.8}}>• Annual</span>}
+          </PlanBadge>
+          <PlanPrice>${originalPrice.toFixed(2)}<span>/{billingPeriod}</span></PlanPrice>
+          {selectedPlan.description && <p>{selectedPlan.description}</p>}
           <FeatureList>
-            {selectedPlan.features.map((feature, i) => (
+            {selectedPlan.features?.map((feature, i) => (
               <Feature key={i}>✓ {feature}</Feature>
             ))}
           </FeatureList>

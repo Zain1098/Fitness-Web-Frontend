@@ -161,18 +161,140 @@ export default function Exercises() {
     if (activeTab === 'myworkouts') {
       loadSavedWorkouts()
     }
+    if (activeTab === 'history') {
+      loadWorkoutHistory()
+    }
   }, [activeTab])
   
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem('fitforge_favorites')
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites))
+  const [workoutHistory, setWorkoutHistory] = useState([])
+  const [historyStats, setHistoryStats] = useState({
+    totalWorkouts: 0,
+    totalExercises: 0,
+    totalSets: 0,
+    totalReps: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    favoriteExercise: '',
+    mostWorkedMuscle: ''
+  })
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  
+  const loadWorkoutHistory = async () => {
+    try {
+      setLoadingHistory(true)
+      const response = await api('/workouts', { token })
+      const workouts = response.items || response || []
+      const completedWorkouts = workouts.filter(w => w.status === 'completed')
+      setWorkoutHistory(completedWorkouts)
+      calculateHistoryStats(completedWorkouts)
+    } catch (err) {
+      console.error('Failed to load history:', err)
+    } finally {
+      setLoadingHistory(false)
     }
-  }, [])
+  }
+  
+  const calculateHistoryStats = (workouts) => {
+    if (workouts.length === 0) return
+    
+    const totalWorkouts = workouts.length
+    const totalExercises = workouts.reduce((sum, w) => sum + (w.exercises?.length || 0), 0)
+    const totalSets = workouts.reduce((sum, w) => 
+      sum + (w.exercises?.reduce((s, e) => s + (e.sets || 0), 0) || 0), 0
+    )
+    const totalReps = workouts.reduce((sum, w) => 
+      sum + (w.exercises?.reduce((s, e) => s + ((e.sets || 0) * (e.reps || 0)), 0) || 0), 0
+    )
+    
+    // Calculate streaks
+    const sorted = [...workouts].sort((a, b) => new Date(b.date) - new Date(a.date))
+    let currentStreak = 0
+    let longestStreak = 0
+    let tempStreak = 0
+    
+    for (let i = 0; i < sorted.length; i++) {
+      if (i === 0 || Math.abs(new Date(sorted[i].date) - new Date(sorted[i-1].date)) <= 2 * 24 * 60 * 60 * 1000) {
+        tempStreak++
+        if (i === 0) currentStreak = tempStreak
+        longestStreak = Math.max(longestStreak, tempStreak)
+      } else {
+        tempStreak = 1
+      }
+    }
+    
+    // Find favorite exercise
+    const exerciseCount = {}
+    workouts.forEach(w => {
+      w.exercises?.forEach(e => {
+        exerciseCount[e.name] = (exerciseCount[e.name] || 0) + 1
+      })
+    })
+    const favoriteExercise = Object.entries(exerciseCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
+    
+    // Find most worked muscle
+    const muscleCount = {}
+    workouts.forEach(w => {
+      const category = w.category || 'general'
+      muscleCount[category] = (muscleCount[category] || 0) + 1
+    })
+    const mostWorkedMuscle = Object.entries(muscleCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
+    
+    setHistoryStats({
+      totalWorkouts,
+      totalExercises,
+      totalSets,
+      totalReps,
+      currentStreak,
+      longestStreak,
+      favoriteExercise,
+      mostWorkedMuscle
+    })
+  }
   
   useEffect(() => {
-    localStorage.setItem('fitforge_favorites', JSON.stringify(favorites))
-  }, [favorites])
+    loadFavorites()
+  }, [])
+  
+  const loadFavorites = async () => {
+    if (!token) return
+    try {
+      setLoadingFavorites(true)
+      const response = await api('/favorites', { token })
+      const favoriteIds = response.favorites || []
+      const favoriteExercises = exercises.filter(ex => favoriteIds.includes(ex._id))
+      setFavorites(favoriteExercises)
+    } catch (err) {
+      console.error('Failed to load favorites:', err)
+    } finally {
+      setLoadingFavorites(false)
+    }
+  }
+  
+  const toggleFavorite = async (exercise) => {
+    if (!token) {
+      setError('Please login to save favorites')
+      setTimeout(() => setError(''), 3000)
+      return
+    }
+    
+    const isFavorite = favorites.find(f => f._id === exercise._id)
+    
+    try {
+      if (isFavorite) {
+        await api(`/favorites/${exercise._id}`, { method: 'DELETE', token })
+        setFavorites(favorites.filter(f => f._id !== exercise._id))
+        setSuccess('Removed from favorites')
+      } else {
+        await api('/favorites', { method: 'POST', body: { exerciseId: exercise._id }, token })
+        setFavorites([...favorites, exercise])
+        setSuccess('Added to favorites!')
+      }
+      setTimeout(() => setSuccess(''), 2000)
+    } catch (err) {
+      setError('Failed to update favorites')
+      setTimeout(() => setError(''), 2000)
+    }
+  }
   
   const loadSavedWorkouts = async () => {
     try {
@@ -545,6 +667,12 @@ export default function Exercises() {
             >
               💪 My Workouts
             </button>
+            <button 
+              className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+              onClick={() => setActiveTab('history')}
+            >
+              📊 History & Analytics
+            </button>
           </div>
 
           {/* Messages */}
@@ -696,16 +824,7 @@ export default function Exercises() {
                     </button>
                     <button 
                       className={`action-btn favorite-btn ${favorites.find(f => f._id === exercise._id) ? 'active' : ''}`}
-                      onClick={() => {
-                        if (favorites.find(f => f._id === exercise._id)) {
-                          setFavorites(favorites.filter(f => f._id !== exercise._id))
-                          setSuccess('Removed from favorites')
-                        } else {
-                          setFavorites([...favorites, exercise])
-                          setSuccess('Added to favorites!')
-                        }
-                        setTimeout(() => setSuccess(''), 2000)
-                      }}
+                      onClick={() => toggleFavorite(exercise)}
                       title={favorites.find(f => f._id === exercise._id) ? 'Remove from favorites' : 'Add to favorites'}
                     >
                       {favorites.find(f => f._id === exercise._id) ? '⭐' : '☆'}
@@ -1274,6 +1393,140 @@ export default function Exercises() {
             </div>
           )}
 
+          {/* History & Analytics Tab */}
+          {activeTab === 'history' && (
+            <div className="tab-content fade-in">
+              <div className="history-analytics-container">
+                <h2>📊 Workout History & Analytics</h2>
+                
+                {/* Stats Overview */}
+                <div className="analytics-stats-grid">
+                  <div className="analytics-stat-card highlight">
+                    <div className="stat-icon-large">🔥</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{historyStats.currentStreak}</div>
+                      <div className="stat-label">Current Streak</div>
+                    </div>
+                  </div>
+                  <div className="analytics-stat-card">
+                    <div className="stat-icon-large">💪</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{historyStats.totalWorkouts}</div>
+                      <div className="stat-label">Total Workouts</div>
+                    </div>
+                  </div>
+                  <div className="analytics-stat-card">
+                    <div className="stat-icon-large">🏋️</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{historyStats.totalExercises}</div>
+                      <div className="stat-label">Total Exercises</div>
+                    </div>
+                  </div>
+                  <div className="analytics-stat-card">
+                    <div className="stat-icon-large">📊</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{historyStats.totalSets}</div>
+                      <div className="stat-label">Total Sets</div>
+                    </div>
+                  </div>
+                  <div className="analytics-stat-card">
+                    <div className="stat-icon-large">🔢</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{historyStats.totalReps.toLocaleString()}</div>
+                      <div className="stat-label">Total Reps</div>
+                    </div>
+                  </div>
+                  <div className="analytics-stat-card">
+                    <div className="stat-icon-large">🏆</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{historyStats.longestStreak}</div>
+                      <div className="stat-label">Longest Streak</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Insights */}
+                <div className="insights-cards">
+                  <div className="insight-card">
+                    <h3>⭐ Favorite Exercise</h3>
+                    <p className="insight-value">{historyStats.favoriteExercise}</p>
+                    <span className="insight-label">Most performed exercise</span>
+                  </div>
+                  <div className="insight-card">
+                    <h3>🎯 Most Worked Muscle</h3>
+                    <p className="insight-value">{historyStats.mostWorkedMuscle}</p>
+                    <span className="insight-label">Primary focus area</span>
+                  </div>
+                  <div className="insight-card">
+                    <h3>📅 Avg Workouts/Week</h3>
+                    <p className="insight-value">{historyStats.totalWorkouts > 0 ? (historyStats.totalWorkouts / Math.max(1, Math.ceil((new Date() - new Date(workoutHistory[workoutHistory.length - 1]?.date)) / (7 * 24 * 60 * 60 * 1000)))).toFixed(1) : 0}</p>
+                    <span className="insight-label">Weekly average</span>
+                  </div>
+                </div>
+                
+                {/* Workout History Timeline */}
+                <div className="history-timeline-section">
+                  <h3>📜 Workout History</h3>
+                  {loadingHistory ? (
+                    <div className="loading-state">🔄 Loading history...</div>
+                  ) : workoutHistory.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-icon">💪</div>
+                      <h3>No workout history yet</h3>
+                      <p>Complete workouts to see your history and analytics</p>
+                    </div>
+                  ) : (
+                    <div className="history-timeline">
+                      {workoutHistory
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map((workout, idx) => (
+                          <div key={workout._id} className="history-timeline-item">
+                            <div className="timeline-marker">
+                              <span className="timeline-number">{idx + 1}</span>
+                            </div>
+                            <div className="timeline-content">
+                              <div className="timeline-header">
+                                <div>
+                                  <h4>{workout.name || `${workout.category} Workout`}</h4>
+                                  <span className="timeline-date">
+                                    📅 {new Date(workout.date).toLocaleDateString('en-US', {
+                                      weekday: 'short',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                </div>
+                                <span className="workout-badge">{workout.category}</span>
+                              </div>
+                              <div className="timeline-stats">
+                                <span>🏋️ {workout.exercises?.length || 0} exercises</span>
+                                <span>📊 {workout.exercises?.reduce((sum, e) => sum + (e.sets || 0), 0) || 0} sets</span>
+                                <span>🔢 {workout.exercises?.reduce((sum, e) => sum + ((e.sets || 0) * (e.reps || 0)), 0) || 0} reps</span>
+                              </div>
+                              {workout.exercises && workout.exercises.length > 0 && (
+                                <div className="timeline-exercises">
+                                  {workout.exercises.slice(0, 3).map((ex, i) => (
+                                    <div key={i} className="timeline-exercise">
+                                      <span className="ex-name">{ex.name}</span>
+                                      <span className="ex-details">{ex.sets} × {ex.reps}</span>
+                                    </div>
+                                  ))}
+                                  {workout.exercises.length > 3 && (
+                                    <p className="more-exercises">+{workout.exercises.length - 3} more</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Favorites Tab */}
           {activeTab === 'favorites' && (
             <div className="tab-content fade-in">
@@ -1347,11 +1600,7 @@ export default function Exercises() {
                           </button>
                           <button 
                             className="action-btn favorite-btn active"
-                            onClick={() => {
-                              setFavorites(favorites.filter(f => f._id !== exercise._id))
-                              setSuccess('Removed from favorites')
-                              setTimeout(() => setSuccess(''), 2000)
-                            }}
+                            onClick={() => toggleFavorite(exercise)}
                             title="Remove from favorites"
                           >
                             ⭐
@@ -1483,16 +1732,7 @@ export default function Exercises() {
                 <div className="modal-footer">
                   <button 
                     className="modal-btn favorite-btn"
-                    onClick={() => {
-                      if (favorites.find(f => f._id === selectedExercise._id)) {
-                        setFavorites(favorites.filter(f => f._id !== selectedExercise._id))
-                        setSuccess('Removed from favorites')
-                      } else {
-                        setFavorites([...favorites, selectedExercise])
-                        setSuccess('Added to favorites!')
-                      }
-                      setTimeout(() => setSuccess(''), 2000)
-                    }}
+                    onClick={() => toggleFavorite(selectedExercise)}
                   >
                     {favorites.find(f => f._id === selectedExercise._id) ? '⭐ Remove from Favorites' : '☆ Add to Favorites'}
                   </button>

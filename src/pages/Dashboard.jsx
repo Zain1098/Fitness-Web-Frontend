@@ -347,6 +347,54 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Today's Tracker Preview */}
+              <div className="tracker-preview-section">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2>📅 Today's Tracker</h2>
+                  <button 
+                    className="view-full-btn"
+                    onClick={() => {
+                      fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
+                      navigate('/tracker');
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'rgba(255, 107, 53, 0.2)',
+                      border: '1px solid #ff6b35',
+                      borderRadius: '8px',
+                      color: '#ff6b35',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600'
+                    }}
+                  >
+                    View Full Tracker →
+                  </button>
+                </div>
+                <div className="tracker-quick-grid">
+                  <div className="tracker-quick-card">
+                    <span className="tracker-icon">💧</span>
+                    <span className="tracker-label">Water</span>
+                    <span className="tracker-value">Track daily</span>
+                  </div>
+                  <div className="tracker-quick-card">
+                    <span className="tracker-icon">👟</span>
+                    <span className="tracker-label">Steps</span>
+                    <span className="tracker-value">10k goal</span>
+                  </div>
+                  <div className="tracker-quick-card">
+                    <span className="tracker-icon">😴</span>
+                    <span className="tracker-label">Sleep</span>
+                    <span className="tracker-value">7-9 hours</span>
+                  </div>
+                  <div className="tracker-quick-card">
+                    <span className="tracker-icon">😊</span>
+                    <span className="tracker-label">Mood</span>
+                    <span className="tracker-value">Log today</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Quick Actions */}
               <div className="quick-actions-section">
                 <h2>⚡ Quick Actions</h2>

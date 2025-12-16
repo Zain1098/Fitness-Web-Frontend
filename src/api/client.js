@@ -23,9 +23,34 @@ export async function api(path, { method = 'GET', body, token } = {}) {
     let data = null
     const contentType = res.headers.get('content-type')
     
-    if (contentType && contentType.includes('application/json')) {
+    // Handle empty body responses (204 No Content, etc)
+    if (res.status === 204 || res.status === 201 || !res.ok && res.status >= 400) {
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const text = await res.text()
+          if (text && text.trim()) {
+            data = JSON.parse(text)
+          } else {
+            data = {}
+          }
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', parseError)
+          data = { error: 'invalid_response', message: 'Server returned invalid JSON' }
+        }
+      } else {
+        const text = await res.text()
+        data = text && text.trim() 
+          ? { error: 'invalid_content_type', message: text }
+          : {}
+      }
+    } else if (contentType && contentType.includes('application/json')) {
       try {
-        data = await res.json()
+        const text = await res.text()
+        if (text && text.trim()) {
+          data = JSON.parse(text)
+        } else {
+          data = {}
+        }
       } catch (parseError) {
         console.error('Failed to parse JSON response:', parseError)
         data = { error: 'invalid_response', message: 'Server returned invalid JSON' }
