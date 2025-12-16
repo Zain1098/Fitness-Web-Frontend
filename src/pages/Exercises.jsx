@@ -86,7 +86,7 @@ export default function Exercises() {
       if (!append) setLoading(true)
       else setLoadingMore(true)
       
-      const limit = 24
+      const limit = 100
       const params = new URLSearchParams({
         limit: limit.toString(),
         page: pageNum.toString()
@@ -100,24 +100,27 @@ export default function Exercises() {
       const response = await api(`/exercises?${params.toString()}`, { token })
       const data = Array.isArray(response) ? response : (response.items || [])
       
-      const newExercises = data.map(ex => ({
-        _id: ex._id || ex.id,
-        name: ex.name,
-        gifUrl: ex.imageUrl || ex.gifUrl || 'https://via.placeholder.com/300x200?text=Exercise',
-        imageUrl: ex.imageUrl || ex.gifUrl || 'https://via.placeholder.com/300x200?text=Exercise',
-        icon: MUSCLE_GROUPS[ex.group]?.icon || '🏋️',
-        target: ex.target || 'general',
-        bodyPart: ex.group || 'core',
-        equipment: ex.equipment || 'bodyweight',
-        secondaryMuscles: ex.secondaryMuscles || [],
-        instructions: ex.instructions || [],
-        description: `${ex.name} - ${ex.type || 'strength'} exercise`,
-        group: ex.group || 'core',
-        type: ex.type || 'strength',
-        difficulty: ex.difficulty || 'intermediate',
-        sets: 3,
-        reps: 10
-      }))
+      const newExercises = data.map(ex => {
+        const imageUrl = ex.gifUrl || ex.imageUrl || 'https://via.placeholder.com/300x200?text=Exercise'
+        return {
+          _id: ex._id || ex.id,
+          name: ex.name,
+          gifUrl: imageUrl,
+          imageUrl: imageUrl,
+          icon: MUSCLE_GROUPS[ex.group]?.icon || '🏋️',
+          target: ex.target || 'general',
+          bodyPart: ex.group || 'core',
+          equipment: ex.equipment || 'bodyweight',
+          secondaryMuscles: ex.secondaryMuscles || [],
+          instructions: ex.instructions || [],
+          description: `${ex.name} - ${ex.type || 'strength'} exercise`,
+          group: ex.group || 'core',
+          type: ex.type || 'strength',
+          difficulty: ex.difficulty || 'intermediate',
+          sets: 3,
+          reps: 10
+        }
+      })
       
       if (append) {
         const allExercises = [...exercises, ...newExercises]
@@ -646,15 +649,6 @@ export default function Exercises() {
                       alt={exercise.name}
                       loading="lazy"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        const parent = e.target.parentElement
-                        parent.style.background = 'linear-gradient(135deg, #ff6b35, #ff8c42)'
-                        parent.style.display = 'flex'
-                        parent.style.alignItems = 'center'
-                        parent.style.justifyContent = 'center'
-                        parent.innerHTML = `<div style="font-size: 4rem">${exercise.icon}</div>`
-                      }}
                     />
                     <div className="exercise-badges">
                       <span className="difficulty-badge" style={{ backgroundColor: '#4caf50' }}>
