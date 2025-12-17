@@ -9,7 +9,7 @@ import './Progress.css'
 
 export default function Progress() {
   const { token, user } = useAuth()
-  const { convertWeight, convertHeight, convertHeightToDb, convertWeightToDb, getWeightUnit, getHeightUnit, formatDate } = useSettings()
+  const { convertWeight, convertHeight, convertHeightToDb, convertWeightToDb, getWeightUnit, getHeightUnit, formatDate, updateSettings } = useSettings()
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -26,6 +26,9 @@ export default function Progress() {
   const [thighs, setThighs] = useState('')
   const [calves, setCalves] = useState('')
   const [hips, setHips] = useState('')
+  const [photos, setPhotos] = useState([])
+  const [editingEntry, setEditingEntry] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null)
   
   // Stats
   const [stats, setStats] = useState({
@@ -43,13 +46,29 @@ export default function Progress() {
   const [gender, setGender] = useState('male')
   const [age, setAge] = useState('')
   const [height, setHeight] = useState('')
+  const [heightFeet, setHeightFeet] = useState('')
+  const [heightInches, setHeightInches] = useState('')
   const [neck, setNeck] = useState('')
   const [waistCalc, setWaistCalc] = useState('')
   const [hipCalc, setHipCalc] = useState('')
   
   const calculateBodyFat = () => {
     const w = convertWeightToDb(weight)
-    const h = convertHeightToDb(height)
+    
+    // Calculate height in cm based on unit
+    let h = 0
+    if (getHeightUnit() === 'cm') {
+      h = Number(height)
+    } else {
+      // For inches unit, check if feet/inches fields are used
+      if (heightFeet || heightInches) {
+        const totalInches = (Number(heightFeet) || 0) * 12 + (Number(heightInches) || 0)
+        h = totalInches * 2.54 // Convert to cm
+      } else {
+        h = Number(height) * 2.54 // Direct inches to cm
+      }
+    }
+    
     const n = convertHeightToDb(neck)
     const wc = convertHeightToDb(waistCalc)
     const hc = convertHeightToDb(hipCalc)
@@ -72,13 +91,13 @@ export default function Progress() {
     const w = convertWeightToDb(weight)
     const bf = parseFloat(bodyFat)
     
-    if (!w || !bf) return
+    if (!w || !bf || bf <= 0 || bf >= 100) return
     
     const fatMass = (w * bf) / 100
     const leanMass = w - fatMass
     const muscleMass = leanMass * 0.45
     
-    setMuscle(convertWeight(muscleMass))
+    setMuscle(Number(convertWeight(muscleMass)).toFixed(1))
     setShowMMCalculator(false)
   }
 
@@ -168,7 +187,14 @@ export default function Progress() {
           weight: convertWeightToDb(weight),
           bodyFat: Number(bodyFat) || 0,
           muscle: convertWeightToDb(muscle),
-          notes: notes.trim()
+          arms: convertHeightToDb(arms),
+          chest: convertHeightToDb(chest),
+          waist: convertHeightToDb(waist),
+          hips: convertHeightToDb(hips),
+          thighs: convertHeightToDb(thighs),
+          calves: convertHeightToDb(calves),
+          notes: notes.trim(),
+          photos: photos
         },
         token
       })
@@ -182,6 +208,13 @@ export default function Progress() {
       setBodyFat('')
       setMuscle('')
       setNotes('')
+      setArms('')
+      setChest('')
+      setWaist('')
+      setHips('')
+      setThighs('')
+      setCalves('')
+      setPhotos([])
       
       loadProgress()
     } catch (err) {
@@ -237,12 +270,6 @@ export default function Progress() {
             >
               📈 Charts & Analytics
             </button>
-            <button 
-              className={`tab-btn ${activeTab === 'photos' ? 'active' : ''}`}
-              onClick={() => setActiveTab('photos')}
-            >
-              📸 Photos
-            </button>
           </div>
 
           {/* Messages */}
@@ -279,7 +306,73 @@ export default function Progress() {
 
               {/* Record Form */}
               <div className="record-section">
-                <h2>➕ Record Today's Progress</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2>➕ Record Today's Progress</h2>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      type="button" 
+                      className="unit-toggle-btn"
+                      onClick={() => {
+                        const currentUnit = getWeightUnit()
+                        const newUnit = currentUnit === 'kg' ? 'lbs' : 'kg'
+                        
+                        // Convert existing values
+                        if (weight) {
+                          const kgValue = currentUnit === 'kg' ? Number(weight) : Number(weight) * 0.453592
+                          setWeight(newUnit === 'kg' ? kgValue.toFixed(1) : (kgValue * 2.20462).toFixed(1))
+                        }
+                        if (muscle) {
+                          const kgValue = currentUnit === 'kg' ? Number(muscle) : Number(muscle) * 0.453592
+                          setMuscle(newUnit === 'kg' ? kgValue.toFixed(1) : (kgValue * 2.20462).toFixed(1))
+                        }
+                        
+                        updateSettings({ units: newUnit }, token)
+                      }}
+                      title="Toggle weight unit"
+                    >
+                      {getWeightUnit() === 'kg' ? '⚖️ kg → lbs' : '⚖️ lbs → kg'}
+                    </button>
+                    <button 
+                      type="button" 
+                      className="unit-toggle-btn"
+                      onClick={() => {
+                        const currentUnit = getHeightUnit()
+                        const newUnit = currentUnit === 'cm' ? 'inches' : 'cm'
+                        
+                        // Convert existing measurement values
+                        if (arms) {
+                          const cmValue = currentUnit === 'cm' ? Number(arms) : Number(arms) * 2.54
+                          setArms(newUnit === 'cm' ? cmValue.toFixed(1) : (cmValue / 2.54).toFixed(1))
+                        }
+                        if (chest) {
+                          const cmValue = currentUnit === 'cm' ? Number(chest) : Number(chest) * 2.54
+                          setChest(newUnit === 'cm' ? cmValue.toFixed(1) : (cmValue / 2.54).toFixed(1))
+                        }
+                        if (waist) {
+                          const cmValue = currentUnit === 'cm' ? Number(waist) : Number(waist) * 2.54
+                          setWaist(newUnit === 'cm' ? cmValue.toFixed(1) : (cmValue / 2.54).toFixed(1))
+                        }
+                        if (hips) {
+                          const cmValue = currentUnit === 'cm' ? Number(hips) : Number(hips) * 2.54
+                          setHips(newUnit === 'cm' ? cmValue.toFixed(1) : (cmValue / 2.54).toFixed(1))
+                        }
+                        if (thighs) {
+                          const cmValue = currentUnit === 'cm' ? Number(thighs) : Number(thighs) * 2.54
+                          setThighs(newUnit === 'cm' ? cmValue.toFixed(1) : (cmValue / 2.54).toFixed(1))
+                        }
+                        if (calves) {
+                          const cmValue = currentUnit === 'cm' ? Number(calves) : Number(calves) * 2.54
+                          setCalves(newUnit === 'cm' ? cmValue.toFixed(1) : (cmValue / 2.54).toFixed(1))
+                        }
+                        
+                        updateSettings({ heightUnit: newUnit }, token)
+                      }}
+                      title="Toggle height unit"
+                    >
+                      {getHeightUnit() === 'cm' ? '📏 cm → in' : '📏 in → cm'}
+                    </button>
+                  </div>
+                </div>
                 <div className="record-form">
                   <div className="form-row">
                     <div className="form-group">
@@ -314,16 +407,46 @@ export default function Progress() {
                       </div>
                       {showBFCalculator && (
                         <div className="calculator-popup">
-                          <h4>Body Fat Calculator</h4>
+                          <h4>Body Fat Calculator (US Navy Method)</h4>
+                          <p className="calc-note" style={{fontSize: '0.8rem', marginBottom: '10px'}}>Enter your body measurements</p>
                           <select value={gender} onChange={(e) => setGender(e.target.value)} className="calc-input">
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                           </select>
-                          <input type="number" placeholder={`Height (${getHeightUnit()})`} value={height} onChange={(e) => setHeight(e.target.value)} className="calc-input" />
-                          <input type="number" placeholder={`Neck (${getHeightUnit()})`} value={neck} onChange={(e) => setNeck(e.target.value)} className="calc-input" />
-                          <input type="number" placeholder={`Waist (${getHeightUnit()})`} value={waistCalc} onChange={(e) => setWaistCalc(e.target.value)} className="calc-input" />
+                          
+                          {getHeightUnit() === 'cm' ? (
+                            <input 
+                              type="number" 
+                              placeholder="Height (e.g., 170 cm)" 
+                              value={height} 
+                              onChange={(e) => setHeight(e.target.value)} 
+                              className="calc-input" 
+                            />
+                          ) : (
+                            <div style={{display: 'flex', gap: '10px'}}>
+                              <input 
+                                type="number" 
+                                placeholder="Feet (e.g., 5)" 
+                                value={heightFeet} 
+                                onChange={(e) => setHeightFeet(e.target.value)} 
+                                className="calc-input" 
+                                style={{flex: 1}}
+                              />
+                              <input 
+                                type="number" 
+                                placeholder="Inches (e.g., 4)" 
+                                value={heightInches} 
+                                onChange={(e) => setHeightInches(e.target.value)} 
+                                className="calc-input" 
+                                style={{flex: 1}}
+                              />
+                            </div>
+                          )}
+                          
+                          <input type="number" placeholder={`Neck circumference (${getHeightUnit()})`} value={neck} onChange={(e) => setNeck(e.target.value)} className="calc-input" />
+                          <input type="number" placeholder={`Waist circumference (${getHeightUnit()})`} value={waistCalc} onChange={(e) => setWaistCalc(e.target.value)} className="calc-input" />
                           {gender === 'female' && (
-                            <input type="number" placeholder={`Hip (${getHeightUnit()})`} value={hipCalc} onChange={(e) => setHipCalc(e.target.value)} className="calc-input" />
+                            <input type="number" placeholder={`Hip circumference (${getHeightUnit()})`} value={hipCalc} onChange={(e) => setHipCalc(e.target.value)} className="calc-input" />
                           )}
                           <button onClick={calculateBodyFat} className="calc-submit-btn">Calculate</button>
                         </div>
@@ -332,17 +455,31 @@ export default function Progress() {
                     
                     <div className="form-group">
                       <label>Muscle Mass</label>
-                      <div className="input-with-unit">
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={muscle}
-                          onChange={(e) => setMuscle(e.target.value)}
-                          placeholder="Optional"
-                          className="form-input"
-                        />
-                        <span className="unit-label">{getWeightUnit()}</span>
+                      <div className="input-with-btn">
+                        <div className="input-with-unit" style={{ flex: 1 }}>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={muscle}
+                            onChange={(e) => setMuscle(e.target.value)}
+                            placeholder="Optional"
+                            className="form-input"
+                          />
+                          <span className="unit-label">{getWeightUnit()}</span>
+                        </div>
+                        <button type="button" className="calc-btn" onClick={() => setShowMMCalculator(!showMMCalculator)} title="Calculate">
+                          🧮
+                        </button>
                       </div>
+                      {showMMCalculator && (
+                        <div className="calculator-popup">
+                          <h4>Muscle Mass Calculator</h4>
+                          <p className="calc-note">Based on weight and body fat percentage</p>
+                          <button onClick={calculateMuscleMass} className="calc-submit-btn" disabled={!weight || !bodyFat}>
+                            {!weight || !bodyFat ? 'Enter Weight & Body Fat First' : 'Calculate'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -405,6 +542,44 @@ export default function Progress() {
                       rows="3"
                     />
                   </div>
+
+                  {/* Photo Upload */}
+                  <div className="form-group">
+                    <label>📸 Progress Photos (Optional)</label>
+                    <input 
+                      type="file" 
+                      id="photo-upload-record" 
+                      accept="image/*" 
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files)
+                        if (files.length === 0) return
+                        
+                        try {
+                          const photoUrls = []
+                          for (const file of files) {
+                            const reader = new FileReader()
+                            const base64 = await new Promise((resolve) => {
+                              reader.onloadend = () => resolve(reader.result)
+                              reader.readAsDataURL(file)
+                            })
+                            photoUrls.push({ url: base64, type: 'front' })
+                          }
+                          setPhotos(photoUrls)
+                          setSuccess('Photos selected!')
+                          setTimeout(() => setSuccess(''), 2000)
+                        } catch (err) {
+                          setError('Failed to load photos')
+                          setTimeout(() => setError(''), 2000)
+                        }
+                      }}
+                    />
+                    <button type="button" className="upload-btn" onClick={() => document.getElementById('photo-upload-record').click()}>
+                      📁 Choose Photos
+                    </button>
+                    {photos.length > 0 && <p style={{marginTop: '10px', color: '#4caf50'}}>{photos.length} photo(s) selected</p>}
+                  </div>
                   
                   <button 
                     className="btn-primary btn-large"
@@ -420,39 +595,6 @@ export default function Progress() {
 
           {activeTab === 'timeline' && (
             <div className="tab-content fade-in">
-          {/* Onboarding Stats */}
-          {/* Stats Summary */}
-          <div className="timeline-stats-summary">
-            <div className="summary-card">
-              <div className="summary-icon">⚖️</div>
-              <div className="summary-content">
-                <span className="summary-value">{convertWeight(stats.currentWeight || 0)} {getWeightUnit()}</span>
-                <span className="summary-label">Current</span>
-              </div>
-            </div>
-            <div className="summary-card">
-              <div className="summary-icon">📈</div>
-              <div className="summary-content">
-                <span className="summary-value">{stats.weightChange !== 0 ? (stats.weightChange > 0 ? '+' : '') + convertWeight(stats.weightChange).toFixed(1) : '0'} {getWeightUnit()}</span>
-                <span className="summary-label">Change</span>
-              </div>
-            </div>
-            <div className="summary-card">
-              <div className="summary-icon">📊</div>
-              <div className="summary-content">
-                <span className="summary-value">{stats.totalEntries}</span>
-                <span className="summary-label">Records</span>
-              </div>
-            </div>
-            <div className="summary-card">
-              <div className="summary-icon">🔥</div>
-              <div className="summary-content">
-                <span className="summary-value">{stats.streak}</span>
-                <span className="summary-label">Week Streak</span>
-              </div>
-            </div>
-          </div>
-
           {onboardingData && false && (
             <div className="onboarding-stats">
               <h2>🎯 Your Fitness Profile</h2>
@@ -531,7 +673,7 @@ export default function Progress() {
               <div className="summary-card">
                 <div className="summary-icon">📈</div>
                 <div className="summary-content">
-                  <span className="summary-value">{stats.weightChange !== 0 ? (stats.weightChange > 0 ? '+' : '') + convertWeight(stats.weightChange).toFixed(1) : '0'} {getWeightUnit()}</span>
+                  <span className="summary-value">{stats.weightChange !== 0 ? (stats.weightChange > 0 ? '+' : '') + Number(convertWeight(stats.weightChange)).toFixed(1) : '0'} {getWeightUnit()}</span>
                   <span className="summary-label">Change</span>
                 </div>
               </div>
@@ -575,13 +717,22 @@ export default function Progress() {
                         <div className="timeline-date-badge">
                           📅 {formatDate(entry.date)}
                         </div>
-                        <button 
-                          className="delete-icon-btn"
-                          onClick={() => deleteEntry(entry._id)}
-                          title="Delete"
-                        >
-                          🗑️
-                        </button>
+                        <div style={{display: 'flex', gap: '8px'}}>
+                          <button 
+                            className="edit-icon-btn"
+                            onClick={() => setEditingEntry(entry)}
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            className="delete-icon-btn"
+                            onClick={() => deleteEntry(entry._id)}
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="timeline-card-body">
@@ -635,6 +786,24 @@ export default function Progress() {
                             <p>{entry.notes}</p>
                           </div>
                         )}
+                        
+                        {entry.photos && entry.photos.length > 0 && (
+                          <div className="photos-row">
+                            <h4>📸 Photos</h4>
+                            <div className="photos-compact">
+                              {entry.photos.slice(0, 3).map((photo, idx) => (
+                                <img 
+                                  key={idx} 
+                                  src={photo.url} 
+                                  alt="Progress" 
+                                  className="photo-thumb" 
+                                  onClick={() => setSelectedImage(photo.url)}
+                                />
+                              ))}
+                              {entry.photos.length > 3 && <span className="photo-more">+{entry.photos.length - 3}</span>}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -679,6 +848,7 @@ export default function Progress() {
               </div>
             </div>
           </div>
+          )}
 
           {false && (
           <div className="add-progress-section">
@@ -869,7 +1039,6 @@ export default function Progress() {
               </div>
             )}
           </div>
-            </div>
           )}
 
           {/* Charts Tab */}
@@ -897,7 +1066,7 @@ export default function Progress() {
                               const value = maxWeight - (i * step)
                               return (
                                 <div key={i} className="y-label">
-                                  {convertWeight(value).toFixed(1)}
+                                  {Number(convertWeight(value)).toFixed(1)}
                                 </div>
                               )
                             })}
@@ -1007,7 +1176,7 @@ export default function Progress() {
                             <div className="comparison-stats">
                               <div className="stat-row">
                                 <span>Avg Weight:</span>
-                                <span className="stat-value">{convertWeight(entries.slice(0, 30).reduce((sum, e) => sum + (e.weight || 0), 0) / Math.min(30, entries.length)).toFixed(1)} {getWeightUnit()}</span>
+                                <span className="stat-value">{Number(convertWeight(entries.slice(0, 30).reduce((sum, e) => sum + (e.weight || 0), 0) / Math.min(30, entries.length))).toFixed(1)} {getWeightUnit()}</span>
                               </div>
                               <div className="stat-row">
                                 <span>Entries:</span>
@@ -1020,7 +1189,7 @@ export default function Progress() {
                             <div className="comparison-stats">
                               <div className="stat-row">
                                 <span>Avg Weight:</span>
-                                <span className="stat-value">{convertWeight(entries.slice(30, 60).reduce((sum, e) => sum + (e.weight || 0), 0) / Math.min(30, entries.slice(30).length)).toFixed(1)} {getWeightUnit()}</span>
+                                <span className="stat-value">{Number(convertWeight(entries.slice(30, 60).reduce((sum, e) => sum + (e.weight || 0), 0) / Math.min(30, entries.slice(30).length))).toFixed(1)} {getWeightUnit()}</span>
                               </div>
                               <div className="stat-row">
                                 <span>Entries:</span>
@@ -1037,8 +1206,106 @@ export default function Progress() {
             </div>
           )}
 
-          {/* Photos Tab */}
-          {activeTab === 'photos' && (
+          {/* Image Modal */}
+          {selectedImage && (
+            <div className="image-modal" onClick={() => setSelectedImage(null)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <button className="modal-close" onClick={() => setSelectedImage(null)}>×</button>
+                <img src={selectedImage} alt="Progress" />
+              </div>
+            </div>
+          )}
+
+          {/* Edit Modal */}
+          {editingEntry && (
+            <div className="image-modal" onClick={() => setEditingEntry(null)}>
+              <div className="edit-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>✏️ Edit Progress Entry</h3>
+                  <button className="modal-close" onClick={() => setEditingEntry(null)}>×</button>
+                </div>
+                <div className="edit-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Weight ({getWeightUnit()})</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={convertWeight(editingEntry.weight)}
+                        onChange={(e) => setEditingEntry({...editingEntry, weight: convertWeightToDb(e.target.value)})}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Body Fat %</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editingEntry.bodyFat || ''}
+                        onChange={(e) => setEditingEntry({...editingEntry, bodyFat: Number(e.target.value)})}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Muscle ({getWeightUnit()})</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editingEntry.muscle ? convertWeight(editingEntry.muscle) : ''}
+                        onChange={(e) => setEditingEntry({...editingEntry, muscle: convertWeightToDb(e.target.value)})}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Notes</label>
+                    <textarea
+                      value={editingEntry.notes || ''}
+                      onChange={(e) => setEditingEntry({...editingEntry, notes: e.target.value})}
+                      className="form-textarea"
+                      rows="3"
+                    />
+                  </div>
+                  <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+                    <button 
+                      className="btn-primary"
+                      onClick={async () => {
+                        try {
+                          await api(`/progress/${editingEntry._id}`, {
+                            method: 'PUT',
+                            body: {
+                              weight: editingEntry.weight,
+                              bodyFat: editingEntry.bodyFat,
+                              muscle: editingEntry.muscle,
+                              notes: editingEntry.notes
+                            },
+                            token
+                          })
+                          setSuccess('Entry updated!')
+                          setTimeout(() => setSuccess(''), 3000)
+                          setEditingEntry(null)
+                          loadProgress()
+                        } catch (err) {
+                          setError('Failed to update')
+                          setTimeout(() => setError(''), 3000)
+                        }
+                      }}
+                    >
+                      💾 Save Changes
+                    </button>
+                    <button 
+                      className="btn-secondary"
+                      onClick={() => setEditingEntry(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {false && activeTab === 'photos' && (
             <div className="tab-content fade-in">
               <div className="photos-container">
                 <h2>📸 Progress Photos</h2>
