@@ -30,6 +30,13 @@ export default function Dashboard() {
     meals: 0,
     goal: 7
   })
+  const [streak, setStreak] = useState(0)
+  const [weightTrend, setWeightTrend] = useState([])
+  const [goalProgress, setGoalProgress] = useState({ current: 0, target: 0, percentage: 0 })
+  const [achievements, setAchievements] = useState([])
+  const [dailyQuote, setDailyQuote] = useState({ text: '', author: '' })
+  const [calorieGoal, setCalorieGoal] = useState(2000)
+  const [todayTracker, setTodayTracker] = useState({ water: 0, steps: 0, sleep: 0, mood: '' })
 
   const loadDashboardData = async () => {
     if (!token) return
@@ -79,6 +86,86 @@ export default function Dashboard() {
         meals: weekMeals.length,
         goal: 7
       })
+      
+      // Calculate streak
+      const sortedWorkouts = (workouts || []).sort((a, b) => new Date(b.date) - new Date(a.date))
+      let currentStreak = 0
+      let lastDate = new Date()
+      
+      for (const workout of sortedWorkouts) {
+        const workoutDate = new Date(workout.date)
+        const daysDiff = Math.floor((lastDate - workoutDate) / (1000 * 60 * 60 * 24))
+        
+        if (daysDiff <= 1) {
+          currentStreak++
+          lastDate = workoutDate
+        } else {
+          break
+        }
+      }
+      
+      setStreak(currentStreak)
+      
+      // Weight trend (last 7 days)
+      const last7Days = (progress || []).slice(0, 7).reverse()
+      setWeightTrend(last7Days.map(p => ({ date: p.date, weight: p.weight })))
+      
+      // Goal progress
+      const userData = await api('/auth/me', { token }).catch(() => null)
+      const targetWeight = userData?.onboarding_data?.target_weight || userData?.preferences?.targetWeight
+      if (latestProgress?.weight && targetWeight) {
+        const current = latestProgress.weight
+        const startWeight = (progress || []).sort((a, b) => new Date(a.date) - new Date(b.date))[0]?.weight || current
+        const totalToLose = Math.abs(startWeight - targetWeight)
+        const lost = Math.abs(startWeight - current)
+        const percentage = Math.min((lost / totalToLose) * 100, 100)
+        setGoalProgress({ current, target: targetWeight, percentage: percentage.toFixed(1) })
+      }
+      
+      // Calculate achievements
+      const badges = []
+      if (summary.workouts >= 1) badges.push({ icon: '🏋️', title: 'First Workout', desc: 'Completed your first workout' })
+      if (summary.workouts >= 10) badges.push({ icon: '💪', title: 'Workout Warrior', desc: '10 workouts completed' })
+      if (summary.workouts >= 50) badges.push({ icon: '🔥', title: 'Fitness Beast', desc: '50 workouts completed' })
+      if (streak >= 3) badges.push({ icon: '⚡', title: '3-Day Streak', desc: 'Worked out 3 days in a row' })
+      if (streak >= 7) badges.push({ icon: '🌟', title: 'Week Warrior', desc: '7-day workout streak' })
+      if (summary.meals >= 10) badges.push({ icon: '🍽️', title: 'Nutrition Tracker', desc: '10 meals logged' })
+      if (summary.progress >= 5) badges.push({ icon: '📈', title: 'Progress Pro', desc: '5 progress entries' })
+      setAchievements(badges)
+      
+      // Daily motivational quote
+      const quotes = [
+        { text: 'The only bad workout is the one that didn\'t happen.', author: 'Unknown' },
+        { text: 'Success is the sum of small efforts repeated day in and day out.', author: 'Robert Collier' },
+        { text: 'Your body can stand almost anything. It\'s your mind you have to convince.', author: 'Unknown' },
+        { text: 'The pain you feel today will be the strength you feel tomorrow.', author: 'Unknown' },
+        { text: 'Don\'t wish for it, work for it.', author: 'Unknown' },
+        { text: 'Strive for progress, not perfection.', author: 'Unknown' },
+        { text: 'The difference between try and triumph is a little umph.', author: 'Unknown' }
+      ]
+      const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)
+      setDailyQuote(quotes[dayOfYear % quotes.length])
+      
+      // Load today's tracker data
+      const trackerData = await api('/tracker/today', { token }).catch(() => null)
+      if (trackerData) {
+        setTodayTracker({
+          water: trackerData.water || 0,
+          steps: trackerData.steps || 0,
+          sleep: trackerData.sleep || 0,
+          mood: trackerData.mood || ''
+        })
+      }
+      
+      // Calculate calorie goal
+      const userPrefs = userData?.preferences || {}
+      if (userPrefs.age && userPrefs.weight && userPrefs.height) {
+        const bmr = userPrefs.gender === 'male' 
+          ? 10 * userPrefs.weight + 6.25 * userPrefs.height - 5 * userPrefs.age + 5
+          : 10 * userPrefs.weight + 6.25 * userPrefs.height - 5 * userPrefs.age - 161
+        const activityMultiplier = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 }[userPrefs.activityLevel] || 1.2
+        setCalorieGoal(Math.round(bmr * activityMultiplier))
+      }
       
       // Build recent activity
       const activities = []
@@ -161,6 +248,17 @@ export default function Dashboard() {
             </button>
           </div>
 
+          {/* Daily Quote */}
+          {dailyQuote.text && (
+            <div className="quote-section">
+              <div className="quote-icon">💬</div>
+              <div className="quote-content">
+                <p className="quote-text">"{dailyQuote.text}"</p>
+                <p className="quote-author">- {dailyQuote.author}</p>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="loading-state">
               <div className="loading-spinner">🔄</div>
@@ -191,6 +289,13 @@ export default function Dashboard() {
                     <div className="today-info">
                       <span className="today-value">{todayStats.weight > 0 ? `${todayStats.weight} kg` : '-'}</span>
                       <span className="today-label">Weight</span>
+                    </div>
+                  </div>
+                  <div className="today-card streak">
+                    <div className="today-icon">🔥</div>
+                    <div className="today-info">
+                      <span className="today-value">{streak}</span>
+                      <span className="today-label">Day Streak</span>
                     </div>
                   </div>
                 </div>
@@ -249,6 +354,99 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* Achievements */}
+              {achievements.length > 0 && (
+                <div className="achievements-section">
+                  <h2>🏆 Your Achievements</h2>
+                  <div className="achievements-grid">
+                    {achievements.map((badge, index) => (
+                      <div key={index} className="achievement-badge">
+                        <div className="badge-icon">{badge.icon}</div>
+                        <div className="badge-info">
+                          <div className="badge-title">{badge.title}</div>
+                          <div className="badge-desc">{badge.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Goal Progress */}
+              {goalProgress.target > 0 && (
+                <div className="goal-section">
+                  <h2>🎯 Goal Progress</h2>
+                  <div className="goal-card">
+                    <div className="goal-header">
+                      <div className="goal-info">
+                        <span className="goal-current">{goalProgress.current} kg</span>
+                        <span className="goal-arrow">→</span>
+                        <span className="goal-target">{goalProgress.target} kg</span>
+                      </div>
+                      <div className="goal-percentage">{goalProgress.percentage}%</div>
+                    </div>
+                    <div className="goal-progress-bar">
+                      <div className="goal-progress-fill" style={{ width: `${goalProgress.percentage}%` }}>
+                        <span className="progress-label">{goalProgress.percentage}% Complete</span>
+                      </div>
+                    </div>
+                    <div className="goal-footer">
+                      <span>💪 Keep going! You're doing great!</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Weight Trend Chart */}
+              {weightTrend.length > 0 && (
+                <div className="chart-section">
+                  <h2>📈 Weight Trend (Last 7 Days)</h2>
+                  <div className="chart-container">
+                    <svg viewBox="0 0 600 200" className="trend-chart">
+                      <defs>
+                        <linearGradient id="weightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="#ff6b35" stopOpacity="0.05" />
+                        </linearGradient>
+                      </defs>
+                      {(() => {
+                        const weights = weightTrend.map(d => d.weight)
+                        const maxWeight = Math.max(...weights)
+                        const minWeight = Math.min(...weights)
+                        const range = maxWeight - minWeight || 1
+                        
+                        const points = weightTrend.map((d, i) => {
+                          const x = (i / (weightTrend.length - 1)) * 580 + 10
+                          const y = 180 - ((d.weight - minWeight) / range) * 160
+                          return `${x},${y}`
+                        }).join(' ')
+                        
+                        const areaPoints = `10,180 ${points} ${580 + 10},180`
+                        
+                        return (
+                          <>
+                            <polygon points={areaPoints} fill="url(#weightGradient)" />
+                            <polyline points={points} fill="none" stroke="#ff6b35" strokeWidth="3" />
+                            {weightTrend.map((d, i) => {
+                              const x = (i / (weightTrend.length - 1)) * 580 + 10
+                              const y = 180 - ((d.weight - minWeight) / range) * 160
+                              return (
+                                <g key={i}>
+                                  <circle cx={x} cy={y} r="5" fill="#ff6b35" />
+                                  <text x={x} y="195" textAnchor="middle" fill="#999" fontSize="12">
+                                    {new Date(d.date).getDate()}
+                                  </text>
+                                </g>
+                              )
+                            })}
+                          </>
+                        )
+                      })()}
+                    </svg>
+                  </div>
+                </div>
+              )}
 
               {/* Weekly Progress */}
               <div className="weekly-section">
