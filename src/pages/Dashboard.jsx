@@ -38,8 +38,30 @@ export default function Dashboard() {
   const [calorieGoal, setCalorieGoal] = useState(2000)
   const [todayTracker, setTodayTracker] = useState({ water: 0, steps: 0, sleep: 0, mood: '' })
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (forceRefresh = false) => {
     if (!token) return
+    
+    // Cache check - 5 minutes cache
+    if (!forceRefresh) {
+      const cached = sessionStorage.getItem('dashboardCache')
+      const cacheTime = sessionStorage.getItem('dashboardCacheTime')
+      if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
+        const data = JSON.parse(cached)
+        setSummary(data.summary)
+        setTodayStats(data.todayStats)
+        setWeeklyProgress(data.weeklyProgress)
+        setStreak(data.streak)
+        setWeightTrend(data.weightTrend)
+        setGoalProgress(data.goalProgress)
+        setAchievements(data.achievements)
+        setRecentActivity(data.recentActivity)
+        setCalorieGoal(data.calorieGoal)
+        setTodayTracker(data.todayTracker)
+        setLoading(false)
+        return
+      }
+    }
+    
     try {
       setLoading(true)
       
@@ -205,6 +227,16 @@ export default function Dashboard() {
       
       setRecentActivity(activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5))
       
+      // Cache the data
+      const cacheData = {
+        summary, todayStats, weeklyProgress, streak, weightTrend,
+        goalProgress, achievements, recentActivity: activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5),
+        calorieGoal: Math.round(bmr * activityMultiplier) || 2000,
+        todayTracker: trackerData || { water: 0, steps: 0, sleep: 0, mood: '' }
+      }
+      sessionStorage.setItem('dashboardCache', JSON.stringify(cacheData))
+      sessionStorage.setItem('dashboardCacheTime', Date.now().toString())
+      
     } catch (err) {
       console.error('Failed to load dashboard:', err)
     } finally {
@@ -225,7 +257,8 @@ export default function Dashboard() {
     }
     
     loadDashboardData()
-    const interval = setInterval(loadDashboardData, 30000)
+    // Refresh every 2 minutes instead of 30 seconds
+    const interval = setInterval(() => loadDashboardData(false), 120000)
     return () => clearInterval(interval)
   }, [token, searchParams])
 
@@ -243,7 +276,7 @@ export default function Dashboard() {
               <h1>👋 Welcome back, {user.username}!</h1>
               <p>Here's your fitness overview</p>
             </div>
-            <button className="refresh-btn" onClick={loadDashboardData}>
+            <button className="refresh-btn" onClick={() => loadDashboardData(true)}>
               🔄 Refresh
             </button>
           </div>
@@ -261,147 +294,71 @@ export default function Dashboard() {
 
           {loading ? (
             <div className="loading-state">
-              <div className="loading-spinner">🔄</div>
-              <p>Loading your dashboard...</p>
+              <div className="skeleton-grid">
+                <div className="skeleton-card skeleton-focus"></div>
+                <div className="skeleton-card skeleton-chart"></div>
+                <div className="skeleton-card skeleton-activity"></div>
+                <div className="skeleton-card skeleton-actions"></div>
+              </div>
             </div>
           ) : (
-            <>
-              {/* Today's Stats */}
-              <div className="today-section">
-                <h2>📅 Today's Summary</h2>
-                <div className="today-grid">
-                  <div className="today-card calories">
-                    <div className="today-icon">🔥</div>
-                    <div className="today-info">
-                      <span className="today-value">{todayStats.calories}</span>
-                      <span className="today-label">Calories</span>
+            <div className="dashboard-grid">
+              <div className="dashboard-main">
+              {/* Today's Focus */}
+              <div className="focus-section">
+                <h2>🎯 Today's Focus</h2>
+                <div className="focus-grid">
+                  <div className="focus-card calories" onClick={() => navigate('/nutrition')}>
+                    <div className="calorie-ring">
+                      <svg width="100" height="100">
+                        <circle className="calorie-ring-bg" cx="50" cy="50" r="40" />
+                        <circle 
+                          className="calorie-ring-progress" 
+                          cx="50" 
+                          cy="50" 
+                          r="40"
+                          strokeDasharray={`${2 * Math.PI * 40}`}
+                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - Math.min(todayStats.calories / calorieGoal, 1))}`}
+                        />
+                      </svg>
+                      <div className="calorie-ring-text">
+                        <span className="calorie-ring-value">{todayStats.calories}</span>
+                        <span className="calorie-ring-label">/ {calorieGoal}</span>
+                      </div>
+                    </div>
+                    <div className="focus-info">
+                      <span className="focus-label">Calories</span>
+                      <span className="focus-subtitle">{Math.round((todayStats.calories / calorieGoal) * 100)}% of goal</span>
                     </div>
                   </div>
-                  <div className="today-card workouts">
-                    <div className="today-icon">💪</div>
-                    <div className="today-info">
-                      <span className="today-value">{todayStats.workouts}</span>
-                      <span className="today-label">Workouts</span>
+                  <div className="focus-card" onClick={() => navigate('/workouts')}>
+                    <div className="focus-icon">💪</div>
+                    <div className="focus-info">
+                      <span className="focus-value">{todayStats.workouts}</span>
+                      <span className="focus-label">Workouts</span>
                     </div>
                   </div>
-                  <div className="today-card weight">
-                    <div className="today-icon">⚖️</div>
-                    <div className="today-info">
-                      <span className="today-value">{todayStats.weight > 0 ? `${todayStats.weight} kg` : '-'}</span>
-                      <span className="today-label">Weight</span>
+                  <div className="focus-card" onClick={() => navigate('/progress')}>
+                    <div className="focus-icon">⚖️</div>
+                    <div className="focus-info">
+                      <span className="focus-value">{todayStats.weight > 0 ? `${todayStats.weight} kg` : '-'}</span>
+                      <span className="focus-label">Weight</span>
                     </div>
                   </div>
-                  <div className="today-card streak">
-                    <div className="today-icon">🔥</div>
-                    <div className="today-info">
-                      <span className="today-value">{streak}</span>
-                      <span className="today-label">Day Streak</span>
+                  <div className="focus-card" onClick={() => navigate('/tracker')}>
+                    <div className="focus-icon">💧</div>
+                    <div className="focus-info">
+                      <span className="focus-value">{todayTracker.water || 0}</span>
+                      <span className="focus-label">Water (L)</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Overall Stats */}
-              <div className="stats-section">
-                <h2>📊 Overall Statistics</h2>
-                <div className="stats-grid">
-                  <div className="stat-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/workouts');
-                  }}>
-                    <div className="stat-icon">🏋️</div>
-                    <div className="stat-info">
-                      <span className="stat-value">{summary.workouts}</span>
-                      <span className="stat-label">Total Workouts</span>
-                    </div>
-                    <div className="stat-arrow">→</div>
-                  </div>
-                  
-                  <div className="stat-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/nutrition');
-                  }}>
-                    <div className="stat-icon">🥗</div>
-                    <div className="stat-info">
-                      <span className="stat-value">{summary.meals}</span>
-                      <span className="stat-label">Meals Logged</span>
-                    </div>
-                    <div className="stat-arrow">→</div>
-                  </div>
-                  
-                  <div className="stat-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/progress');
-                  }}>
-                    <div className="stat-icon">📈</div>
-                    <div className="stat-info">
-                      <span className="stat-value">{summary.progress}</span>
-                      <span className="stat-label">Progress Entries</span>
-                    </div>
-                    <div className="stat-arrow">→</div>
-                  </div>
-                  
-                  <div className="stat-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/exercises');
-                  }}>
-                    <div className="stat-icon">💪</div>
-                    <div className="stat-info">
-                      <span className="stat-value">{summary.exercises || '1300+'}</span>
-                      <span className="stat-label">Exercises Available</span>
-                    </div>
-                    <div className="stat-arrow">→</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Achievements */}
-              {achievements.length > 0 && (
-                <div className="achievements-section">
-                  <h2>🏆 Your Achievements</h2>
-                  <div className="achievements-grid">
-                    {achievements.map((badge, index) => (
-                      <div key={index} className="achievement-badge">
-                        <div className="badge-icon">{badge.icon}</div>
-                        <div className="badge-info">
-                          <div className="badge-title">{badge.title}</div>
-                          <div className="badge-desc">{badge.desc}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Goal Progress */}
-              {goalProgress.target > 0 && (
-                <div className="goal-section">
-                  <h2>🎯 Goal Progress</h2>
-                  <div className="goal-card">
-                    <div className="goal-header">
-                      <div className="goal-info">
-                        <span className="goal-current">{goalProgress.current} kg</span>
-                        <span className="goal-arrow">→</span>
-                        <span className="goal-target">{goalProgress.target} kg</span>
-                      </div>
-                      <div className="goal-percentage">{goalProgress.percentage}%</div>
-                    </div>
-                    <div className="goal-progress-bar">
-                      <div className="goal-progress-fill" style={{ width: `${goalProgress.percentage}%` }}>
-                        <span className="progress-label">{goalProgress.percentage}% Complete</span>
-                      </div>
-                    </div>
-                    <div className="goal-footer">
-                      <span>💪 Keep going! You're doing great!</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Weight Trend Chart */}
+              {/* Weight Chart */}
               {weightTrend.length > 0 && (
                 <div className="chart-section">
-                  <h2>📈 Weight Trend (Last 7 Days)</h2>
+                  <h2>📈 Weight Trend</h2>
                   <div className="chart-container">
                     <svg viewBox="0 0 600 200" className="trend-chart">
                       <defs>
@@ -415,15 +372,12 @@ export default function Dashboard() {
                         const maxWeight = Math.max(...weights)
                         const minWeight = Math.min(...weights)
                         const range = maxWeight - minWeight || 1
-                        
                         const points = weightTrend.map((d, i) => {
                           const x = (i / (weightTrend.length - 1)) * 580 + 10
                           const y = 180 - ((d.weight - minWeight) / range) * 160
                           return `${x},${y}`
                         }).join(' ')
-                        
                         const areaPoints = `10,180 ${points} ${580 + 10},180`
-                        
                         return (
                           <>
                             <polygon points={areaPoints} fill="url(#weightGradient)" />
@@ -448,186 +402,173 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Weekly Progress */}
-              <div className="weekly-section">
-                <h2>📆 This Week</h2>
-                <div className="weekly-grid">
-                  <div className="weekly-card">
-                    <div className="weekly-header">
-                      <span className="weekly-icon">🏋️</span>
-                      <span className="weekly-title">Workouts</span>
-                    </div>
-                    <div className="weekly-progress">
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill workouts"
-                          style={{ width: `${Math.min((weeklyProgress.workouts / weeklyProgress.goal) * 100, 100)}%` }}
-                        ></div>
+
+
+              {/* Weekly Progress + Recent Activity */}
+              <div className="combined-section">
+                <div className="weekly-compact">
+                  <h3>📆 This Week</h3>
+                  <div className="weekly-bars">
+                    <div className="weekly-item">
+                      <div className="weekly-label">
+                        <span>🏋️ Workouts</span>
+                        <span>{weeklyProgress.workouts}/{weeklyProgress.goal}</span>
                       </div>
-                      <span className="progress-text">
-                        {weeklyProgress.workouts} / {weeklyProgress.goal}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="weekly-card">
-                    <div className="weekly-header">
-                      <span className="weekly-icon">🍽️</span>
-                      <span className="weekly-title">Meals Tracked</span>
-                    </div>
-                    <div className="weekly-progress">
                       <div className="progress-bar">
-                        <div 
-                          className="progress-fill meals"
-                          style={{ width: `${Math.min((weeklyProgress.meals / 21) * 100, 100)}%` }}
-                        ></div>
+                        <div className="progress-fill workouts" style={{ width: `${Math.min((weeklyProgress.workouts / weeklyProgress.goal) * 100, 100)}%` }}></div>
                       </div>
-                      <span className="progress-text">
-                        {weeklyProgress.meals} / 21
-                      </span>
+                    </div>
+                    <div className="weekly-item">
+                      <div className="weekly-label">
+                        <span>🍽️ Meals</span>
+                        <span>{weeklyProgress.meals}/21</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill meals" style={{ width: `${Math.min((weeklyProgress.meals / 21) * 100, 100)}%` }}></div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="activity-section">
-                <h2>🕐 Recent Activity</h2>
-                {recentActivity.length === 0 ? (
-                  <div className="empty-activity">
-                    <div className="empty-icon">📝</div>
-                    <h3>No activity yet</h3>
-                    <p>Start tracking your fitness journey!</p>
-                    <div className="quick-actions">
-                      <button className="action-btn" onClick={() => {
-                        fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                        navigate('/workouts');
-                      }}>
-                        💪 Add Workout
-                      </button>
-                      <button className="action-btn" onClick={() => {
-                        fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                        navigate('/nutrition');
-                      }}>
-                        🍽️ Log Meal
-                      </button>
-                      <button className="action-btn" onClick={() => {
-                        fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                        navigate('/progress');
-                      }}>
-                        📈 Track Progress
-                      </button>
+                <div className="recent-compact">
+                  <h3>🕐 Recent Activity</h3>
+                  {recentActivity.length === 0 ? (
+                    <p className="no-activity">No recent activity</p>
+                  ) : (
+                    <div className="activity-compact-list">
+                      {recentActivity.slice(0, 3).map((activity, index) => (
+                        <div key={index} className="activity-compact-item">
+                          <span className="activity-compact-icon" style={{ color: activity.color }}>{activity.icon}</span>
+                          <div className="activity-compact-info">
+                            <span className="activity-compact-title">{activity.title}</span>
+                            <span className="activity-compact-time">{new Date(activity.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ) : (
-                  <div className="activity-list">
-                    {recentActivity.map((activity, index) => (
-                      <div key={index} className="activity-item">
-                        <div 
-                          className="activity-icon"
-                          style={{ backgroundColor: `${activity.color}20`, color: activity.color }}
-                        >
-                          {activity.icon}
-                        </div>
-                        <div className="activity-content">
-                          <div className="activity-title">{activity.title}</div>
-                          <div className="activity-subtitle">{activity.subtitle}</div>
-                        </div>
-                        <div className="activity-time">
-                          {new Date(activity.date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Today's Tracker Preview */}
-              <div className="tracker-preview-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h2>📅 Today's Tracker</h2>
-                  <button 
-                    className="view-full-btn"
-                    onClick={() => {
-                      fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                      navigate('/tracker');
-                    }}
-                    style={{
-                      padding: '8px 16px',
-                      background: 'rgba(255, 107, 53, 0.2)',
-                      border: '1px solid #ff6b35',
-                      borderRadius: '8px',
-                      color: '#ff6b35',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem',
-                      fontWeight: '600'
-                    }}
-                  >
-                    View Full Tracker →
-                  </button>
-                </div>
-                <div className="tracker-quick-grid">
-                  <div className="tracker-quick-card">
-                    <span className="tracker-icon">💧</span>
-                    <span className="tracker-label">Water</span>
-                    <span className="tracker-value">Track daily</span>
-                  </div>
-                  <div className="tracker-quick-card">
-                    <span className="tracker-icon">👟</span>
-                    <span className="tracker-label">Steps</span>
-                    <span className="tracker-value">10k goal</span>
-                  </div>
-                  <div className="tracker-quick-card">
-                    <span className="tracker-icon">😴</span>
-                    <span className="tracker-label">Sleep</span>
-                    <span className="tracker-value">7-9 hours</span>
-                  </div>
-                  <div className="tracker-quick-card">
-                    <span className="tracker-icon">😊</span>
-                    <span className="tracker-label">Mood</span>
-                    <span className="tracker-value">Log today</span>
-                  </div>
+                  )}
                 </div>
               </div>
 
               {/* Quick Actions */}
-              <div className="quick-actions-section">
+              <div className="quick-actions-main">
                 <h2>⚡ Quick Actions</h2>
-                <div className="actions-grid">
-                  <button className="action-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/exercises');
-                  }}>
-                    <span className="action-icon">🔍</span>
-                    <span className="action-text">Browse Exercises</span>
+                <div className="actions-grid-main">
+                  <button className="action-card-main" onClick={() => navigate('/workouts')}>
+                    <span className="action-icon-main">🏋️</span>
+                    <span className="action-text-main">Start Workout</span>
                   </button>
-                  <button className="action-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/workouts');
-                  }}>
-                    <span className="action-icon">➕</span>
-                    <span className="action-text">Create Workout</span>
+                  <button className="action-card-main" onClick={() => navigate('/nutrition')}>
+                    <span className="action-icon-main">🍽️</span>
+                    <span className="action-text-main">Log Meal</span>
                   </button>
-                  <button className="action-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/nutrition');
-                  }}>
-                    <span className="action-icon">🍽️</span>
-                    <span className="action-text">Log Meal</span>
+                  <button className="action-card-main" onClick={() => navigate('/progress')}>
+                    <span className="action-icon-main">📈</span>
+                    <span className="action-text-main">Track Progress</span>
                   </button>
-                  <button className="action-card" onClick={() => {
-                    fetch(`${API_BASE_URL}/track/click`, { method: 'POST' }).catch(() => {});
-                    navigate('/progress');
-                  }}>
-                    <span className="action-icon">📊</span>
-                    <span className="action-text">Update Progress</span>
+                  <button className="action-card-main" onClick={() => navigate('/exercises')}>
+                    <span className="action-icon-main">🔍</span>
+                    <span className="action-text-main">Browse Exercises</span>
                   </button>
                 </div>
               </div>
-            </>
+            </div>
+
+              {/* Sidebar */}
+              <div className="dashboard-sidebar">
+                {/* Streak + Goal */}
+                <div className="sidebar-card">
+                  <div className="streak-display">
+                    <div className="streak-icon">🔥</div>
+                    <div className="streak-info">
+                      <span className="streak-value">{streak}</span>
+                      <span className="streak-label">Day Streak</span>
+                    </div>
+                  </div>
+                  {goalProgress.target > 0 && (
+                    <div className="goal-compact">
+                      <div className="goal-compact-header">
+                        <span>🎯 Goal Progress</span>
+                        <span className="goal-compact-percent">{goalProgress.percentage}%</span>
+                      </div>
+                      <div className="goal-progress-bar">
+                        <div className="goal-progress-fill" style={{ width: `${goalProgress.percentage}%` }}></div>
+                      </div>
+                      <div className="goal-compact-text">{goalProgress.current} kg → {goalProgress.target} kg</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Achievements */}
+                {achievements.length > 0 && (
+                  <div className="sidebar-card">
+                    <h3>🏆 Achievements</h3>
+                    <div className="achievements-compact">
+                      {achievements.slice(0, 4).map((badge, index) => (
+                        <div key={index} className="achievement-compact">
+                          <span className="achievement-compact-icon">{badge.icon}</span>
+                          <div className="achievement-compact-info">
+                            <span className="achievement-compact-title">{badge.title}</span>
+                            <span className="achievement-compact-desc">{badge.desc}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tracker */}
+                <div className="sidebar-card tracker-sidebar" onClick={() => navigate('/tracker')}>
+                  <h3>📅 Today's Tracker</h3>
+                  <div className="tracker-sidebar-grid">
+                    <div className="tracker-sidebar-item">
+                      <span className="tracker-sidebar-icon">💧</span>
+                      <span className="tracker-sidebar-value">{todayTracker.water || 0}L</span>
+                    </div>
+                    <div className="tracker-sidebar-item">
+                      <span className="tracker-sidebar-icon">👟</span>
+                      <span className="tracker-sidebar-value">{todayTracker.steps || 0}</span>
+                    </div>
+                    <div className="tracker-sidebar-item">
+                      <span className="tracker-sidebar-icon">😴</span>
+                      <span className="tracker-sidebar-value">{todayTracker.sleep || 0}h</span>
+                    </div>
+                    <div className="tracker-sidebar-item">
+                      <span className="tracker-sidebar-icon">😊</span>
+                      <span className="tracker-sidebar-value">{todayTracker.mood || 'Log'}</span>
+                    </div>
+                  </div>
+                  <div className="tracker-sidebar-cta">Click to update →</div>
+                </div>
+
+                {/* Overall Stats */}
+                <div className="sidebar-card">
+                  <h3>📊 Overall Stats</h3>
+                  <div className="stats-compact">
+                    <div className="stat-compact-item" onClick={() => navigate('/workouts')}>
+                      <span className="stat-compact-icon">🏋️</span>
+                      <div className="stat-compact-info">
+                        <span className="stat-compact-value">{summary.workouts}</span>
+                        <span className="stat-compact-label">Workouts</span>
+                      </div>
+                    </div>
+                    <div className="stat-compact-item" onClick={() => navigate('/nutrition')}>
+                      <span className="stat-compact-icon">🥗</span>
+                      <div className="stat-compact-info">
+                        <span className="stat-compact-value">{summary.meals}</span>
+                        <span className="stat-compact-label">Meals</span>
+                      </div>
+                    </div>
+                    <div className="stat-compact-item" onClick={() => navigate('/progress')}>
+                      <span className="stat-compact-icon">📈</span>
+                      <div className="stat-compact-info">
+                        <span className="stat-compact-value">{summary.progress}</span>
+                        <span className="stat-compact-label">Progress</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

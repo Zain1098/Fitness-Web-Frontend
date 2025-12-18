@@ -51,7 +51,8 @@ function DashboardNavbar() {
 
   useEffect(() => {
     loadNotifications()
-    const interval = setInterval(loadNotifications, 30000)
+    // Refresh notifications every 2 minutes instead of 30 seconds
+    const interval = setInterval(loadNotifications, 120000)
     return () => clearInterval(interval)
   }, [token])
 
