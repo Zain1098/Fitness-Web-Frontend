@@ -16,7 +16,7 @@ export default function Contact(){
               <lottie-player src="/icons/Connect with us.json" background="transparent" speed="1" loop autoplay style={{ width:'100%', maxWidth:'520px' }}></lottie-player>
             </div>
             <div className="ff-panel ff-float-in" style={{ padding:'22px' }}>
-              <h2 className="ff-title">Get in Touch with FirForge</h2>
+              <h2 className="ff-title">Get in Touch with FitForge</h2>
               <p className="ff-sub" style={{ marginBottom:'12px' }}>Have a question, need support, or want to collaborate? Talk to us directly — no delays, no nonsense.</p>
               <p className="ff-sub" style={{ fontSize:'16px' }}>We’re here to help you with anything related to FirForge — whether it’s technical support, feedback, business inquiries, or partnership opportunities. Just reach out, and we’ll respond with clear, actionable answers.</p>
               <div style={{ display:'flex', gap:'12px', marginTop:'16px', flexWrap:'wrap' }}>
@@ -43,9 +43,9 @@ function ContactFormSection(){
   const inputStyle = { background:'rgba(255,255,255,0.1)', border:'1px solid rgba(91,225,255,.35)', borderRadius:'12px', padding:'12px 14px', color:'#fff' }
   const errorText = { color:'#ff6b6b', fontSize:'13px', marginTop:'6px' }
   
-  const validateGmail = (email) => {
-    const gmailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|googlemail)\.com$/
-    return gmailRegex.test(email)
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    return emailRegex.test(email)
   }
   
   const handleChange = (e) => {
@@ -61,7 +61,7 @@ function ContactFormSection(){
     
     const newErrors = {}
     if (!formData.name.trim() || formData.name.length < 2) newErrors.name = 'Name must be at least 2 characters'
-    if (!validateGmail(formData.email)) newErrors.email = 'Please use a valid Gmail account'
+    if (!validateEmail(formData.email)) newErrors.email = 'Please enter a valid email address'
     if (!formData.subject.trim() || formData.subject.length < 3) newErrors.subject = 'Subject must be at least 3 characters'
     if (!formData.message.trim() || formData.message.length < 10) newErrors.message = 'Message must be at least 10 characters'
     
@@ -131,18 +131,18 @@ function ContactFormSection(){
                 {errors.name && (<span style={errorText}>{errors.name}</span>)}
               </div>
               <div style={{ display:'flex', flexDirection:'column' }}>
-                <label className="ff-sub" style={{ marginBottom:'6px', color:'#ccc' }}>Gmail Address</label>
+                <label className="ff-sub" style={{ marginBottom:'6px', color:'#ccc' }}>Email Address</label>
                 <input 
                   name="email" 
                   type="email" 
                   required 
                   value={formData.email} 
                   onChange={handleChange}
-                  placeholder="yourname@gmail.com"
+                  placeholder="your.email@example.com"
                   style={{ ...inputStyle, border: errors.email ? '1px solid #ff6b6b' : inputStyle.border }} 
                 />
                 {errors.email && (<span style={errorText}>{errors.email}</span>)}
-                <span style={{ fontSize:'12px', color:'#999', marginTop:'4px' }}>⚠️ Only Gmail accounts accepted</span>
+
               </div>
               <div style={{ gridColumn:'1 / -1', display:'flex', flexDirection:'column' }}>
                 <label className="ff-sub" style={{ marginBottom:'6px', color:'#ccc' }}>Subject</label>
@@ -222,8 +222,8 @@ function FooterSection(){
               <h4>Useful links</h4>
               <ul>
                 <li><a href="/about">About</a></li>
-                <li><a href="/">Blog</a></li>
-                <li><a href="/workouts">Classes</a></li>
+                <li><a href="/services">Services</a></li>
+                <li><a href="/exercises">Exercises</a></li>
                 <li><a href="/contact">Contact</a></li>
               </ul>
             </div>
@@ -232,9 +232,9 @@ function FooterSection(){
             <div className="fs-widget">
               <h4>Support</h4>
               <ul>
-                <li><a href="/login">Login</a></li>
+                <li><a href="#" onClick={(e)=>{e.preventDefault(); window.dispatchEvent(new Event('auth:open'))}}>Login</a></li>
                 <li><a href="/dashboard">My account</a></li>
-                <li><a href="/register">Subscribe</a></li>
+                <li><a href="#" onClick={(e)=>{e.preventDefault(); window.dispatchEvent(new Event('auth:open'))}}>Sign Up</a></li>
                 <li><a href="/contact">Contact</a></li>
               </ul>
             </div>
@@ -243,17 +243,15 @@ function FooterSection(){
             <div className="fs-widget">
               <h4>Tips & Guides</h4>
               <div className="fw-recent">
-                <h6><a href="#">Physical fitness may help prevent depression, anxiety</a></h6>
+                <h6><a href="/about">Why Fitness Tracking Matters</a></h6>
                 <ul>
-                  <li>3 min read</li>
-                  <li>20 Comment</li>
+                  <li>5 min read</li>
                 </ul>
               </div>
               <div className="fw-recent">
-                <h6><a href="#">Fitness: The best exercise to lose belly fat and tone up...</a></h6>
+                <h6><a href="/services">Choose the Right Plan for You</a></h6>
                 <ul>
-                  <li>3 min read</li>
-                  <li>20 Comment</li>
+                  <li>4 min read</li>
                 </ul>
               </div>
             </div>

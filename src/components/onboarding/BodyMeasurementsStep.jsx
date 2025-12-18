@@ -48,54 +48,48 @@ export default function BodyMeasurementsStep({ data, updateData, nextStep, prevS
 
         <FormGrid>
           <InputGroup>
-            <Label>Chest</Label>
+            <Label>💪 Chest</Label>
             <InputWrapper>
-              <Icon>💪</Icon>
               <Input type="number" value={chest} onChange={(e) => setChest(e.target.value)} placeholder={unit === 'cm' ? '95' : '37'} />
               <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Waist</Label>
+            <Label>⭕ Waist</Label>
             <InputWrapper>
-              <Icon>⭕</Icon>
               <Input type="number" value={waist} onChange={(e) => setWaist(e.target.value)} placeholder={unit === 'cm' ? '80' : '31'} />
               <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Hips</Label>
+            <Label>🍑 Hips</Label>
             <InputWrapper>
-              <Icon>🍑</Icon>
               <Input type="number" value={hips} onChange={(e) => setHips(e.target.value)} placeholder={unit === 'cm' ? '95' : '37'} />
               <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Arms (Biceps)</Label>
+            <Label>💪 Arms</Label>
             <InputWrapper>
-              <Icon>💪</Icon>
               <Input type="number" value={arms} onChange={(e) => setArms(e.target.value)} placeholder={unit === 'cm' ? '35' : '14'} />
               <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Thighs</Label>
+            <Label>🦵 Thighs</Label>
             <InputWrapper>
-              <Icon>🦵</Icon>
               <Input type="number" value={thighs} onChange={(e) => setThighs(e.target.value)} placeholder={unit === 'cm' ? '55' : '22'} />
               <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Body Fat % (Optional)</Label>
+            <Label>📊 Body Fat %</Label>
             <InputWrapper>
-              <Icon>📊</Icon>
               <Input type="number" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} placeholder="15" min="3" max="50" />
               <Unit>%</Unit>
             </InputWrapper>
@@ -152,18 +146,24 @@ const AnimatedIcon = styled.div`
 `
 
 const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: clamp(1.5rem, 5vw, 3rem);
   font-weight: 800;
   background: linear-gradient(135deg, #8a2be2, #da70d6, #fff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 15px;
+  word-break: break-word;
+  padding: 0 10px;
 `
 
 const Subtitle = styled.p`
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
   color: rgba(255,255,255,0.7);
   margin-bottom: 30px;
+  padding: 0 10px;
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+  }
 `
 
 const UnitToggleBtn = styled.button`
@@ -172,23 +172,34 @@ const UnitToggleBtn = styled.button`
   color: #da70d6;
   padding: 12px 24px;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 30px;
   transition: all 0.3s ease;
+  white-space: nowrap;
   
   &:hover {
     background: rgba(138,43,226,0.25);
     border-color: #8a2be2;
   }
+  
+  @media (max-width: 768px) {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
 `
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
   margin-bottom: 40px;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -202,12 +213,16 @@ const InputGroup = styled.div`
 
 const Label = styled.label`
   display: block;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   color: rgba(255,255,255,0.9);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `
 
 const InputWrapper = styled.div`
@@ -216,8 +231,10 @@ const InputWrapper = styled.div`
   background: rgba(255,255,255,0.05);
   border: 2px solid rgba(138,43,226,0.3);
   border-radius: 12px;
-  padding: 5px;
+  padding: 14px 16px;
   transition: all 0.3s ease;
+  width: 100%;
+  gap: 10px;
   
   &:focus-within {
     border-color: #8a2be2;
@@ -225,10 +242,7 @@ const InputWrapper = styled.div`
   }
 `
 
-const Icon = styled.div`
-  font-size: 24px;
-  padding: 0 12px;
-`
+
 
 const Input = styled.input`
   flex: 1;
@@ -236,9 +250,10 @@ const Input = styled.input`
   border: none;
   outline: none;
   color: #fff;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  padding: 12px 8px;
+  padding: 0;
+  min-width: 0;
   
   &::placeholder {
     color: rgba(255,255,255,0.3);
@@ -248,13 +263,22 @@ const Input = styled.input`
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
   }
+  
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
 `
 
 const Unit = styled.span`
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   color: rgba(255,255,255,0.6);
-  padding: 0 15px;
   font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `
 
 const ButtonGroup = styled.div`

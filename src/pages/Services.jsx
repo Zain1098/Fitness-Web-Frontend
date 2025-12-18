@@ -113,7 +113,7 @@ function ServicesPricingPlans(){
 function ServicesSpotlights(){
   return (
     <section className="ff-section" id="services-spotlights">
-      <div className="ff-container" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'24px' }}>
+      <div className="ff-container" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:'24px' }}>
         <SpotlightCard spotlightColor="rgba(0, 229, 255, 0.2)">
           <h3 className="ff-title" style={{ fontSize:'24px' }}>Complete Exercise Library</h3>
           <p className="ff-sub">Access every major exercise with clear visuals, tutorials, form breakdowns, and common mistakes to avoid. No guessing — just follow and train the right way.</p>
@@ -160,8 +160,8 @@ function FooterSection(){
               <h4>Useful links</h4>
               <ul>
                 <li><a href="/about">About</a></li>
-                <li><a href="/">Blog</a></li>
-                <li><a href="/workouts">Classes</a></li>
+                <li><a href="/services">Services</a></li>
+                <li><a href="/exercises">Exercises</a></li>
                 <li><a href="/contact">Contact</a></li>
               </ul>
             </div>
@@ -170,9 +170,9 @@ function FooterSection(){
             <div className="fs-widget">
               <h4>Support</h4>
               <ul>
-                <li><a href="/login">Login</a></li>
+                <li><a href="#" onClick={(e)=>{e.preventDefault(); window.dispatchEvent(new Event('auth:open'))}}>Login</a></li>
                 <li><a href="/dashboard">My account</a></li>
-                <li><a href="/register">Subscribe</a></li>
+                <li><a href="#" onClick={(e)=>{e.preventDefault(); window.dispatchEvent(new Event('auth:open'))}}>Sign Up</a></li>
                 <li><a href="/contact">Contact</a></li>
               </ul>
             </div>
@@ -181,17 +181,15 @@ function FooterSection(){
             <div className="fs-widget">
               <h4>Tips & Guides</h4>
               <div className="fw-recent">
-                <h6><a href="#">Physical fitness may help prevent depression, anxiety</a></h6>
+                <h6><a href="/about">Why Fitness Tracking Matters</a></h6>
                 <ul>
-                  <li>3 min read</li>
-                  <li>20 Comment</li>
+                  <li>5 min read</li>
                 </ul>
               </div>
               <div className="fw-recent">
-                <h6><a href="#">Fitness: The best exercise to lose belly fat and tone up...</a></h6>
+                <h6><a href="/services">Choose the Right Plan for You</a></h6>
                 <ul>
-                  <li>3 min read</li>
-                  <li>20 Comment</li>
+                  <li>4 min read</li>
                 </ul>
               </div>
             </div>

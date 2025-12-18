@@ -759,7 +759,7 @@ export default function Exercises() {
           <div className="exercises-grid">
             {loading ? (
               <div className="loading-state">
-                <div className="loading-spinner">🔄</div>
+                <div className="loading-spinner"></div>
                 <p>Loading exercises...</p>
               </div>
             ) : filteredExercises.length === 0 ? (
@@ -1007,7 +1007,7 @@ export default function Exercises() {
                   <div className="exercises-grid-compact">
                     {loading ? (
                       <div className="loading-state">
-                        <div className="loading-spinner">🔄</div>
+                        <div className="loading-spinner"></div>
                         <p>Loading exercises...</p>
                       </div>
                     ) : filteredExercises.length === 0 ? (
@@ -1293,7 +1293,7 @@ export default function Exercises() {
               <div className="my-workouts-container">
                 <h2>💪 My Saved Workouts</h2>
                 {loadingWorkouts ? (
-                  <div className="loading-state">🔄 Loading workouts...</div>
+                  <div className="loading-state"><div className="loading-spinner"></div><p>Loading workouts...</p></div>
                 ) : savedWorkouts.length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-icon">💪</div>
@@ -1468,7 +1468,7 @@ export default function Exercises() {
                 <div className="history-timeline-section">
                   <h3>📜 Workout History</h3>
                   {loadingHistory ? (
-                    <div className="loading-state">🔄 Loading history...</div>
+                    <div className="loading-state"><div className="loading-spinner"></div><p>Loading history...</p></div>
                   ) : workoutHistory.length === 0 ? (
                     <div className="empty-state">
                       <div className="empty-icon">💪</div>

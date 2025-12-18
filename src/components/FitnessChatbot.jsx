@@ -3,6 +3,14 @@ import { useAuth } from '@/context/AuthContext.jsx'
 import { API_BASE_URL } from '@/config/api.js'
 import './FitnessChatbot.css'
 
+const formatMessage = (text) => {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br/>')
+}
+
 export default function FitnessChatbot() {
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
@@ -10,7 +18,9 @@ export default function FitnessChatbot() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [lastMessage, setLastMessage] = useState('')
+  const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -24,10 +34,17 @@ export default function FitnessChatbot() {
     if (isOpen && messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: `Hey ${user?.username || 'there'}! 👋\n\nI'm your FitForge AI coach, here to help you crush your fitness goals!\n\nI can assist with:\n💪 Personalized workout plans\n🥗 Nutrition & meal guidance\n📊 Progress tracking strategies\n🎯 Goal setting & motivation\n\nWhat can I help you with today?`
+        content: `Hey **${user?.username || 'there'}**! 👋\n\nI'm your FitForge AI coach, here to help you crush your fitness goals!\n\nI can assist with:\n💪 Personalized workout plans\n🥗 Nutrition & meal guidance\n📊 Progress tracking strategies\n🎯 Goal setting & motivation\n\nWhat can I help you with today?`,
+        timestamp: new Date()
       }])
     }
   }, [isOpen])
+  
+  useEffect(() => {
+    if (isOpen && !isMinimized && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [isOpen, isMinimized])
 
   const sendMessage = async (retryMsg = null) => {
     const messageToSend = retryMsg || input
@@ -38,13 +55,14 @@ export default function FitnessChatbot() {
       return
     }
 
-    const userMessage = { role: 'user', content: messageToSend }
+    const userMessage = { role: 'user', content: messageToSend, timestamp: new Date() }
     if (!retryMsg) {
       setMessages(prev => [...prev, userMessage])
       setLastMessage(messageToSend)
     }
     setInput('')
     setLoading(true)
+    setIsMinimized(false)
 
     try {
       const apiUrl = `${API_BASE_URL}/chat`
@@ -70,11 +88,12 @@ export default function FitnessChatbot() {
       console.log('Response data:', data)
       
       if (data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply, timestamp: new Date() }])
       } else if (data.error) {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: "I'm having some technical difficulties right now. Please try again in a moment! 🔧\n\nIn the meantime, you can:\n💪 Browse workout plans\n🥗 Check nutrition tips\n📊 Track your progress"
+          content: "I'm having some technical difficulties right now. Please try again in a moment! 🔧\n\nIn the meantime, you can:\n💪 Browse workout plans\n🥗 Check nutrition tips\n📊 Track your progress",
+          timestamp: new Date()
         }])
       } else {
         throw new Error('No reply from server')
@@ -95,7 +114,8 @@ export default function FitnessChatbot() {
       
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: errorMsg
+        content: errorMsg,
+        timestamp: new Date()
       }])
     } finally {
       setLoading(false)
@@ -110,47 +130,77 @@ export default function FitnessChatbot() {
   }
 
   const quickQuestions = [
-    'Create a workout plan for me',
-    'What should I eat to build muscle?',
-    'Best exercises for weight loss',
-    'How do I stay motivated?'
+    { icon: '💪', text: 'Create workout plan' },
+    { icon: '🥗', text: 'Nutrition advice' },
+    { icon: '🔥', text: 'Weight loss tips' },
+    { icon: '🎯', text: 'Stay motivated' }
   ]
+  
+  const clearChat = () => {
+    if (confirm('Clear all messages?')) {
+      setMessages([])
+      setInput('')
+    }
+  }
+
+  const getTimeString = (timestamp) => {
+    if (!timestamp) return ''
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  }
 
   return (
     <>
-      <button className="chatbot-toggle" onClick={() => setIsOpen(!isOpen)}>
+      <button className="chatbot-toggle" onClick={() => setIsOpen(!isOpen)} title="Chat with AI Coach">
         {isOpen ? '✕' : '🤖'}
+        {!isOpen && messages.length > 1 && <span className="chat-badge">{messages.length - 1}</span>}
       </button>
 
       {isOpen && (
-        <div className="chatbot-container">
+        <div className={`chatbot-container ${isMinimized ? 'minimized' : ''}`}>
           <div className="chatbot-header">
             <div className="chatbot-title">
               <span className="chatbot-icon">🤖</span>
               <div>
                 <h3>FitForge AI Coach</h3>
-                <span className="chatbot-status">● Online</span>
+                <span className="chatbot-status">Online</span>
               </div>
             </div>
-            <button className="chatbot-close" onClick={() => setIsOpen(false)}>✕</button>
+            <div className="header-actions">
+              <button className="header-btn" onClick={clearChat} title="Clear chat">🗑️</button>
+              <button className="header-btn" onClick={() => setIsMinimized(!isMinimized)} title={isMinimized ? 'Expand' : 'Minimize'}>
+                {isMinimized ? '▲' : '▼'}
+              </button>
+              <button className="chatbot-close" onClick={() => setIsOpen(false)} title="Close">✕</button>
+            </div>
           </div>
 
+          {!isMinimized && (
+          <>
           <div className="chatbot-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`message ${msg.role}`}>
                 <div className="message-avatar">
                   {msg.role === 'user' ? '👤' : '🤖'}
                 </div>
-                <div className="message-content">
-                  {msg.content}
+                <div className="message-bubble">
+                  <div 
+                    className="message-content"
+                    dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+                  />
+                  {msg.timestamp && (
+                    <div className="message-time">{getTimeString(msg.timestamp)}</div>
+                  )}
                 </div>
               </div>
             ))}
             {loading && (
               <div className="message assistant">
                 <div className="message-avatar">🤖</div>
-                <div className="message-content typing">
-                  <span></span><span></span><span></span>
+                <div className="message-bubble">
+                  <div className="message-content typing">
+                    <span></span><span></span><span></span>
+                  </div>
                 </div>
               </div>
             )}
@@ -177,9 +227,13 @@ export default function FitnessChatbot() {
                 <button
                   key={idx}
                   className="quick-btn"
-                  onClick={() => setInput(q)}
+                  onClick={() => {
+                    setInput(q.text)
+                    inputRef.current?.focus()
+                  }}
                 >
-                  {q}
+                  <span className="quick-icon">{q.icon}</span>
+                  <span>{q.text}</span>
                 </button>
               ))}
             </div>
@@ -187,16 +241,24 @@ export default function FitnessChatbot() {
 
           <div className="chatbot-input">
             <textarea
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything... (e.g., 'Create a workout plan')"
+              placeholder="Ask me anything... (Press Enter to send)"
               rows="1"
+              disabled={loading}
             />
-            <button onClick={() => sendMessage()} disabled={!input.trim() || loading}>
+            <button 
+              onClick={() => sendMessage()} 
+              disabled={!input.trim() || loading}
+              title={loading ? 'Sending...' : 'Send message'}
+            >
               {loading ? '⏳' : '➤'}
             </button>
           </div>
+          </>
+          )}
         </div>
       )}
     </>

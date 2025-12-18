@@ -1,28 +1,30 @@
 import { Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { API_BASE_URL } from './config/api.js'
 import ToastContainer from './components/Toast.jsx'
+import LoadingSpinner from './components/LoadingSpinner.jsx'
 import './App.css'
 import Home from './pages/Home.jsx'
-import About from './pages/About.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import Workouts from './pages/Workouts.jsx'
-import Nutrition from './pages/Nutrition.jsx'
-import Progress from './pages/Progress.jsx'
-import Settings from './pages/Settings.jsx'
-import Reports from './pages/Reports.jsx'
-import Analytics from './pages/Analytics.jsx'
-import Contact from './pages/Contact.jsx'
-import Services from './pages/Services.jsx'
-import Onboarding from './pages/Onboarding.jsx'
-import Profile from './pages/Profile.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
-import Exercises from './pages/Exercises.jsx'
-import SavedExercises from './pages/SavedExercises.jsx'
-import DailyTracker from './pages/DailyTracker.jsx'
-import TrackerAnalytics from './pages/TrackerAnalytics.jsx'
-import MaintenancePage from './pages/MaintenancePage.jsx'
-import Checkout from './pages/Checkout.jsx'
+
+const About = lazy(() => import('./pages/About.jsx'))
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
+const Workouts = lazy(() => import('./pages/Workouts.jsx'))
+const Nutrition = lazy(() => import('./pages/Nutrition.jsx'))
+const Progress = lazy(() => import('./pages/Progress.jsx'))
+const Settings = lazy(() => import('./pages/Settings.jsx'))
+const Reports = lazy(() => import('./pages/Reports.jsx'))
+const Analytics = lazy(() => import('./pages/Analytics.jsx'))
+const Contact = lazy(() => import('./pages/Contact.jsx'))
+const Services = lazy(() => import('./pages/Services.jsx'))
+const Onboarding = lazy(() => import('./pages/Onboarding.jsx'))
+const Profile = lazy(() => import('./pages/Profile.jsx'))
+const Exercises = lazy(() => import('./pages/Exercises.jsx'))
+const SavedExercises = lazy(() => import('./pages/SavedExercises.jsx'))
+const DailyTracker = lazy(() => import('./pages/DailyTracker.jsx'))
+const TrackerAnalytics = lazy(() => import('./pages/TrackerAnalytics.jsx'))
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage.jsx'))
+const Checkout = lazy(() => import('./pages/Checkout.jsx'))
 
 function App() {
   const [showMaintenance, setShowMaintenance] = useState(false);
@@ -67,6 +69,7 @@ function App() {
   return (
     <ErrorBoundary>
     <ToastContainer />
+    <Suspense fallback={<LoadingSpinner />}>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
@@ -88,6 +91,7 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/checkout" element={<Checkout />} />
     </Routes>
+    </Suspense>
     </ErrorBoundary>
   )
 }

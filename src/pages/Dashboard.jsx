@@ -276,7 +276,11 @@ export default function Dashboard() {
               <h1>👋 Welcome back, {user.username}!</h1>
               <p>Here's your fitness overview</p>
             </div>
-            <button className="refresh-btn" onClick={() => loadDashboardData(true)}>
+            <button 
+              className="refresh-btn" 
+              onClick={() => loadDashboardData(true)}
+              aria-label="Refresh dashboard data"
+            >
               🔄 Refresh
             </button>
           </div>

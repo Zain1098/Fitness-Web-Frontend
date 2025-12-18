@@ -164,6 +164,13 @@ function LoginForm({ onDone, setMode, lastFocusableRef, navigate }){
 
       {error && <Error role="alert">{error}</Error>}
 
+      <Label style={{marginTop:'8px'}}>
+        <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+          <input type="checkbox" id="rememberMe" style={{width:'auto', margin:0}} />
+          <label htmlFor="rememberMe" style={{margin:0, cursor:'pointer', fontSize:'0.9rem'}}>Remember me</label>
+        </div>
+      </Label>
+
       <Primary type="submit" disabled={!canSubmit}>{loading ? 'Signing in...' : 'Sign in'}</Primary>
 
       <Divider><span>Or continue with</span></Divider>
@@ -180,19 +187,6 @@ function LoginForm({ onDone, setMode, lastFocusableRef, navigate }){
       </Socials>
 
       <p className="muted">New here? <a href="#" onClick={(e)=>{ e.preventDefault(); setMode('signup') }}>Create account</a></p>
-      
-      <Divider><span>Or continue with</span></Divider>
-      <Socials>
-        <SocialButton type="button" aria-label="Continue with Google" onClick={()=>googleInit()}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-            <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
-            <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-            <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-          </svg>
-          <span>Google</span>
-        </SocialButton>
-      </Socials>
       <div style={{height:0}} ref={lastFocusableRef} />
     </Form>
   )
@@ -313,9 +307,11 @@ function SignupForm({ onDone, setMode, lastFocusableRef }){
               <i className={show1 ? 'fa fa-eye-slash' : 'fa fa-eye'}></i>
             </button>
           </PasswordWrap>
-          <div className="help-row">
-            <small>Use at least 8 characters including letters and numbers.</small>
-          </div>
+          <PasswordRequirements>
+            <small style={{color: password.length >= 8 ? '#8ef3c9' : '#ff6b6b'}}>{password.length >= 8 ? '✓' : '○'} At least 8 characters</small>
+            <small style={{color: /[0-9]/.test(password) ? '#8ef3c9' : '#ff6b6b'}}>{/[0-9]/.test(password) ? '✓' : '○'} Contains number</small>
+            <small style={{color: /[a-zA-Z]/.test(password) ? '#8ef3c9' : '#ff6b6b'}}>{/[a-zA-Z]/.test(password) ? '✓' : '○'} Contains letter</small>
+          </PasswordRequirements>
         </Label>
       ) : (
         <Label>
@@ -349,6 +345,33 @@ function SignupForm({ onDone, setMode, lastFocusableRef }){
         </div>
       )}
 
+      {step===1 && (
+        <Label style={{marginTop:'8px'}}>
+          <div style={{display:'flex', alignItems:'flex-start', gap:'8px'}}>
+            <input type="checkbox" id="agreeTerms" required style={{width:'auto', margin:'4px 0 0 0', flexShrink:0}} />
+            <label htmlFor="agreeTerms" style={{margin:0, cursor:'pointer', fontSize:'0.85rem', color:'var(--ff-muted)'}}>I agree to the <a href="#" style={{color:'var(--ff-neon)'}}>Terms of Service</a> and <a href="#" style={{color:'var(--ff-neon)'}}>Privacy Policy</a></label>
+          </div>
+        </Label>
+      )}
+      {step===2 && (
+        <button type="button" onClick={()=>{setStep(1); setOtp(''); setError('')}} style={{background:'transparent', border:'1px solid rgba(255,255,255,0.2)', padding:'8px 16px', borderRadius:'8px', color:'var(--ff-text)', cursor:'pointer', marginTop:'8px'}}>← Back to Step 1</button>
+      )}
+      {step===1 && (
+        <>
+          <Divider><span>Or continue with</span></Divider>
+          <Socials>
+            <SocialButton type="button" aria-label="Sign up with Google" onClick={()=>googleInit()}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+              </svg>
+              <span>Google</span>
+            </SocialButton>
+          </Socials>
+        </>
+      )}
       <Divider><span>Already have an account?</span></Divider>
       <p className="muted"><a href="#" onClick={(e)=>{ e.preventDefault(); setMode('login'); try{ localStorage.removeItem('auth_pending_email'); localStorage.removeItem('otp_expire_ts') }catch(_){} }}>Sign in</a></p>
       <div style={{height:0}} ref={lastFocusableRef} />
@@ -589,6 +612,10 @@ const PasswordWrap = styled.div`
 `
 const PasswordStrength = styled.span`
   font-size:0.85rem; color: ${p=>p.$len>=8 ? '#8ef3c9' : p.$len>=6 ? '#ffd166' : '#ff6b6b'}
+`
+const PasswordRequirements = styled.div`
+  display:flex; flex-direction:column; gap:4px; margin-top:6px;
+  small{ font-size:0.8rem; display:flex; align-items:center; gap:4px; transition:color 0.2s }
 `
 const Primary = styled.button`
   margin-top:6px; border:none; padding:12px; border-radius:10px; font-weight:700; cursor:pointer;
