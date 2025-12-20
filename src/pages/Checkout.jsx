@@ -71,7 +71,25 @@ export default function Checkout() {
   }
 
   const handleCheckout = async () => {
-    showToast('Payment system temporarily unavailable. Coming soon!', 'info')
+    try {
+      setLoading(true)
+      const response = await api('/payment/create-checkout-session', {
+        method: 'POST',
+        body: { plan: planId },
+        token
+      })
+      
+      if (response.success && response.checkout_url) {
+        window.location.href = response.checkout_url
+      } else {
+        showToast('Failed to create checkout session', 'error')
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      showToast(error.message || 'Payment initialization failed', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const originalPrice = isAnnual ? selectedPlan.annualPrice : selectedPlan.monthlyPrice

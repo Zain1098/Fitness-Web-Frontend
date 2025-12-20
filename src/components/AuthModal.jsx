@@ -129,8 +129,8 @@ function LoginForm({ onDone, setMode, lastFocusableRef, navigate }){
       await login(email, password); 
       await logActivity('User Login', `${email} logged in successfully`, 'user_action', email);
       setLoginAttempts(0);
-      onDone(); 
-      nav('/dashboard') 
+      onDone();
+      // AuthContext will handle navigation
     }catch(err){ 
       setLoginAttempts(prev => prev + 1);
       if(loginAttempts >= 2) {

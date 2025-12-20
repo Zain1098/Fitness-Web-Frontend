@@ -349,7 +349,7 @@ function PricingPlans({ setAuthModalOpen }) {
           <SwitchBilling checked={annual} onChange={setAnnual} />
         </div>
         <div style={{ display:'flex', gap:'24px', justifyContent:'center', flexWrap:'wrap' }}>
-          {plans.map((plan) => (
+          {plans.filter(p => p.planId === 'free' || p.planId === 'premium' || p.planId === 'pro' || p.planId === 'basic').slice(0, 2).map((plan) => (
             <PricingCard 
               key={plan.planId}
               badge={plan.badge}

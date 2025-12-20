@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
+import PricingModal from '../components/PricingModal.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import { API_BASE_URL } from '../config/api.js'
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [dailyQuote, setDailyQuote] = useState({ text: '', author: '' })
   const [calorieGoal, setCalorieGoal] = useState(2000)
   const [todayTracker, setTodayTracker] = useState({ water: 0, steps: 0, sleep: 0, mood: '' })
+  const [pricingModalOpen, setPricingModalOpen] = useState(false)
 
   const loadDashboardData = async (forceRefresh = false) => {
     if (!token) return
@@ -181,12 +183,14 @@ export default function Dashboard() {
       
       // Calculate calorie goal
       const userPrefs = userData?.preferences || {}
+      let calculatedCalorieGoal = 2000
       if (userPrefs.age && userPrefs.weight && userPrefs.height) {
         const bmr = userPrefs.gender === 'male' 
           ? 10 * userPrefs.weight + 6.25 * userPrefs.height - 5 * userPrefs.age + 5
           : 10 * userPrefs.weight + 6.25 * userPrefs.height - 5 * userPrefs.age - 161
         const activityMultiplier = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 }[userPrefs.activityLevel] || 1.2
-        setCalorieGoal(Math.round(bmr * activityMultiplier))
+        calculatedCalorieGoal = Math.round(bmr * activityMultiplier)
+        setCalorieGoal(calculatedCalorieGoal)
       }
       
       // Build recent activity
@@ -231,7 +235,7 @@ export default function Dashboard() {
       const cacheData = {
         summary, todayStats, weeklyProgress, streak, weightTrend,
         goalProgress, achievements, recentActivity: activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5),
-        calorieGoal: Math.round(bmr * activityMultiplier) || 2000,
+        calorieGoal: calculatedCalorieGoal,
         todayTracker: trackerData || { water: 0, steps: 0, sleep: 0, mood: '' }
       }
       sessionStorage.setItem('dashboardCache', JSON.stringify(cacheData))
@@ -268,6 +272,7 @@ export default function Dashboard() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
+      <PricingModal open={pricingModalOpen} onClose={() => setPricingModalOpen(false)} />
       <div className="dashboard-page">
         <div className="dashboard-container">
           {/* Header */}
@@ -276,13 +281,22 @@ export default function Dashboard() {
               <h1>👋 Welcome back, {user.username}!</h1>
               <p>Here's your fitness overview</p>
             </div>
-            <button 
-              className="refresh-btn" 
-              onClick={() => loadDashboardData(true)}
-              aria-label="Refresh dashboard data"
-            >
-              🔄 Refresh
-            </button>
+            <div style={{display:'flex', gap:'10px'}}>
+              <button 
+                className="upgrade-btn" 
+                onClick={() => setPricingModalOpen(true)}
+                style={{background:'linear-gradient(135deg, #ff6b35, #ff8c42)', color:'#fff', border:'none', padding:'10px 20px', borderRadius:'8px', cursor:'pointer', fontWeight:'600'}}
+              >
+                ⭐ Upgrade Plan
+              </button>
+              <button 
+                className="refresh-btn" 
+                onClick={() => loadDashboardData(true)}
+                aria-label="Refresh dashboard data"
+              >
+                🔄 Refresh
+              </button>
+            </div>
           </div>
 
           {/* Daily Quote */}

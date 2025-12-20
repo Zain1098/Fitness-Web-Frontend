@@ -59,8 +59,12 @@ export function AuthProvider({ children }){
         setUser(r.user)
         // fetch(`${API_BASE_URL}/track/login`, { method: 'POST' }).catch(() => {});
         logActivity('user_login', 'User logged in successfully', 'auth', r.user);
-        // Auto-redirect to onboarding if not completed
-        if (!r.user.onboarding_completed) {
+        // Check for redirect in URL
+        const params = new URLSearchParams(window.location.search)
+        const redirectPath = params.get('redirect')
+        if (redirectPath) {
+          navigate(redirectPath)
+        } else if (!r.user.onboarding_completed) {
           navigate('/onboarding')
         } else {
           navigate('/dashboard')

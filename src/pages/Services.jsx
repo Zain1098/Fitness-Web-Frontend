@@ -69,10 +69,12 @@ function ServicesPricingPlans(){
   
   const handlePlanClick = (plan) => {
     if (!user) {
-      navigate('/?auth=login')
+      showToast('Please login to continue', 'info')
+      navigate(`/?auth=login&redirect=${encodeURIComponent(`/checkout?plan=${plan}`)}`)
       return
     }
     if (plan === 'free') {
+      showToast('Free plan activated!', 'success')
       navigate('/dashboard')
     } else {
       navigate(`/checkout?plan=${plan}`)
@@ -91,7 +93,7 @@ function ServicesPricingPlans(){
           <SwitchBilling checked={annual} onChange={setAnnual} />
         </div>
         <div style={{ display:'flex', gap:'24px', justifyContent:'center', flexWrap:'wrap' }}>
-          {plans.map((plan) => (
+          {plans.filter(p => p.planId === 'free' || p.planId === 'premium' || p.planId === 'pro' || p.planId === 'basic').slice(0, 2).map((plan) => (
             <PricingCard 
               key={plan.planId}
               badge={plan.badge}
