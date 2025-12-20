@@ -16,6 +16,8 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleteReason, setDeleteReason] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
   const [showNameModal, setShowNameModal] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [newName, setNewName] = useState('')
@@ -37,6 +39,8 @@ export default function Settings() {
     workoutFrequency: '',
     experienceLevel: 'beginner',
     dietaryPreference: 'none',
+    allergens: [],
+    mealsPerDay: 3,
     waterIntakeGoal: 8,
     sleepGoal: 8,
     bodyMeasurements: { chest: '', waist: '', hips: '', arms: '', thighs: '' },
@@ -59,6 +63,8 @@ export default function Settings() {
 
   useEffect(() => {
     loadSettings()
+    // Test toast on page load
+    // showToast('Settings page loaded', 'info')
   }, [token])
 
   const loadSettings = async () => {
@@ -68,6 +74,9 @@ export default function Settings() {
       const userData = await api('/auth/me', { token })
       const prefs = userData.preferences || {}
       const onb = userData.onboarding_data || {}
+      
+      console.log('Settings Load - Onboarding Data:', onb)
+      console.log('Settings Load - Body Measurements:', onb.body_measurements)
       
       setSettings(prev => ({
         ...prev,
@@ -81,9 +90,17 @@ export default function Settings() {
         workoutFrequency: prefs.workoutFrequency || onb.workout_frequency || prev.workoutFrequency,
         experienceLevel: prefs.experienceLevel || onb.fitness_level || prev.experienceLevel,
         dietaryPreference: prefs.dietaryPreference || onb.dietary_preference || prev.dietaryPreference,
+        allergens: onb.allergens || prev.allergens,
+        mealsPerDay: onb.meals_per_day || prev.mealsPerDay,
         waterIntakeGoal: prefs.waterIntakeGoal || onb.water_intake_goal || prev.waterIntakeGoal,
         sleepGoal: prefs.sleepGoal || onb.sleep_goal || prev.sleepGoal,
-        bodyMeasurements: onb.body_measurements || prev.bodyMeasurements,
+        bodyMeasurements: {
+          chest: onb.body_measurements?.chest || prefs.bodyMeasurements?.chest || '',
+          waist: onb.body_measurements?.waist || prefs.bodyMeasurements?.waist || '',
+          hips: onb.body_measurements?.hips || prefs.bodyMeasurements?.hips || '',
+          arms: onb.body_measurements?.arms || prefs.bodyMeasurements?.arms || '',
+          thighs: onb.body_measurements?.thighs || prefs.bodyMeasurements?.thighs || ''
+        },
         notifications: prefs.notifications || prev.notifications
       }))
     } catch (err) {
@@ -96,8 +113,32 @@ export default function Settings() {
   const saveSettings = async () => {
     try {
       setSaving(true)
+      
+      // Save to settings API
       await api('/settings', { method: 'PUT', body: settings, token })
+      
+      // Also update onboarding_data with body measurements
+      await api('/user/onboarding', {
+        method: 'POST',
+        token,
+        body: {
+          body_measurements: {
+            chest: parseFloat(settings.bodyMeasurements.chest) || 0,
+            waist: parseFloat(settings.bodyMeasurements.waist) || 0,
+            hips: parseFloat(settings.bodyMeasurements.hips) || 0,
+            arms: parseFloat(settings.bodyMeasurements.arms) || 0,
+            thighs: parseFloat(settings.bodyMeasurements.thighs) || 0
+          },
+          allergens: settings.allergens,
+          meals_per_day: parseInt(settings.mealsPerDay) || 3,
+          dietary_preference: settings.dietaryPreference,
+          water_intake_goal: parseInt(settings.waterIntakeGoal) || 8,
+          sleep_goal: parseFloat(settings.sleepGoal) || 8
+        }
+      })
+      
       showToast('Settings saved successfully!', 'success')
+      loadSettings() // Reload to confirm
     } catch (err) {
       showToast('Failed to save settings', 'error')
     } finally {
@@ -209,17 +250,50 @@ export default function Settings() {
   }
 
   const deleteAccount = async () => {
-    if (deleteConfirm !== 'DELETE') {
-      showToast('Please type DELETE to confirm', 'error')
+    // Validation
+    if (!deletePassword || deletePassword.trim() === '') {
+      showToast('Please enter your password', 'error')
+      alert('Please enter your password') // Backup alert
       return
     }
+    
+    if (deleteConfirm !== 'DELETE') {
+      showToast('Please type DELETE to confirm', 'error')
+      alert('Please type DELETE to confirm') // Backup alert
+      return
+    }
+    
+    setIsDeleting(true)
+    
     try {
-      await api('/user/delete-account', { method: 'POST', token, body: { password: deletePassword } })
-      showToast('Account deleted', 'success')
-      logout()
-      navigate('/')
+      const response = await api('/user/delete-account', { 
+        method: 'POST', 
+        token, 
+        body: { 
+          password: deletePassword,
+          reason: deleteReason || 'No reason provided'
+        } 
+      })
+      
+      showToast('Account deleted successfully. Redirecting...', 'success')
+      alert('Account deleted successfully. Redirecting...') // Backup alert
+      
+      // Clear all data
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      // Wait a bit then logout and redirect
+      setTimeout(() => {
+        logout()
+        navigate('/')
+      }, 1500)
+      
     } catch (err) {
-      showToast(err?.message || 'Failed to delete account', 'error')
+      console.error('Delete account error:', err)
+      const errorMessage = err.message || 'Failed to delete account'
+      showToast(errorMessage, 'error')
+      alert(errorMessage) // Backup alert
+      setIsDeleting(false)
     }
   }
 
@@ -390,9 +464,38 @@ export default function Settings() {
                             <option value="none">No Restrictions</option>
                             <option value="vegetarian">Vegetarian</option>
                             <option value="vegan">Vegan</option>
+                            <option value="pescatarian">Pescatarian</option>
                             <option value="keto">Keto</option>
                             <option value="paleo">Paleo</option>
+                            <option value="low_carb">Low Carb</option>
+                            <option value="high_protein">High Protein</option>
+                            <option value="mediterranean">Mediterranean</option>
+                            <option value="gluten_free">Gluten Free</option>
                           </select>
+                        </div>
+                        <div className="input-group-pro full">
+                          <label>Food Allergies</label>
+                          <div style={{display:'flex', flexWrap:'wrap', gap:'10px', marginTop:'10px'}}>
+                            {['dairy', 'eggs', 'nuts', 'soy', 'shellfish', 'gluten'].map(allergen => (
+                              <label key={allergen} style={{display:'flex', alignItems:'center', gap:'5px', padding:'8px 12px', background:'rgba(255,255,255,0.05)', borderRadius:'8px', cursor:'pointer'}}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={settings.allergens.includes(allergen)}
+                                  onChange={(e) => {
+                                    const updated = e.target.checked 
+                                      ? [...settings.allergens, allergen]
+                                      : settings.allergens.filter(a => a !== allergen)
+                                    setSettings({...settings, allergens: updated})
+                                  }}
+                                />
+                                <span style={{textTransform:'capitalize'}}>{allergen}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="input-group-pro">
+                          <label>Meals Per Day</label>
+                          <input type="number" min="1" max="8" value={settings.mealsPerDay} onChange={(e) => setSettings({...settings, mealsPerDay: e.target.value})} />
                         </div>
                         <div className="input-group-pro">
                           <label>Water Goal (glasses/day)</label>
@@ -611,28 +714,84 @@ export default function Settings() {
       )}
 
       {showDeleteModal && (
-        <div className="modal-overlay-pro" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal-pro" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header-pro">
+        <div className="modal-overlay-pro" onClick={() => !isDeleting && setShowDeleteModal(false)}>
+          <div className="modal-pro delete-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '550px', maxHeight: '90vh', display: 'flex', flexDirection: 'column'}}>
+            <div className="modal-header-pro" style={{flexShrink: 0}}>
               <h2>⚠️ Delete Account</h2>
-              <button onClick={() => setShowDeleteModal(false)}>×</button>
+              {!isDeleting && <button onClick={() => setShowDeleteModal(false)}>×</button>}
             </div>
-            <div className="modal-body-pro">
-              <div className="warning-box-pro">
-                <p>This will permanently delete all your data</p>
+            <div className="modal-body-pro" style={{flex: 1, overflowY: 'auto', padding: '20px'}}>
+              <div className="warning-box-pro" style={{background: 'rgba(255,107,107,0.1)', border: '2px solid rgba(255,107,107,0.3)', borderRadius: '12px', padding: '20px', marginBottom: '20px'}}>
+                <p style={{marginBottom: '12px', fontWeight: 'bold', color: '#ff6b6b', fontSize: '1.1rem'}}>⚠️ Warning: This action cannot be undone!</p>
+                <p style={{marginBottom: '10px', color: 'rgba(255,255,255,0.9)'}}>This will permanently delete:</p>
+                <ul style={{textAlign: 'left', marginTop: '10px', paddingLeft: '20px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.8'}}>
+                  <li>Your profile and account data</li>
+                  <li>All workout history and progress</li>
+                  <li>Nutrition logs and meal plans</li>
+                  <li>Body measurements and photos</li>
+                  <li>All saved exercises and favorites</li>
+                </ul>
               </div>
-              <div className="input-group-pro">
-                <label>Password</label>
-                <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} placeholder="Enter password" />
+              
+              <div className="input-group-pro" style={{marginBottom: '20px'}}>
+                <label style={{display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.9)', fontWeight: '600'}}>Reason for leaving (Optional)</label>
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Help us improve by telling us why you're leaving..."
+                  rows="3"
+                  style={{width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)', color: '#fff', resize: 'vertical', fontSize: '0.95rem', fontFamily: 'inherit', transition: 'all 0.3s ease'}}
+                  disabled={isDeleting}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,107,53,0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
               </div>
-              <div className="input-group-pro">
-                <label>Type DELETE to confirm</label>
-                <input type="text" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="DELETE" />
+              
+              <div className="input-group-pro" style={{marginBottom: '20px'}}>
+                <label style={{display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.9)', fontWeight: '600'}}>Enter your password to confirm <span style={{color: '#ff6b6b'}}>*</span></label>
+                <input 
+                  type="password" 
+                  value={deletePassword} 
+                  onChange={(e) => setDeletePassword(e.target.value)} 
+                  placeholder="Your password" 
+                  disabled={isDeleting}
+                  style={{width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.95rem', transition: 'all 0.3s ease'}}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,107,53,0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+              </div>
+              
+              <div className="input-group-pro" style={{marginBottom: '0'}}>
+                <label style={{display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.9)', fontWeight: '600'}}>Type <strong style={{color: '#ff6b6b', fontSize: '1.1rem'}}>DELETE</strong> to confirm <span style={{color: '#ff6b6b'}}>*</span></label>
+                <input 
+                  type="text" 
+                  value={deleteConfirm} 
+                  onChange={(e) => setDeleteConfirm(e.target.value)} 
+                  placeholder="Type DELETE in capital letters" 
+                  disabled={isDeleting}
+                  style={{width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.95rem', transition: 'all 0.3s ease'}}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,107,53,0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
               </div>
             </div>
-            <div className="modal-footer-pro">
-              <button className="btn-cancel-pro" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-              <button className="btn-delete-pro" onClick={deleteAccount}>Delete Account</button>
+            <div className="modal-footer-pro" style={{flexShrink: 0, padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '12px', justifyContent: 'flex-end'}}>
+              <button 
+                className="btn-cancel-pro" 
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                style={{padding: '12px 24px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '2px solid rgba(255,255,255,0.2)', fontWeight: '600', cursor: isDeleting ? 'not-allowed' : 'pointer', opacity: isDeleting ? 0.5 : 1, transition: 'all 0.3s ease'}}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-delete-pro" 
+                onClick={deleteAccount}
+                disabled={isDeleting || !deletePassword || deleteConfirm !== 'DELETE'}
+                style={{padding: '12px 24px', borderRadius: '10px', background: (isDeleting || !deletePassword || deleteConfirm !== 'DELETE') ? 'rgba(255,107,107,0.3)' : 'linear-gradient(135deg, #ff6b6b, #ff5252)', color: '#fff', border: 'none', fontWeight: '600', cursor: (isDeleting || !deletePassword || deleteConfirm !== 'DELETE') ? 'not-allowed' : 'pointer', opacity: (isDeleting || !deletePassword || deleteConfirm !== 'DELETE') ? 0.5 : 1, transition: 'all 0.3s ease'}}
+              >
+                {isDeleting ? '⏳ Deleting...' : '🗑️ Delete My Account'}
+              </button>
             </div>
           </div>
         </div>

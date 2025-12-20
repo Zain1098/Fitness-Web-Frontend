@@ -71,6 +71,10 @@ export default function Checkout() {
   }
 
   const handleCheckout = async () => {
+    if (!token) {
+      showToast('Please login to subscribe', 'error')
+      return
+    }
     try {
       setLoading(true)
       const response = await api('/payment/create-checkout-session', {

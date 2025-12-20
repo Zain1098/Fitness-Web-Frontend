@@ -5,10 +5,29 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
   const [bench, setBench] = useState(data.oneRM?.bench || '')
   const [squat, setSquat] = useState(data.oneRM?.squat || '')
   const [deadlift, setDeadlift] = useState(data.oneRM?.deadlift || '')
+  const [unit, setUnit] = useState('kg')
 
   const handleNext = () => {
-    updateData('oneRM', { bench, squat, deadlift })
+    const convertedData = {
+      bench: bench ? (unit === 'kg' ? bench : (bench * 0.453592).toFixed(1)) : '',
+      squat: squat ? (unit === 'kg' ? squat : (squat * 0.453592).toFixed(1)) : '',
+      deadlift: deadlift ? (unit === 'kg' ? deadlift : (deadlift * 0.453592).toFixed(1)) : ''
+    }
+    updateData('oneRM', convertedData)
     nextStep()
+  }
+
+  const handleSkip = () => {
+    updateData('oneRM', { bench: '', squat: '', deadlift: '' })
+    nextStep()
+  }
+
+  const toggleUnit = () => {
+    const newUnit = unit === 'kg' ? 'lbs' : 'kg'
+    if (bench) setBench(unit === 'kg' ? (bench * 2.20462).toFixed(1) : (bench * 0.453592).toFixed(1))
+    if (squat) setSquat(unit === 'kg' ? (squat * 2.20462).toFixed(1) : (squat * 0.453592).toFixed(1))
+    if (deadlift) setDeadlift(unit === 'kg' ? (deadlift * 2.20462).toFixed(1) : (deadlift * 0.453592).toFixed(1))
+    setUnit(newUnit)
   }
 
   return (
@@ -17,62 +36,90 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
         <IconWrapper>
           <AnimatedIcon>🏋️</AnimatedIcon>
         </IconWrapper>
-        <Title>Estimate your 1RM</Title>
-        <Subtitle>One Rep Max - Maximum weight you can lift once (optional)</Subtitle>
+        <Title>Your Maximum Strength</Title>
+        <Subtitle>Maximum weight you can lift ONCE with proper form (Optional - Skip if unsure)</Subtitle>
+        
+        <InfoBox>
+          <InfoIcon>💡</InfoIcon>
+          <InfoText>
+            <strong>What does this mean?</strong> Enter the heaviest weight you can lift for just ONE repetition. Not how many times you can lift it - just the maximum weight for a single lift.
+          </InfoText>
+        </InfoBox>
+        
+        <UnitToggleWrapper>
+          <UnitToggle onClick={toggleUnit}>
+            Switch to {unit === 'kg' ? 'lbs' : 'kg'} ⚖️
+          </UnitToggle>
+        </UnitToggleWrapper>
         
         <FormGrid>
           <InputGroup>
-            <Label>Bench Press</Label>
+            <LabelRow>
+              <Label>Bench Press (Chest)</Label>
+              <Example>Max weight: {unit === 'kg' ? '60-80 kg' : '130-175 lbs'}</Example>
+            </LabelRow>
+            <HelpText>Heaviest weight you can push up ONCE while lying on bench</HelpText>
             <InputWrapper>
               <Icon>💪</Icon>
               <Input
                 type="number"
                 value={bench}
                 onChange={(e) => setBench(e.target.value)}
-                placeholder="60"
+                placeholder={unit === 'kg' ? '60' : '130'}
                 min="0"
               />
-              <Unit>kg</Unit>
+              <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Squat</Label>
+            <LabelRow>
+              <Label>Squat (Legs)</Label>
+              <Example>Max weight: {unit === 'kg' ? '80-100 kg' : '175-220 lbs'}</Example>
+            </LabelRow>
+            <HelpText>Heaviest weight you can squat down and stand up ONCE</HelpText>
             <InputWrapper>
               <Icon>🦵</Icon>
               <Input
                 type="number"
                 value={squat}
                 onChange={(e) => setSquat(e.target.value)}
-                placeholder="80"
+                placeholder={unit === 'kg' ? '80' : '175'}
                 min="0"
               />
-              <Unit>kg</Unit>
+              <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
 
           <InputGroup>
-            <Label>Deadlift</Label>
+            <LabelRow>
+              <Label>Deadlift (Back & Legs)</Label>
+              <Example>Max weight: {unit === 'kg' ? '100-120 kg' : '220-265 lbs'}</Example>
+            </LabelRow>
+            <HelpText>Heaviest weight you can lift from ground to standing ONCE</HelpText>
             <InputWrapper>
               <Icon>🏋️</Icon>
               <Input
                 type="number"
                 value={deadlift}
                 onChange={(e) => setDeadlift(e.target.value)}
-                placeholder="100"
+                placeholder={unit === 'kg' ? '100' : '220'}
                 min="0"
               />
-              <Unit>kg</Unit>
+              <Unit>{unit}</Unit>
             </InputWrapper>
           </InputGroup>
         </FormGrid>
 
-        <Hint>💡 Leave empty if you're not sure - we'll help you find out!</Hint>
+        <Hint>💡 Not sure? We'll help you discover your strength during workouts!</Hint>
 
         <ButtonGroup>
           <BackButton onClick={prevStep}>
             <span>←</span> Back
           </BackButton>
+          <SkipButton onClick={handleSkip}>
+            Skip for now
+          </SkipButton>
           <NextButton onClick={handleNext}>
             Next <span>→</span>
           </NextButton>
@@ -142,6 +189,78 @@ const FormGrid = styled.div`
 
 const InputGroup = styled.div`
   text-align: left;
+`
+
+const LabelRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`
+
+const Example = styled.span`
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+`
+
+const InfoBox = styled.div`
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  background: rgba(20,225,255,0.1);
+  border: 2px solid rgba(20,225,255,0.3);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 30px;
+  text-align: left;
+`
+
+const InfoIcon = styled.div`
+  font-size: 2rem;
+  flex-shrink: 0;
+`
+
+const InfoText = styled.p`
+  font-size: 1rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.6;
+  margin: 0;
+  
+  strong {
+    color: #14e1ff;
+  }
+`
+
+const UnitToggleWrapper = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+`
+
+const UnitToggle = styled.button`
+  background: rgba(255,107,53,0.1);
+  border: 2px solid rgba(255,107,53,0.3);
+  color: #ff6b35;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255,107,53,0.2);
+    border-color: #ff6b35;
+    transform: translateY(-2px);
+  }
+`
+
+const HelpText = styled.p`
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.6);
+  margin: 5px 0 10px 0;
+  font-style: italic;
 `
 
 const Label = styled.label`
@@ -255,6 +374,18 @@ const BackButton = styled(Button)`
   &:hover {
     background: rgba(255,255,255,0.15);
     border-color: rgba(255,255,255,0.4);
+  }
+`
+
+const SkipButton = styled(Button)`
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.7);
+  border: 2px solid rgba(255,255,255,0.1);
+  
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
+    color: #fff;
   }
 `
 

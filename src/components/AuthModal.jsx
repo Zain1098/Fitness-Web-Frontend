@@ -223,9 +223,10 @@ function SignupForm({ onDone, setMode, lastFocusableRef }){
       if(!canSubmit){ setError('Please complete the form correctly'); return }
       setLoading(true); setError('')
       try{
-        const av = await checkAvailability(email, username)
-        if(av && (av.fields && (!av.fields.email || !av.fields.username))){
-          setError('Account already exists — try login or reset password.')
+        const av = await checkAvailability(email)
+        if(av && av.fields && !av.fields.email){
+          setError('Email already registered — try login or reset password.')
+          setLoading(false)
           return
         }
         const r = await register({ username, email, password })
@@ -237,7 +238,7 @@ function SignupForm({ onDone, setMode, lastFocusableRef }){
           await logActivity('User Registration', `New user ${username} registered successfully`, 'user_action', username);
           onDone(); 
         }
-      }catch(err){ setError(err?.code === 'USER_EXISTS' ? 'Account already exists — try login or reset password.' : (err?.message || 'Unable to register')) }finally{ setLoading(false) }
+      }catch(err){ setError(err?.code === 'USER_EXISTS' ? 'Email already registered — try login or reset password.' : (err?.message || 'Unable to register')) }finally{ setLoading(false) }
     }else{
       if(otp.length !== 6){ setError('Enter 6-digit OTP'); return }
       setLoading(true); setError('')

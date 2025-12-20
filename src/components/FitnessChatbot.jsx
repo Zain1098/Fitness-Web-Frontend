@@ -151,7 +151,7 @@ export default function FitnessChatbot() {
 
   return (
     <>
-      <button className="chatbot-toggle" onClick={() => setIsOpen(!isOpen)} title="Chat with AI Coach">
+      <button className="chatbot-toggle" data-tutorial="chatbot-btn" onClick={() => setIsOpen(!isOpen)} title="Chat with AI Coach">
         {isOpen ? '✕' : '🤖'}
         {!isOpen && messages.length > 1 && <span className="chat-badge">{messages.length - 1}</span>}
       </button>

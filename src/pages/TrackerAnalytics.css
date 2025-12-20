@@ -1,6 +1,6 @@
 .tracker-analytics-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
   padding-top: 80px;
   color: #fff;
 }
@@ -20,7 +20,7 @@
 
 .analytics-header h1 {
   font-size: 2rem;
-  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  background: linear-gradient(45deg, #14e1ff, #7deaff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 5px;
@@ -78,8 +78,8 @@
 }
 
 .stat-card.highlight {
-  background: rgba(255, 107, 53, 0.18);
-  border-color: rgba(255, 107, 53, 0.45);
+  background: rgba(20, 225, 255, 0.15);
+  border-color: rgba(20, 225, 255, 0.4);
 }
 
 .stat-icon {
@@ -105,11 +105,11 @@
 }
 
 .calendar-section {
-  background: rgba(20, 20, 20, 0.85);
-  border-radius: 12px;
-  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .calendar-header {
@@ -120,8 +120,8 @@
 }
 
 .calendar-header h2 {
-  font-size: 1.2rem;
-  color: #ff6b35;
+  font-size: 1.5rem;
+  color: #fff;
   margin: 0;
 }
 
@@ -236,17 +236,17 @@
 }
 
 .charts-section {
-  background: rgba(20, 20, 20, 0.85);
-  border-radius: 12px;
-  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .charts-section h2 {
-  font-size: 1.2rem;
-  color: #ff6b35;
-  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: #fff;
+  margin: 0 0 20px 0;
 }
 
 .charts-grid {
@@ -329,16 +329,16 @@
 }
 
 .history-section {
-  background: rgba(20, 20, 20, 0.85);
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .history-section h2 {
-  font-size: 1.2rem;
-  color: #ff6b35;
-  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: #fff;
+  margin: 0 0 20px 0;
 }
 
 .history-list {
@@ -395,7 +395,7 @@
 .history-date {
   font-weight: 600;
   margin-bottom: 8px;
-  color: #ff6b35;
+  color: #14e1ff;
 }
 
 .history-stats {

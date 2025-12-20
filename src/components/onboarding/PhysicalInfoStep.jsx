@@ -11,7 +11,11 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
   const [heightInches, setHeightInches] = useState('')
 
   const handleNext = () => {
-    if (age && height && weight) {
+    const hasAge = age && age > 0
+    const hasHeight = heightUnit === 'cm' ? (height && height > 0) : (heightFeet > 0 || heightInches > 0)
+    const hasWeight = weight && weight > 0
+    
+    if (hasAge && hasHeight && hasWeight) {
       updateData('age', age)
       updateData('height', heightUnit === 'cm' ? height : (parseFloat(heightFeet || 0) * 30.48 + parseFloat(heightInches || 0) * 2.54).toFixed(1))
       updateData('weight', weightUnit === 'kg' ? weight : (parseFloat(weight) * 0.453592).toFixed(1))
@@ -41,7 +45,10 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
     setWeightUnit(weightUnit === 'kg' ? 'lbs' : 'kg')
   }
 
-  const isValid = age && weight && age > 0 && weight > 0 && (heightUnit === 'cm' ? height > 0 : (heightFeet > 0 || heightInches > 0))
+  const hasAge = age && age > 0
+  const hasHeight = heightUnit === 'cm' ? (height && height > 0) : (heightFeet > 0 || heightInches > 0)
+  const hasWeight = weight && weight > 0
+  const isValid = hasAge && hasHeight && hasWeight
 
   return (
     <StepWrapper>

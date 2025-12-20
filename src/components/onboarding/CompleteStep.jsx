@@ -38,6 +38,8 @@ export default function CompleteStep({ data }) {
             workout_time_preference: data.workoutTimePreference || '',
             motivation: data.motivation || '',
             dietary_preference: data.dietaryPreference || 'none',
+            allergens: data.allergens || [],
+            meals_per_day: parseInt(data.mealsPerDay) || 3,
             water_intake_goal: parseInt(data.waterIntakeGoal) || 8,
             sleep_goal: parseFloat(data.sleepGoal) || 8,
             onboarding_completed: true

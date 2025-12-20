@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components'
 import VisitorNavbar from '../components/VisitorNavbar.jsx';
 import PromoPopup from '../components/PromoPopup.jsx';
+import ScrollToTop from '../components/ScrollToTop.jsx';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { showToast } from '../components/Toast.jsx';
@@ -37,9 +38,10 @@ function WhyTracking() {
     { icon: 'fa fa-bell-o', title: 'Smart Reminders', text: 'Low‑friction nudges, calendar sync and micro‑goals keep you moving. FitForge reduces decision fatigue so consistency becomes natural.', bullets: ['Calendar sync', 'Nudges', 'Decision ease'] }
   ];
   return (
-    <section className="ff-section ff-particles" id="why">
+    <section className="ff-section ff-particles" id="why" style={{ position: 'relative' }}>
+      {[...Array(6)].map((_, i) => <div key={i} className="ff-particle" />)}
       <div className="ff-container" ref={ref}>
-        <h2 className="ff-title">Why Fitness Tracking Matters</h2>
+        <h2 className="ff-title ff-glitch" data-text="Why Fitness Tracking Matters">Why Fitness Tracking Matters</h2>
         <p className="ff-sub">A clear view of training turns effort into intelligent progress.</p>
         <div className="ff-cards-wrap">
           <div className="ff-cards">
@@ -55,14 +57,18 @@ function WhyTracking() {
             className="Carousal_002"
           >
             {cards.map((c, idx) => (
-              <SwiperSlide key={idx} className="rounded-3xl">
+              <SwiperSlide key={idx} className="rounded-3xl ff-neon-border">
                 <div>
-                  <div className="ff-icon"><i className={c.icon}></i></div>
+                  <div className="ff-icon ff-pulse-container">
+                    <i className={c.icon}></i>
+                    <div className="ff-pulse-ring"></div>
+                    <div className="ff-pulse-ring"></div>
+                  </div>
                   <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>{c.title}</h4>
                   <p style={{ color: 'var(--ff-muted)' }}>{c.text}</p>
                   <div className="ff-bullets">
                     {c.bullets?.map((b, bi) => (
-                      <span key={bi} className="ff-pill">{b}</span>
+                      <span key={bi} className="ff-pill ff-magnetic">{b}</span>
                     ))}
                   </div>
                 </div>
@@ -124,26 +130,65 @@ function HowItWorks() {
 
 function DashboardShowcase() {
   return (
-    <section className="ff-section ff-particles" id="showcase">
+    <section className="ff-section" id="showcase" style={{ position: 'relative', paddingTop: '60px', paddingBottom: '60px' }}>
       <div className="ff-container">
         <h2 className="ff-title">Dashboard Preview Showcase</h2>
-        <p className="ff-sub">Live metrics, trends and an immersive dashboard feel.</p>
-        <div className="ff-dash-grid">
+        <p className="ff-sub" style={{ marginBottom: '20px' }}>Live metrics, trends and an immersive dashboard feel.</p>
+        <div className="ff-dash-grid" style={{ gap: '20px' }}>
           <div className="ff-dash-left">
-            <div className="ff-panel ff-float-in">
-              <h5 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Live Weekly Snapshot</h5>
+            <div className="ff-panel ff-neon-border" style={{ marginBottom: '16px', padding: '20px' }}>
+              <h5 className="ff-underline" style={{ color: 'var(--ff-text)', marginBottom: '12px' }}>Live Weekly Snapshot</h5>
               <LiveBars count={16} />
-              <div className="ff-metrics" style={{ marginTop:'16px' }}>
-                <div className="ff-metric"><div style={{ color:'var(--ff-muted)' }}>Active Sessions</div><div style={{ color:'var(--ff-neon)', fontSize:'22px' }}>+5/wk</div></div>
-                <div className="ff-metric"><div style={{ color:'var(--ff-muted)' }}>Weekly Volume</div><div style={{ color:'var(--ff-neon)', fontSize:'22px' }}>+12%</div></div>
-                <div className="ff-metric"><div style={{ color:'var(--ff-muted)' }}>Consistency</div><div style={{ color:'var(--ff-neon)', fontSize:'22px' }}>21 days</div></div>
+              <div style={{ marginTop:'12px', display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                <div className="ff-metric ff-magnetic" style={{ padding: '10px' }}><div style={{ color:'var(--ff-muted)', fontSize: '13px' }}>Active Sessions</div><div style={{ color:'var(--ff-neon)', fontSize:'20px' }}>+5/wk</div></div>
+                <div className="ff-metric ff-magnetic" style={{ padding: '10px' }}><div style={{ color:'var(--ff-muted)', fontSize: '13px' }}>Weekly Volume</div><div style={{ color:'var(--ff-neon)', fontSize:'20px' }}>+12%</div></div>
+                <div className="ff-metric ff-magnetic" style={{ padding: '10px' }}><div style={{ color:'var(--ff-muted)', fontSize: '13px' }}>Consistency</div><div style={{ color:'var(--ff-neon)', fontSize:'20px' }}>21 days</div></div>
+              </div>
+            </div>
+            <div className="ff-panel ff-neon-border" style={{ padding: '20px' }}>
+              <h5 className="ff-underline" style={{ color: 'var(--ff-text)', marginBottom: '12px' }}>Real-Time Stats</h5>
+              <div style={{ display: 'grid', gap: '10px' }}>
+                <div className="ff-metric ff-magnetic" style={{ background: 'rgba(20,225,255,0.08)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--ff-text)', fontSize: '13px' }}>💪 Workouts</span>
+                  <span style={{ color: 'var(--ff-neon)', fontSize: '18px', fontWeight: 'bold' }}>18</span>
+                </div>
+                <div className="ff-metric ff-magnetic" style={{ background: 'rgba(20,225,255,0.08)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--ff-text)', fontSize: '13px' }}>🔥 Streak</span>
+                  <span style={{ color: 'var(--ff-neon)', fontSize: '18px', fontWeight: 'bold' }}>7 days</span>
+                </div>
+                <div className="ff-metric ff-magnetic" style={{ background: 'rgba(20,225,255,0.08)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--ff-text)', fontSize: '13px' }}>⚡ Calories</span>
+                  <span style={{ color: 'var(--ff-neon)', fontSize: '18px', fontWeight: 'bold' }}>2.4k</span>
+                </div>
               </div>
             </div>
           </div>
-          <div className="ff-video-float ff-float-in">
+          <div className="ff-video-float">
             <video autoPlay loop muted playsInline preload="metadata" className="ff-video-fit">
               <source src="/video/Dashboard%20for%20home.mp4" type="video/mp4" />
             </video>
+          </div>
+        </div>
+        <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
+            <div style={{ fontSize: '26px', marginBottom: '4px' }}>📊</div>
+            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Smart Analytics</h4>
+            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Track metrics</p>
+          </div>
+          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
+            <div style={{ fontSize: '26px', marginBottom: '4px' }}>🎯</div>
+            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Goal Tracking</h4>
+            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Crush targets</p>
+          </div>
+          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
+            <div style={{ fontSize: '26px', marginBottom: '4px' }}>📈</div>
+            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Progress Charts</h4>
+            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Visualize journey</p>
+          </div>
+          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
+            <div style={{ fontSize: '26px', marginBottom: '4px' }}>⚡</div>
+            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Live Updates</h4>
+            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Real-time sync</p>
           </div>
         </div>
       </div>
@@ -176,13 +221,19 @@ function ProgressInsights() {
     { title: 'Hydration & Sleep', icon: 'fa fa-tint' }
   ];
   return (
-    <section className="ff-section" id="insights">
+    <section className="ff-section" id="insights" style={{ position: 'relative' }}>
+      {[...Array(6)].map((_, i) => <div key={i} className="ff-particle" style={{ animationDelay: `${i * 0.8}s` }} />)}
       <div className="ff-container" ref={ref}>
-        <h2 className="ff-title">Progress Insights</h2>
-        <div className="ff-grid" style={{ gridTemplateColumns: 'repeat(4, minmax(0,1fr))' }}>
+        <h2 className="ff-title ff-glitch" data-text="Progress Insights">Progress Insights</h2>
+        <p className="ff-sub" style={{ marginBottom: '30px' }}>Track your fitness journey with powerful analytics</p>
+        <div className="ff-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
           {items.map((it, idx) => (
-            <div key={idx} className="ff-card">
-              <div className="ff-icon"><i className={it.icon}></i></div>
+            <div key={idx} className="ff-card ff-neon-border ff-magnetic">
+              <div className="ff-icon ff-pulse-container">
+                <i className={it.icon}></i>
+                <div className="ff-pulse-ring"></div>
+                <div className="ff-pulse-ring"></div>
+              </div>
               <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>{it.title}</h4>
               <div style={{ marginTop: '12px' }}>
                 <LiveBars count={8} />
@@ -209,9 +260,7 @@ function StreaksDiscipline() {
           <div className="ff-panel ff-float-in" style={{ padding: '26px' }}>
             <h2 className="ff-title">Time Is Slipping Away</h2>
             <p className="ff-sub">Every day you wait, you lose momentum. Start your fitness journey now — don’t let regret be your future.</p>
-            <Link to="/register" className="ff-btn" onClick={() => {
-              api('/track/click', { method: 'POST' });
-            }}>Register Now</Link>
+            <button className="ff-btn" onClick={() => setAuthModalOpen(true)}>Register Now</button>
           </div>
         </div>
       </div>
@@ -371,13 +420,17 @@ function PricingPlans({ setAuthModalOpen }) {
 
 function FinalCTA() {
   return (
-    <section className="ff-section ff-particles" id="cta">
-      <div className="ff-container">
-        <h2 className="ff-title">Ready To Train With Intelligence?</h2>
-        <p className="ff-sub">Own your progress with neon-clear tracking and disciplined streaks.</p>
-        <a href="#contact" className="ff-btn" onClick={() => {
+    <section className="ff-section ff-particles" id="cta" style={{ position: 'relative' }}>
+      {[...Array(8)].map((_, i) => <div key={i} className="ff-particle" style={{ animationDelay: `${i * 0.7}s` }} />)}
+      <div className="ff-container" style={{ textAlign: 'center' }}>
+        <h2 className="ff-title ff-glitch" data-text="Ready To Train With Intelligence?">Ready To Train With Intelligence?</h2>
+        <p className="ff-sub" style={{ marginBottom: '30px' }}>Own your progress with neon-clear tracking and disciplined streaks.</p>
+        <a href="#contact" className="ff-btn ff-magnetic ff-neon-border" onClick={() => {
           api('/track/click', { method: 'POST' });
-        }}>Start Tracking</a>
+        }} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', fontSize: '18px', padding: '16px 32px' }}>
+          <span>Start Tracking</span>
+          <span style={{ fontSize: '24px' }}>🚀</span>
+        </a>
       </div>
     </section>
   );
@@ -387,15 +440,18 @@ function ThanksSection(){
   return (
     <section className="ff-section ff-particles" id="thanks">
       <div className="ff-container">
-        <h2 className="ff-title" style={{ textAlign:'center' }}>Thanks for Visiting FitForge</h2>
+        <h2 className="ff-title ff-glitch" data-text="Thanks for Visiting FitForge" style={{ textAlign:'center' }}>Thanks for Visiting FitForge</h2>
         <div className="ff-thanks-grid">
-          <div className="ff-panel ff-float-in" style={{ padding:'22px' }}>
+          <div className="ff-panel ff-float-in ff-neon-border" style={{ padding:'22px' }}>
             <p className="ff-sub" style={{ fontSize:'16px' }}>
               We appreciate you taking the time to explore what FitForge can offer. Every meaningful transformation begins with a single decision — the decision to learn, to understand, and to move forward. By visiting today, you’ve already taken that first step toward a stronger, more disciplined version of yourself. Whether you’re ready to start now or still figuring things out, know this: your progress matters, your effort counts, and we’re here to help you turn your goals into results whenever you’re ready.
             </p>
           </div>
-          <div className="ff-float-in">
-            <img src="/img/home/dumbells.png" alt="Dumbells" className="ff-thanks-img" />
+          <div className="ff-float-in" style={{ position: 'relative' }}>
+            <div className="ff-pulse-container" style={{ width: '100%', height: '100%' }}>
+              <div className="ff-pulse-ring" style={{ width: '110%', height: '110%' }}></div>
+              <img src="/img/home/dumbells.png" alt="Dumbells" className="ff-thanks-img ff-magnetic" />
+            </div>
           </div>
         </div>
       </div>
@@ -544,6 +600,7 @@ function Home() {
     <>
       <PromoPopup />
       <VisitorNavbar authModalOpen={authModalOpen} setAuthModalOpen={setAuthModalOpen} />
+      <ScrollToTop />
 
       <section className="hero-section" id="home">
         <div className="hs-item">
@@ -554,12 +611,12 @@ function Home() {
             <div className="container">
               <div className="row">
                 <div className="col-lg-6">
-                  <div className="hi-text">
-                    <span>Shape your body</span>
-                    <h1>Be <strong>strong</strong> traning hard</h1>
-                    <a href="#contact" className="primary-btn" onClick={() => {
+                  <div className="hi-text" style={{ animation: 'scrollReveal 1s ease-out forwards' }}>
+                    <span style={{ display: 'inline-block', animation: 'floatIn 0.8s ease-out forwards' }}>Shape your body</span>
+                    <h1 style={{ animation: 'scrollReveal 1.2s ease-out forwards' }}>Be <strong className="ff-glitch" data-text="strong">strong</strong> traning hard</h1>
+                    <a href="#contact" className="primary-btn ff-magnetic" onClick={() => {
                       api('/track/click', { method: 'POST' });
-                    }}>Get info</a>
+                    }} style={{ animation: 'floatIn 1.4s ease-out forwards' }}>Get info</a>
                   </div>
                 </div>
               </div>
@@ -719,27 +776,30 @@ function PurposeIntro() {
   useEffect(() => { if (inView) { const el = ref.current; el.classList.add('ff-in'); } }, [inView]);
   return (
     <section className="ff-section" id="purpose" style={{ marginTop: '-80px', position: 'relative', zIndex: 2 }}>
+      {[...Array(4)].map((_, i) => <div key={i} className="ff-particle" style={{ animationDelay: `${i * 0.5}s` }} />)}
       <div className="ff-container" ref={ref} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', gap: '24px' }}>
         <div>
-          <h2 className="ff-title">What is Fitforge?</h2>
-          <p className="ff-sub">Fitness tracking, planning, and insights in one place.</p>
+          <h2 className="ff-title ff-scroll-reveal">What is Fitforge?</h2>
+          <p className="ff-sub ff-scroll-reveal" style={{ animationDelay: '0.2s' }}>Fitness tracking, planning, and insights in one place.</p>
           <div className="ff-grid" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="ff-card ff-in">
+            <div className="ff-card ff-in ff-neon-border">
               <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Exercise Plans</h4>
               <p style={{ color: 'var(--ff-muted)' }}>Create custom workout plans with sets, reps, and load.</p>
             </div>
-            <div className="ff-card ff-in">
+            <div className="ff-card ff-in ff-neon-border" style={{ animationDelay: '0.2s' }}>
               <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>AI Generated Plans</h4>
               <p style={{ color: 'var(--ff-muted)' }}>Get smart, goal-based plans powered by AI.</p>
             </div>
-            <div className="ff-card ff-in">
+            <div className="ff-card ff-in ff-neon-border" style={{ animationDelay: '0.4s' }}>
               <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Progress Tracking</h4>
               <p style={{ color: 'var(--ff-muted)' }}>See intensity, volume, streaks, and trends visually.</p>
             </div>
           </div>
         </div>
-        <div style={{ position: 'relative' }}>
-          <img src="/img/home/fitness%20tracking.png" alt="Fitness tracking" style={{ width: '100%', borderRadius: '16px', boxShadow: '0 12px 40px rgba(0,0,0,.35)', transform: 'translateY(-40px)' }} />
+        <div style={{ position: 'relative' }} className="ff-pulse-container">
+          <div className="ff-pulse-ring" style={{ width: '120%', height: '120%' }}></div>
+          <div className="ff-pulse-ring" style={{ width: '120%', height: '120%' }}></div>
+          <img src="/img/home/fitness%20tracking.png" alt="Fitness tracking" style={{ width: '100%', borderRadius: '16px', boxShadow: '0 12px 40px rgba(0,0,0,.35)', transform: 'translateY(-40px)' }} className="ff-magnetic" />
         </div>
       </div>
     </section>

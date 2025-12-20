@@ -1,6 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 const FitnessChatbot = lazy(() => import('../components/FitnessChatbot.jsx'))
+import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import './DailyTracker.css'
@@ -125,6 +126,7 @@ export default function DailyTracker() {
       <Suspense fallback={null}>
         <FitnessChatbot />
       </Suspense>
+      <Tutorial page="dailyTracker" />
       
       {/* First-time Guide */}
       {showGuide && (
@@ -209,6 +211,7 @@ export default function DailyTracker() {
               <h2 style={{ margin: 0 }}>📊 Weekly Insights</h2>
               <button 
                 className="analytics-link-btn"
+                data-tutorial="view-analytics"
                 onClick={() => window.location.href = '/tracker/analytics'}
                 style={{
                   padding: '8px 16px',
@@ -279,7 +282,7 @@ export default function DailyTracker() {
 
           <div className="tracker-grid">
             {/* Water Intake */}
-            <div className="tracker-card">
+            <div className="tracker-card" data-tutorial="water-intake">
               <h3>💧 Water Intake</h3>
               <div className="water-tracker">
                 <div className="water-display">{tracker.water} / 8 glasses</div>

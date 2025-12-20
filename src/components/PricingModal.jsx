@@ -59,8 +59,8 @@ export default function PricingModal({ open, onClose }) {
         </Header>
         
         <BillingToggle>
-          <ToggleBtn active={!annual} onClick={() => setAnnual(false)}>Monthly</ToggleBtn>
-          <ToggleBtn active={annual} onClick={() => setAnnual(true)}>Annual <span>Save 17%</span></ToggleBtn>
+          <ToggleBtn $active={!annual} onClick={() => setAnnual(false)}>Monthly</ToggleBtn>
+          <ToggleBtn $active={annual} onClick={() => setAnnual(true)}>Annual <span>Save 17%</span></ToggleBtn>
         </BillingToggle>
 
         {loading ? (
@@ -150,8 +150,8 @@ const BillingToggle = styled.div`
 const ToggleBtn = styled.button`
   padding: 12px 24px;
   border-radius: 10px;
-  border: 2px solid ${p => p.active ? '#ff6b35' : 'rgba(255, 255, 255, 0.2)'};
-  background: ${p => p.active ? 'linear-gradient(135deg, #ff6b35, #ff8c42)' : 'transparent'};
+  border: 2px solid ${p => p.$active ? '#ff6b35' : 'rgba(255, 255, 255, 0.2)'};
+  background: ${p => p.$active ? 'linear-gradient(135deg, #ff6b35, #ff8c42)' : 'transparent'};
   color: #fff;
   font-weight: 600;
   cursor: pointer;

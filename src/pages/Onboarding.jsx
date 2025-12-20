@@ -42,6 +42,8 @@ export default function Onboarding() {
     workoutTimePreference: '',
     motivation: '',
     dietaryPreference: 'none',
+    allergens: [],
+    mealsPerDay: 3,
     waterIntakeGoal: 8,
     sleepGoal: 8
   })
@@ -112,7 +114,6 @@ const Container = styled.div`
   background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
   position: relative;
   overflow-x: hidden;
-  overflow-y: auto;
   &::before {
     content: '';
     position: absolute;
@@ -160,10 +161,10 @@ const StepContainer = styled.div`
   padding: 40px 20px;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
   @media (max-width: 768px) {
     padding: 30px 15px;
-    min-height: calc(100vh - 4px);
   }
 `

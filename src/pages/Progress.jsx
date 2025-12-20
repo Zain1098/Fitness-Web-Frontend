@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
+import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { api } from '../api/client.js'
@@ -242,6 +243,7 @@ export default function Progress() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
+      <Tutorial page="progress" />
       <div className="progress-page">
         <div className="progress-container">
           {/* Header */}
@@ -575,10 +577,21 @@ export default function Progress() {
                         }
                       }}
                     />
-                    <button type="button" className="upload-btn" onClick={() => document.getElementById('photo-upload-record').click()}>
-                      📁 Choose Photos
-                    </button>
-                    {photos.length > 0 && <p style={{marginTop: '10px', color: '#4caf50'}}>{photos.length} photo(s) selected</p>}
+                    <div className="photo-upload-area">
+                      <button type="button" className="btn-primary" onClick={() => document.getElementById('photo-upload-record').click()}>
+                        📸 Choose Photos
+                      </button>
+                      {photos.length > 0 && (
+                        <div className="selected-photos-preview">
+                          {photos.map((photo, idx) => (
+                            <div key={idx} className="photo-preview-thumb">
+                              <img src={photo.url} alt={`Preview ${idx + 1}`} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {photos.length > 0 && <p className="photo-count">{photos.length} photo(s) selected</p>}
+                    </div>
                   </div>
                   
                   <button 

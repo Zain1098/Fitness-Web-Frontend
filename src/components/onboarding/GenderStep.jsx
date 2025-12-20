@@ -2,9 +2,9 @@ import styled, { keyframes, css } from 'styled-components'
 
 export default function GenderStep({ data, updateData, nextStep }) {
   const genders = [
-    { value: 'male', label: 'Male', icon: '♂', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    { value: 'female', label: 'Female', icon: '♀', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-    { value: 'other', label: 'Other', icon: '⚧', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }
+    { value: 'male', label: 'Male', icon: '♂', gradient: 'linear-gradient(135deg, #14e1ff 0%, #7deaff 100%)' },
+    { value: 'female', label: 'Female', icon: '♀', gradient: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)' },
+    { value: 'other', label: 'Other', icon: '⚧', gradient: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)' }
   ]
 
   const handleSelect = (value) => {
@@ -110,8 +110,8 @@ const OptionsGrid = styled.div`
 
 const GenderCard = styled.div`
   position: relative;
-  background: ${p => p.$selected ? p.$gradient : 'rgba(255,255,255,0.03)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(20,225,255,0.2)'};
+  background: ${p => p.$selected ? p.$gradient : 'rgba(255,255,255,0.05)'};
+  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,107,53,0.3)'};
   border-radius: 20px;
   padding: 40px 20px;
   cursor: pointer;
@@ -139,8 +139,8 @@ const GenderCard = styled.div`
   
   &:hover {
     transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 60px rgba(20,225,255,0.3);
-    border-color: rgba(20,225,255,0.5);
+    box-shadow: 0 20px 60px rgba(255,107,53,0.3);
+    border-color: rgba(255,107,53,0.5);
     
     &::after {
       opacity: 1;
@@ -149,7 +149,7 @@ const GenderCard = styled.div`
   
   ${p => p.$selected && css`
     animation: ${pulse} 0.6s ease;
-    box-shadow: 0 20px 60px rgba(20,225,255,0.5);
+    box-shadow: 0 20px 60px rgba(255,107,53,0.5);
   `}
 `
 

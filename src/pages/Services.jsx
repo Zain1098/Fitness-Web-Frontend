@@ -1,6 +1,7 @@
 import { api } from '@/api/client.js'
 import VisitorNavbar from '../components/VisitorNavbar.jsx'
 import PromoPopup from '../components/PromoPopup.jsx'
+import ScrollToTop from '../components/ScrollToTop.jsx'
 import '../styles/neon.css'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -18,6 +19,7 @@ export default function Services(){
     <>
       <PromoPopup />
       <VisitorNavbar />
+      <ScrollToTop />
       <section className="ff-section" id="services-hero">
         <div className="ff-service-full">
           <video autoPlay loop muted playsInline preload="metadata" className="ff-service-video">
@@ -40,7 +42,9 @@ export default function Services(){
         </div>
       </section>
       <ServicesPricingPlans />
+      <PlanComparison />
       <ServicesSpotlights />
+      <FAQSection />
       <FooterSection />
     </>
   )
@@ -105,6 +109,78 @@ function ServicesPricingPlans(){
               cta={plan.planId === 'free' ? 'Get Started' : `Choose ${plan.name}`}
               onClick={() => handlePlanClick(plan.planId)}
             />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function PlanComparison(){
+  const features = [
+    { name: 'Exercise Library', free: '100+ exercises', premium: '1000+ exercises' },
+    { name: 'Workout Tracking', free: 'Basic', premium: 'Advanced with analytics' },
+    { name: 'Nutrition Tracking', free: 'Manual entry', premium: 'Smart food database' },
+    { name: 'Progress Photos', free: '5 photos', premium: 'Unlimited photos' },
+    { name: 'AI Workout Plans', free: false, premium: true },
+    { name: 'Custom Meal Plans', free: false, premium: true },
+    { name: 'Priority Support', free: false, premium: true },
+    { name: 'Export Data', free: false, premium: true }
+  ]
+  return (
+    <section className="ff-section" id="comparison" style={{ position: 'relative', overflow: 'hidden' }}>
+      {[...Array(8)].map((_, i) => <div key={i} className="ff-particle" style={{ position: 'absolute', width: '6px', height: '6px', background: i % 2 === 0 ? '#ff6b35' : '#14e1ff', borderRadius: '50%', opacity: 0.7, animation: 'floatParticle 10s infinite', animationDelay: `${i * 0.8}s`, left: `${10 + i * 12}%`, top: `${20 + (i % 3) * 30}%`, boxShadow: `0 0 15px ${i % 2 === 0 ? '#ff6b35' : '#14e1ff'}` }} />)}
+      <div className="ff-container" style={{ position: 'relative', zIndex: 1 }}>
+        <h2 className="ff-title ff-glitch" data-text="Plan Comparison" style={{ textAlign: 'center', color: '#fff', fontSize: '2.5rem', marginBottom: '50px' }}>Plan Comparison</h2>
+        <div className="ff-neon-border" style={{ maxWidth: '900px', margin: '0 auto', background: 'linear-gradient(135deg, rgba(20, 225, 255, 0.05), rgba(10, 14, 39, 0.9))', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(20, 225, 255, 0.3)', animation: 'floatIn 1s ease-out forwards' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0', background: 'linear-gradient(90deg, #14e1ff, #7deaff)', padding: '20px', color: '#031b24', fontWeight: '700', fontSize: '18px' }}>
+            <div>Feature</div>
+            <div style={{ textAlign: 'center' }}>Free</div>
+            <div style={{ textAlign: 'center' }}>Premium</div>
+          </div>
+          {features.map((f, i) => (
+            <div key={i} className="ff-float-in ff-magnetic" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0', padding: '20px', borderBottom: i < features.length - 1 ? '1px solid rgba(20, 225, 255, 0.2)' : 'none', transition: 'all 0.3s ease', animationDelay: `${i * 0.15}s` }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(20, 225, 255, 0.15)'; e.currentTarget.style.transform = 'translateX(10px)' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'translateX(0)' }}>
+              <div style={{ color: '#e6f0ff', fontSize: '16px' }}>{f.name}</div>
+              <div style={{ textAlign: 'center', color: typeof f.free === 'boolean' ? (f.free ? '#4caf50' : '#999') : '#14e1ff', fontSize: '16px' }}>
+                {typeof f.free === 'boolean' ? (f.free ? '✔' : '✖') : f.free}
+              </div>
+              <div style={{ textAlign: 'center', color: typeof f.premium === 'boolean' ? (f.premium ? '#4caf50' : '#999') : '#14e1ff', fontSize: '16px' }}>
+                {typeof f.premium === 'boolean' ? (f.premium ? '✔' : '✖') : f.premium}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FAQSection(){
+  const [openIndex, setOpenIndex] = useState(null)
+  const faqs = [
+    { q: 'Can I switch plans anytime?', a: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.' },
+    { q: 'Is there a free trial for Premium?', a: 'We offer a 7-day free trial for Premium plan. No credit card required to start.' },
+    { q: 'What payment methods do you accept?', a: 'We accept all major credit cards, PayPal, and digital wallets for your convenience.' },
+    { q: 'Can I cancel my subscription?', a: 'Absolutely. You can cancel anytime from your account settings. No questions asked.' },
+    { q: 'Do you offer refunds?', a: 'Yes, we offer a 30-day money-back guarantee if you\'re not satisfied with Premium.' },
+    { q: 'Is my data secure?', a: 'Your data is encrypted and stored securely. We never share your information with third parties.' }
+  ]
+  return (
+    <section className="ff-section" id="faq" style={{ position: 'relative', background: 'linear-gradient(180deg, rgba(26, 31, 58, 0.6), rgba(10, 14, 39, 0.8))', overflow: 'hidden' }}>
+      {[...Array(6)].map((_, i) => <div key={i} className="ff-particle" style={{ position: 'absolute', width: '5px', height: '5px', background: '#ff6b35', borderRadius: '50%', opacity: 0.6, animation: 'floatParticle 12s infinite', animationDelay: `${i * 1.2}s`, right: `${15 + i * 10}%`, top: `${30 + (i % 2) * 40}%`, boxShadow: '0 0 12px #ff6b35' }} />)}
+      <div className="ff-container" style={{ position: 'relative', zIndex: 1 }}>
+        <h2 className="ff-title ff-glitch" data-text="Frequently Asked Questions" style={{ textAlign: 'center', color: '#fff', fontSize: '2.5rem', marginBottom: '50px' }}>Frequently Asked Questions</h2>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          {faqs.map((faq, i) => (
+            <div key={i} className="ff-float-in" style={{ marginBottom: '15px', background: 'linear-gradient(135deg, rgba(20, 225, 255, 0.08), rgba(10, 14, 39, 0.9))', border: '2px solid ' + (openIndex === i ? '#14e1ff' : 'rgba(20, 225, 255, 0.3)'), borderRadius: '12px', overflow: 'hidden', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', animationDelay: `${i * 0.12}s`, boxShadow: openIndex === i ? '0 15px 50px rgba(20, 225, 255, 0.4), inset 0 0 20px rgba(20, 225, 255, 0.1)' : '0 5px 20px rgba(0, 0, 0, 0.3)', transform: openIndex === i ? 'scale(1.02)' : 'scale(1)' }}>
+              <div onClick={() => setOpenIndex(openIndex === i ? null : i)} className="ff-magnetic" style={{ padding: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.3s ease' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(20, 225, 255, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                <h3 style={{ color: '#fff', fontSize: '18px', margin: 0, fontWeight: '600' }}>{faq.q}</h3>
+                <span style={{ color: '#14e1ff', fontSize: '24px', transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)', transform: openIndex === i ? 'rotate(180deg)' : 'rotate(0)', textShadow: '0 0 10px #14e1ff' }}>▼</span>
+              </div>
+              <div style={{ maxHeight: openIndex === i ? '200px' : '0', overflow: 'hidden', transition: 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease', opacity: openIndex === i ? 1 : 0 }}>
+                <p style={{ padding: '0 20px 20px', color: '#9fb3c8', fontSize: '16px', lineHeight: '1.6', margin: 0 }}>{faq.a}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>

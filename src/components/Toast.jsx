@@ -4,7 +4,7 @@ import './Toast.css'
 let toastId = 0
 const toastListeners = new Set()
 
-export function showToast(message, type = 'info', duration = 3000) {
+export function showToast(message, type = 'info', duration = 5000) {
   const toast = { id: ++toastId, message, type, duration }
   toastListeners.forEach(listener => listener(toast))
 }

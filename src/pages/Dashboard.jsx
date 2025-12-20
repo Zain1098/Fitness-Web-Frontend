@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
 import PricingModal from '../components/PricingModal.jsx'
+import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import { API_BASE_URL } from '../config/api.js'
@@ -251,20 +252,27 @@ export default function Dashboard() {
   useEffect(() => {
     const payment = searchParams.get('payment')
     const plan = searchParams.get('plan')
+    const sessionId = searchParams.get('session_id')
     
-    if (payment === 'success' && plan) {
-      showToast(`🎉 Payment successful! Welcome to ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan!`, 'success')
+    if (payment === 'success') {
+      showToast(`🎉 Payment successful! Your subscription is being activated...`, 'success')
       setSearchParams({})
+      loadDashboardData(true)
     } else if (payment === 'cancelled') {
       showToast('Payment was cancelled', 'info')
       setSearchParams({})
+    } else if (sessionId) {
+      // Stripe redirect with session_id
+      showToast('🎉 Payment successful! Welcome to your new plan!', 'success')
+      setSearchParams({})
+      loadDashboardData(true)
+    } else {
+      loadDashboardData()
     }
     
-    loadDashboardData()
-    // Refresh every 2 minutes instead of 30 seconds
     const interval = setInterval(() => loadDashboardData(false), 120000)
     return () => clearInterval(interval)
-  }, [token, searchParams])
+  }, [token])
 
   if (!user) return null
 
@@ -273,6 +281,7 @@ export default function Dashboard() {
       <DashboardNavbar />
       <FitnessChatbot />
       <PricingModal open={pricingModalOpen} onClose={() => setPricingModalOpen(false)} />
+      <Tutorial page="dashboard" />
       <div className="dashboard-page">
         <div className="dashboard-container">
           {/* Header */}
@@ -282,13 +291,21 @@ export default function Dashboard() {
               <p>Here's your fitness overview</p>
             </div>
             <div style={{display:'flex', gap:'10px'}}>
-              <button 
-                className="upgrade-btn" 
-                onClick={() => setPricingModalOpen(true)}
-                style={{background:'linear-gradient(135deg, #ff6b35, #ff8c42)', color:'#fff', border:'none', padding:'10px 20px', borderRadius:'8px', cursor:'pointer', fontWeight:'600'}}
-              >
-                ⭐ Upgrade Plan
-              </button>
+              {(!user.subscription || user.subscription.plan === 'free') && (
+                <button 
+                  className="upgrade-btn"
+                  data-tutorial="upgrade-btn"
+                  onClick={() => setPricingModalOpen(true)}
+                  style={{background:'linear-gradient(135deg, #ff6b35, #ff8c42)', color:'#fff', border:'none', padding:'10px 20px', borderRadius:'8px', cursor:'pointer', fontWeight:'600'}}
+                >
+                  ⭐ Upgrade Plan
+                </button>
+              )}
+              {user.subscription && user.subscription.plan !== 'free' && (
+                <div style={{padding:'10px 20px', background:'rgba(76, 175, 80, 0.1)', border:'2px solid #4caf50', borderRadius:'8px', color:'#4caf50', fontWeight:'600'}}>
+                  ✓ {user.subscription.plan.charAt(0).toUpperCase() + user.subscription.plan.slice(1)} Plan
+                </div>
+              )}
               <button 
                 className="refresh-btn" 
                 onClick={() => loadDashboardData(true)}
@@ -323,10 +340,10 @@ export default function Dashboard() {
             <div className="dashboard-grid">
               <div className="dashboard-main">
               {/* Today's Focus */}
-              <div className="focus-section">
+              <div className="focus-section" data-tutorial="focus-section">
                 <h2>🎯 Today's Focus</h2>
                 <div className="focus-grid">
-                  <div className="focus-card calories" onClick={() => navigate('/nutrition')}>
+                  <div className="focus-card calories" data-tutorial="calories-card" onClick={() => navigate('/nutrition')}>
                     <div className="calorie-ring">
                       <svg width="100" height="100">
                         <circle className="calorie-ring-bg" cx="50" cy="50" r="40" />
@@ -349,14 +366,14 @@ export default function Dashboard() {
                       <span className="focus-subtitle">{Math.round((todayStats.calories / calorieGoal) * 100)}% of goal</span>
                     </div>
                   </div>
-                  <div className="focus-card" onClick={() => navigate('/workouts')}>
+                  <div className="focus-card" data-tutorial="workouts-card" onClick={() => navigate('/workouts')}>
                     <div className="focus-icon">💪</div>
                     <div className="focus-info">
                       <span className="focus-value">{todayStats.workouts}</span>
                       <span className="focus-label">Workouts</span>
                     </div>
                   </div>
-                  <div className="focus-card" onClick={() => navigate('/progress')}>
+                  <div className="focus-card" data-tutorial="weight-card" onClick={() => navigate('/progress')}>
                     <div className="focus-icon">⚖️</div>
                     <div className="focus-info">
                       <span className="focus-value">{todayStats.weight > 0 ? `${todayStats.weight} kg` : '-'}</span>
@@ -468,7 +485,7 @@ export default function Dashboard() {
               </div>
 
               {/* Quick Actions */}
-              <div className="quick-actions-main">
+              <div className="quick-actions-main" data-tutorial="quick-actions">
                 <h2>⚡ Quick Actions</h2>
                 <div className="actions-grid-main">
                   <button className="action-card-main" onClick={() => navigate('/workouts')}>
@@ -494,7 +511,7 @@ export default function Dashboard() {
               {/* Sidebar */}
               <div className="dashboard-sidebar">
                 {/* Streak + Goal */}
-                <div className="sidebar-card">
+                <div className="sidebar-card" data-tutorial="streak-section">
                   <div className="streak-display">
                     <div className="streak-icon">🔥</div>
                     <div className="streak-info">

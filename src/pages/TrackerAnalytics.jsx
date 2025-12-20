@@ -132,7 +132,7 @@ export default function TrackerAnalytics() {
               <h1>📊 Tracker Analytics</h1>
               <p>Your daily habits & workout history</p>
             </div>
-            <button className="back-btn" onClick={() => navigate('/tracker')}>
+            <button className="btn-secondary" onClick={() => navigate('/tracker')}>
               ← Back to Tracker
             </button>
           </div>
@@ -308,7 +308,7 @@ export default function TrackerAnalytics() {
                 <div className="empty-icon">💪</div>
                 <h3>No workouts logged yet</h3>
                 <p>Start tracking your workouts in the Daily Tracker!</p>
-                <button className="action-btn" onClick={() => navigate('/tracker')}>
+                <button className="btn-primary" onClick={() => navigate('/tracker')}>
                   Go to Tracker
                 </button>
               </div>

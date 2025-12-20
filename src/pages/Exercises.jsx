@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
+import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import './Exercises.css'
@@ -80,6 +81,14 @@ export default function Exercises() {
   // Favorites
   const [favorites, setFavorites] = useState([])
   const [loadingFavorites, setLoadingFavorites] = useState(false)
+  
+  // Workout Session
+  const [activeSession, setActiveSession] = useState(null)
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
+  const [isResting, setIsResting] = useState(false)
+  const [restTimer, setRestTimer] = useState(0)
+  const [completedSets, setCompletedSets] = useState([])
+  const [sessionLogs, setSessionLogs] = useState([])
 
   const loadExercises = async (pageNum = 0, append = false) => {
     try {
@@ -627,6 +636,7 @@ export default function Exercises() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
+      <Tutorial page="exercises" />
       <div className="exercises-page">
         <div className="exercises-container">
           {/* Header */}
@@ -1334,6 +1344,24 @@ export default function Exercises() {
                         </div>
                         <div className="workout-actions">
                           <button 
+                            className="action-btn start-btn"
+                            onClick={() => {
+                              setActiveSession({
+                                workoutId: workout._id,
+                                workoutName: workout.name,
+                                exercises: workout.exercises,
+                                startTime: new Date()
+                              })
+                              setCurrentExerciseIndex(0)
+                              setCompletedSets([])
+                              setSessionLogs([])
+                              setIsResting(false)
+                            }}
+                            style={{ background: 'linear-gradient(45deg, #4caf50, #66bb6a)', fontWeight: '600' }}
+                          >
+                            ▶️ Start Workout
+                          </button>
+                          <button 
                             className="action-btn view-btn"
                             onClick={() => {
                               setCustomWorkout(workout.exercises.map(e => ({ ...e, _id: e.name + Date.now() })))
@@ -1751,6 +1779,227 @@ export default function Exercises() {
               </div>
             </div>
           )}
+
+          {/* Workout Session Modal */}
+          {activeSession && (() => {
+            const currentExercise = activeSession.exercises[currentExerciseIndex]
+            const totalExercises = activeSession.exercises.length
+            const progress = ((currentExerciseIndex + 1) / totalExercises) * 100
+            
+            // Rest timer with useEffect would be better, but using setTimeout for minimal code
+            if (isResting && restTimer > 0) {
+              setTimeout(() => setRestTimer(restTimer - 1), 1000)
+            } else if (isResting && restTimer === 0) {
+              setIsResting(false)
+            }
+            
+            // Get proper exercise image
+            const exerciseImage = currentExercise.gifUrl || currentExercise.imageUrl || exercises.find(e => e.name === currentExercise.name)?.gifUrl || 'https://via.placeholder.com/400x300?text=Exercise'
+            
+            return (
+              <div className="workout-session-modal">
+                <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.95)' }}></div>
+                <div className="session-content">
+                  {/* Header */}
+                  <div className="session-header">
+                    <div>
+                      <h2>🏋️ {activeSession.workoutName}</h2>
+                      <p style={{ color: '#999', fontSize: '0.9rem' }}>Exercise {currentExerciseIndex + 1} of {totalExercises}</p>
+                    </div>
+                    <button 
+                      className="session-close"
+                      onClick={() => {
+                        if (confirm('End workout session? Progress will be lost.')) {
+                          setActiveSession(null)
+                          setCurrentExerciseIndex(0)
+                          setCompletedSets([])
+                          setIsResting(false)
+                        }
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="session-progress-bar">
+                    <div className="session-progress-fill" style={{ width: `${progress}%` }}></div>
+                  </div>
+                  
+                  {/* Rest Timer */}
+                  {isResting ? (
+                    <div className="rest-screen">
+                      <div className="rest-icon">⏸️</div>
+                      <h2>Rest Time</h2>
+                      <div className="rest-timer">{restTimer}s</div>
+                      <p style={{ color: '#999', marginTop: '10px' }}>Get ready for next set</p>
+                      <button 
+                        className="skip-rest-btn"
+                        onClick={() => {
+                          setIsResting(false)
+                          setRestTimer(0)
+                        }}
+                      >
+                        Skip Rest ⏭️
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="exercise-screen">
+                      {/* Exercise Image */}
+                      <div className="session-exercise-image">
+                        <img 
+                          src={exerciseImage}
+                          alt={currentExercise.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '12px' }}
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/400x300?text=' + encodeURIComponent(currentExercise.name)
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Exercise Info */}
+                      <div className="session-exercise-info">
+                        <h3>{currentExercise.name}</h3>
+                        <div className="session-exercise-meta">
+                          <span>🎯 {currentExercise.target || 'Target Muscle'}</span>
+                          <span>🏋️ {currentExercise.equipment || 'Equipment'}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Sets & Reps */}
+                      <div className="session-stats">
+                        <div className="session-stat-card">
+                          <div className="stat-icon">💪</div>
+                          <div className="stat-value">{currentExercise.sets || 3}</div>
+                          <div className="stat-label">Sets</div>
+                        </div>
+                        <div className="session-stat-card">
+                          <div className="stat-icon">🔢</div>
+                          <div className="stat-value">{currentExercise.reps || 10}</div>
+                          <div className="stat-label">Reps</div>
+                        </div>
+                        <div className="session-stat-card">
+                          <div className="stat-icon">⏱️</div>
+                          <div className="stat-value">{currentExercise.rest || 60}s</div>
+                          <div className="stat-label">Rest</div>
+                        </div>
+                      </div>
+                      
+                      {/* Completed Sets */}
+                      <div className="completed-sets">
+                        <h4>Completed Sets: {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length} / {currentExercise.sets || 3}</h4>
+                        <div className="sets-grid">
+                          {Array.from({ length: currentExercise.sets || 3 }).map((_, idx) => {
+                            const isCompleted = completedSets.some(s => s.exerciseIndex === currentExerciseIndex && s.setNumber === idx + 1)
+                            return (
+                              <div key={idx} className={`set-indicator ${isCompleted ? 'completed' : ''}`}>
+                                {isCompleted ? '✓' : idx + 1}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="session-actions">
+                        {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length < (currentExercise.sets || 3) ? (
+                          <button 
+                            className="complete-set-btn"
+                            onClick={() => {
+                              const setNumber = completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length + 1
+                              const newSet = {
+                                exerciseIndex: currentExerciseIndex,
+                                exerciseName: currentExercise.name,
+                                setNumber,
+                                reps: currentExercise.reps || 10,
+                                timestamp: new Date()
+                              }
+                              setCompletedSets([...completedSets, newSet])
+                              setSessionLogs([...sessionLogs, `Completed ${currentExercise.name} - Set ${setNumber}`])
+                              
+                              // Start rest timer if not last set
+                              if (setNumber < (currentExercise.sets || 3)) {
+                                setIsResting(true)
+                                setRestTimer(currentExercise.rest || 60)
+                              }
+                            }}
+                          >
+                            ✓ Complete Set
+                          </button>
+                        ) : currentExerciseIndex < totalExercises - 1 ? (
+                          <button 
+                            className="next-exercise-btn"
+                            onClick={() => {
+                              setCurrentExerciseIndex(currentExerciseIndex + 1)
+                              setSuccess('Moving to next exercise!')
+                              setTimeout(() => setSuccess(''), 2000)
+                            }}
+                          >
+                            Next Exercise ➡️
+                          </button>
+                        ) : (
+                          <button 
+                            className="next-exercise-btn"
+                            onClick={async () => {
+                              // Workout complete - save to database
+                              try {
+                                await api('/workouts', {
+                                  method: 'POST',
+                                  body: {
+                                    name: activeSession.workoutName,
+                                    category: 'strength',
+                                    status: 'completed',
+                                    date: new Date().toISOString(),
+                                    exercises: activeSession.exercises.map(ex => ({
+                                      name: ex.name,
+                                      sets: ex.sets || 3,
+                                      reps: ex.reps || 10,
+                                      weight: 0
+                                    }))
+                                  },
+                                  token
+                                })
+                                
+                                // Ask user if they want to do another workout
+                                const doAnother = confirm('🎉 Workout completed and saved!\n\nDo you want to start another workout?')
+                                
+                                if (doAnother) {
+                                  // Reset session and go to My Workouts tab
+                                  setActiveSession(null)
+                                  setCurrentExerciseIndex(0)
+                                  setCompletedSets([])
+                                  setSessionLogs([])
+                                  setActiveTab('myworkouts')
+                                  setSuccess('Select another workout to start!')
+                                  setTimeout(() => setSuccess(''), 3000)
+                                } else {
+                                  // Close session and go to History
+                                  setActiveSession(null)
+                                  setCurrentExerciseIndex(0)
+                                  setCompletedSets([])
+                                  setSessionLogs([])
+                                  loadWorkoutHistory()
+                                  setActiveTab('history')
+                                  setSuccess('Great job! Check your progress in History.')
+                                  setTimeout(() => setSuccess(''), 3000)
+                                }
+                              } catch (err) {
+                                console.error('Failed to save workout:', err)
+                                setError('Failed to save workout to database')
+                                setTimeout(() => setError(''), 3000)
+                              }
+                            }}
+                          >
+                            🏁 Finish Workout
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </div>
     </>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import DashboardNavbar from '../components/DashboardNavbar.jsx'
+import UnifiedNavbar from '../components/UnifiedNavbar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import { logActivity } from '../utils/activityLogger.js'
@@ -170,7 +170,7 @@ export default function Workouts() {
 
   return (
     <>
-      <DashboardNavbar />
+      <UnifiedNavbar />
       <div className="workouts-page">
         <div className="workouts-container">
           {/* Header */}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
+import Tutorial from '../components/Tutorial.jsx'
 import FoodDatabase from '../components/FoodDatabase.jsx'
 import MealPlanner from '../components/MealPlanner.jsx'
 import NutritionGoals from '../components/NutritionGoals.jsx'
@@ -388,6 +389,7 @@ export default function Nutrition() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
+      <Tutorial page="nutrition" />
       <div className="nutrition-page">
         <div className="nutrition-container">
           {/* Header */}

@@ -2,14 +2,16 @@ import styled, { keyframes, css } from 'styled-components'
 
 export default function FocusAreaStep({ data, updateData, nextStep, prevStep }) {
   const areas = [
-    { value: 'chest', label: 'Chest', icon: '💪', emoji: '💪' },
-    { value: 'back', label: 'Back', icon: '🦾', emoji: '🤼' },
-    { value: 'arms', label: 'Arms', icon: '💪', emoji: '💪' },
-    { value: 'shoulders', label: 'Shoulders', icon: '🏋️', emoji: '🏋️‍♂️' },
-    { value: 'legs', label: 'Legs', icon: '🦵', emoji: '🦵' },
-    { value: 'abs', label: 'Abs', icon: '🔥', emoji: '🔥' },
-    { value: 'glutes', label: 'Glutes', icon: '🍑', emoji: '🏋️' },
-    { value: 'cardio', label: 'Cardio', icon: '❤️', emoji: '🏃‍♂️' }
+    { value: 'chest', label: 'Chest', icon: '💪', desc: 'Build upper body strength' },
+    { value: 'back', label: 'Back', icon: '🦸', desc: 'Improve posture & strength' },
+    { value: 'arms', label: 'Arms', icon: '💪', desc: 'Biceps & Triceps' },
+    { value: 'shoulders', label: 'Shoulders', icon: '🏋️', desc: 'Broader shoulders' },
+    { value: 'legs', label: 'Legs', icon: '🦵', desc: 'Quads, Hamstrings, Calves' },
+    { value: 'abs', label: 'Abs', icon: '🔥', desc: 'Core strength & definition' },
+    { value: 'glutes', label: 'Glutes', icon: '🍑', desc: 'Build lower body power' },
+    { value: 'cardio', label: 'Cardio', icon: '❤️', desc: 'Heart health & endurance' },
+    { value: 'flexibility', label: 'Flexibility', icon: '🧘', desc: 'Mobility & stretching' },
+    { value: 'full_body', label: 'Full Body', icon: '🤸', desc: 'Overall fitness' }
   ]
 
   const toggleArea = (value) => {
@@ -19,6 +21,14 @@ export default function FocusAreaStep({ data, updateData, nextStep, prevStep }) 
     } else {
       updateData('focusAreas', [...current, value])
     }
+  }
+
+  const selectAll = () => {
+    updateData('focusAreas', areas.map(a => a.value))
+  }
+
+  const clearAll = () => {
+    updateData('focusAreas', [])
   }
 
   const handleNext = () => {
@@ -34,6 +44,11 @@ export default function FocusAreaStep({ data, updateData, nextStep, prevStep }) 
         <Title>Select focus areas</Title>
         <Subtitle>Choose body parts you want to work on (select multiple)</Subtitle>
         
+        <QuickActions>
+          <QuickButton onClick={selectAll}>✅ Select All</QuickButton>
+          <QuickButton onClick={clearAll}>❌ Clear All</QuickButton>
+        </QuickActions>
+        
         <OptionsGrid>
           {areas.map((area) => (
             <AreaCard
@@ -41,8 +56,9 @@ export default function FocusAreaStep({ data, updateData, nextStep, prevStep }) 
               $selected={data.focusAreas?.includes(area.value)}
               onClick={() => toggleArea(area.value)}
             >
-              <CardIcon>{area.emoji}</CardIcon>
+              <CardIcon>{area.icon}</CardIcon>
               <CardLabel>{area.label}</CardLabel>
+              <CardDesc>{area.desc}</CardDesc>
               {data.focusAreas?.includes(area.value) && <CheckMark>✓</CheckMark>}
               <Ripple />
             </AreaCard>
@@ -108,13 +124,13 @@ const IconWrapper = styled.div`
 const AnimatedIcon = styled.div`
   font-size: 80px;
   animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(255,107,107,0.4));
+  filter: drop-shadow(0 10px 30px rgba(255,107,53,0.4));
 `
 
 const Title = styled.h1`
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 800;
-  background: linear-gradient(135deg, #ff6b6b, #feca57, #fff);
+  background: linear-gradient(135deg, #14e1ff, #7deaff, #fff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -124,7 +140,33 @@ const Title = styled.h1`
 const Subtitle = styled.p`
   font-size: 1.1rem;
   color: rgba(255,255,255,0.7);
-  margin-bottom: 50px;
+  margin-bottom: 30px;
+`
+
+const QuickActions = styled.div`
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+`
+
+const QuickButton = styled.button`
+  padding: 10px 20px;
+  background: rgba(255,107,53,0.2);
+  border: 2px solid rgba(255,107,53,0.4);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255,107,53,0.3);
+    border-color: #ff6b35;
+    transform: translateY(-2px);
+  }
 `
 
 const OptionsGrid = styled.div`
@@ -144,10 +186,10 @@ const OptionsGrid = styled.div`
 
 const AreaCard = styled.div`
   position: relative;
-  background: ${p => p.$selected ? 'linear-gradient(135deg, #ff6b6b, #feca57)' : 'rgba(255,255,255,0.03)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,255,255,0.1)'};
+  background: ${p => p.$selected ? 'linear-gradient(135deg, #ff6b35, #ff8c42)' : 'rgba(255,255,255,0.05)'};
+  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,107,53,0.3)'};
   border-radius: 20px;
-  padding: 30px 15px;
+  padding: 25px 15px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
@@ -155,13 +197,13 @@ const AreaCard = styled.div`
   
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(255,107,107,0.3);
-    border-color: rgba(255,107,107,0.5);
+    box-shadow: 0 15px 40px rgba(255,107,53,0.3);
+    border-color: rgba(255,107,53,0.5);
   }
   
   ${p => p.$selected && css`
     animation: ${pulse} 0.5s ease;
-    box-shadow: 0 15px 40px rgba(255,107,107,0.5);
+    box-shadow: 0 15px 40px rgba(255,107,53,0.5);
   `}
 `
 
@@ -191,6 +233,13 @@ const CardLabel = styled.div`
   font-weight: 700;
   color: #fff;
   text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  margin-bottom: 5px;
+`
+
+const CardDesc = styled.div`
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.3;
 `
 
 const CheckMark = styled.div`
@@ -216,10 +265,10 @@ const SelectedCount = styled.div`
   margin-bottom: 30px;
   font-weight: 600;
   padding: 12px 24px;
-  background: rgba(255,107,107,0.1);
+  background: rgba(255,107,53,0.1);
   border-radius: 30px;
   display: inline-block;
-  border: 2px solid rgba(255,107,107,0.3);
+  border: 2px solid rgba(255,107,53,0.3);
 `
 
 const ButtonGroup = styled.div`
@@ -276,12 +325,12 @@ const BackButton = styled(Button)`
 `
 
 const NextButton = styled(Button)`
-  background: linear-gradient(135deg, #ff6b6b, #feca57);
+  background: linear-gradient(135deg, #ff6b35, #ff8c42);
   color: #fff;
-  box-shadow: 0 10px 40px rgba(255,107,107,0.4);
+  box-shadow: 0 10px 40px rgba(255,107,53,0.4);
   
   &:hover {
-    box-shadow: 0 15px 50px rgba(255,107,107,0.6);
+    box-shadow: 0 15px 50px rgba(255,107,53,0.6);
   }
   
   &:disabled {

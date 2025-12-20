@@ -1,0 +1,438 @@
+/* ========================================
+   GLOBAL BUTTON IMPROVEMENTS
+   ======================================== */
+
+/* Primary Buttons - Main Actions */
+.btn-primary,
+.save-btn,
+.save-workout-btn,
+.generate-plan-btn,
+.guide-start-btn,
+.add-btn,
+.action-btn.add-btn,
+.modal-btn.add-btn,
+.add-compact-btn:not(:disabled),
+.save-day-btn,
+.btn-primary-pro,
+.btn-save-pro,
+.calc-submit-btn,
+.save-measurement-btn,
+.save-all-measurements {
+  background: linear-gradient(135deg, #14e1ff 0%, #7deaff 100%) !important;
+  border: none !important;
+  color: #031b24 !important;
+  font-weight: 700 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 15px rgba(20, 225, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-primary::before,
+.save-btn::before,
+.save-workout-btn::before,
+.generate-plan-btn::before,
+.guide-start-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover:not(:disabled)::before,
+.save-btn:hover:not(:disabled)::before,
+.save-workout-btn:hover:not(:disabled)::before,
+.generate-plan-btn:hover:not(:disabled)::before,
+.guide-start-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.btn-primary:hover:not(:disabled),
+.save-btn:hover:not(:disabled),
+.save-workout-btn:hover:not(:disabled),
+.generate-plan-btn:hover:not(:disabled),
+.guide-start-btn:hover:not(:disabled),
+.add-btn:hover:not(:disabled),
+.action-btn.add-btn:hover:not(:disabled),
+.modal-btn.add-btn:hover:not(:disabled),
+.add-compact-btn:hover:not(:disabled),
+.save-day-btn:hover:not(:disabled),
+.btn-primary-pro:hover:not(:disabled),
+.btn-save-pro:hover:not(:disabled),
+.calc-submit-btn:hover:not(:disabled),
+.save-measurement-btn:hover:not(:disabled),
+.save-all-measurements:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 30px rgba(20, 225, 255, 0.5), 0 0 40px rgba(20, 225, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+.btn-primary:active:not(:disabled),
+.save-btn:active:not(:disabled),
+.save-workout-btn:active:not(:disabled),
+.generate-plan-btn:active:not(:disabled),
+.guide-start-btn:active:not(:disabled),
+.add-btn:active:not(:disabled),
+.save-day-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+/* Secondary Buttons */
+.btn-secondary,
+.refresh-btn,
+.load-more-btn,
+.regenerate-btn,
+.quick-btn,
+.shortcut-btn,
+.browse-btn,
+.calc-btn,
+.btn-cancel-pro,
+.btn-edit-pro,
+.btn-export-pro,
+.unit-toggle-btn,
+.analytics-link-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08)) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.btn-secondary::after,
+.refresh-btn::after,
+.load-more-btn::after,
+.regenerate-btn::after,
+.quick-btn::after,
+.shortcut-btn::after,
+.browse-btn::after,
+.calc-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 140, 66, 0.2));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.btn-secondary:hover:not(:disabled),
+.refresh-btn:hover:not(:disabled),
+.load-more-btn:hover:not(:disabled),
+.regenerate-btn:hover:not(:disabled),
+.quick-btn:hover:not(:disabled),
+.shortcut-btn:hover:not(:disabled),
+.browse-btn:hover:not(:disabled),
+.calc-btn:hover:not(:disabled),
+.btn-cancel-pro:hover:not(:disabled),
+.btn-edit-pro:hover:not(:disabled),
+.btn-export-pro:hover:not(:disabled),
+.unit-toggle-btn:hover:not(:disabled),
+.analytics-link-btn:hover:not(:disabled) {
+  transform: translateY(-3px) !important;
+  border-color: rgba(255, 107, 53, 0.6) !important;
+  box-shadow: 0 6px 25px rgba(255, 107, 53, 0.3) !important;
+}
+
+.btn-secondary:hover:not(:disabled)::after,
+.refresh-btn:hover:not(:disabled)::after,
+.load-more-btn:hover:not(:disabled)::after,
+.regenerate-btn:hover:not(:disabled)::after,
+.quick-btn:hover:not(:disabled)::after,
+.shortcut-btn:hover:not(:disabled)::after,
+.browse-btn:hover:not(:disabled)::after,
+.calc-btn:hover:not(:disabled)::after {
+  opacity: 1;
+}
+
+/* Action Buttons */
+.action-btn,
+.action-card-main,
+.stat-compact-item,
+.focus-card,
+.tracker-sidebar {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+}
+
+.action-btn:hover,
+.action-card-main:hover,
+.stat-compact-item:hover,
+.focus-card:hover,
+.tracker-sidebar:hover {
+  transform: translateY(-5px) scale(1.03) !important;
+  box-shadow: 0 10px 35px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* View Button */
+.view-btn,
+.action-btn.view-btn {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.25), rgba(33, 150, 243, 0.15)) !important;
+  border: 2px solid rgba(33, 150, 243, 0.4) !important;
+  color: #2196f3 !important;
+}
+
+.view-btn:hover,
+.action-btn.view-btn:hover {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.4), rgba(33, 150, 243, 0.3)) !important;
+  border-color: #2196f3 !important;
+  box-shadow: 0 6px 25px rgba(33, 150, 243, 0.4) !important;
+}
+
+/* Favorite Button */
+.favorite-btn,
+.action-btn.favorite-btn,
+.modal-btn.favorite-btn {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.25), rgba(255, 193, 7, 0.15)) !important;
+  border: 2px solid rgba(255, 193, 7, 0.4) !important;
+  color: #ffc107 !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.favorite-btn:hover,
+.action-btn.favorite-btn:hover,
+.modal-btn.favorite-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.4), rgba(255, 193, 7, 0.3)) !important;
+  border-color: #ffc107 !important;
+  transform: scale(1.15) rotate(10deg) !important;
+  box-shadow: 0 6px 25px rgba(255, 193, 7, 0.5) !important;
+}
+
+.favorite-btn.active,
+.action-btn.favorite-btn.active {
+  animation: starBurst 0.5s ease !important;
+}
+
+@keyframes starBurst {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.3) rotate(15deg); }
+  50% { transform: scale(1.1) rotate(-10deg); }
+  75% { transform: scale(1.2) rotate(5deg); }
+}
+
+/* Delete Button */
+.delete-btn,
+.delete-icon-btn,
+.clear-all-btn,
+.remove-btn,
+.btn-danger-pro,
+.btn-delete-pro {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.25), rgba(255, 107, 107, 0.15)) !important;
+  border: 2px solid rgba(255, 107, 107, 0.4) !important;
+  color: #ff6b6b !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.delete-btn:hover,
+.delete-icon-btn:hover,
+.clear-all-btn:hover,
+.remove-btn:hover,
+.btn-danger-pro:hover,
+.btn-delete-pro:hover {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.4), rgba(255, 107, 107, 0.3)) !important;
+  border-color: #ff6b6b !important;
+  transform: scale(1.1) rotate(5deg) !important;
+  box-shadow: 0 6px 25px rgba(255, 107, 107, 0.5) !important;
+}
+
+/* Edit Button */
+.edit-icon-btn {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(76, 175, 80, 0.15)) !important;
+  border: 2px solid rgba(76, 175, 80, 0.4) !important;
+  color: #4caf50 !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.edit-icon-btn:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(76, 175, 80, 0.3)) !important;
+  border-color: #4caf50 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 25px rgba(76, 175, 80, 0.5) !important;
+}
+
+/* Toggle Buttons */
+.toggle-btn,
+.mood-btn,
+.glass {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+}
+
+.toggle-btn:hover,
+.mood-btn:hover,
+.glass:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+}
+
+.toggle-btn.active,
+.mood-btn.active,
+.glass.filled {
+  animation: popIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Counter Buttons */
+.counter-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+}
+
+.counter-btn:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4) !important;
+}
+
+.counter-btn:active {
+  transform: scale(0.95) !important;
+}
+
+/* Tab Buttons */
+.tab-btn {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(20, 225, 255, 0.2), rgba(125, 234, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: inherit;
+}
+
+.tab-btn:hover:not(.active)::before {
+  opacity: 1;
+}
+
+.tab-btn:hover:not(.active) {
+  transform: translateY(-3px) !important;
+  border-color: rgba(20, 225, 255, 0.5) !important;
+}
+
+.tab-btn.active {
+  animation: tabActivate 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@keyframes tabActivate {
+  0% { transform: scale(0.95); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Preset Buttons */
+.preset-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.preset-btn:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  background: rgba(255, 107, 53, 0.25) !important;
+  border-color: #ff6b35 !important;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* Disabled State */
+button:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.save-btn:disabled,
+.add-compact-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Loading State */
+.btn-primary:disabled,
+.save-btn:disabled,
+.generate-plan-btn:disabled {
+  animation: pulse 1.5s ease-in-out infinite !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.7; }
+}
+
+/* Focus States for Accessibility */
+button:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.action-btn:focus-visible,
+.tab-btn:focus-visible {
+  outline: 3px solid #14e1ff !important;
+  outline-offset: 3px !important;
+}
+
+/* Ripple Effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.btn-primary:active::after,
+.save-btn:active::after,
+.action-btn:active::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple 0.6s ease-out;
+}
+
+/* Glow Effect on Hover */
+.btn-primary:hover:not(:disabled),
+.save-workout-btn:hover:not(:disabled),
+.generate-plan-btn:hover:not(:disabled) {
+  filter: brightness(1.1) !important;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  .action-btn,
+  .save-btn {
+    min-height: 44px !important;
+    font-size: 0.95rem !important;
+  }
+  
+  .action-btn:hover,
+  .btn-primary:hover:not(:disabled),
+  .btn-secondary:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.01) !important;
+  }
+}
+
+/* Smooth Transitions */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}

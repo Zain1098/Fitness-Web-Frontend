@@ -2,24 +2,54 @@ import styled, { keyframes, css } from 'styled-components'
 
 export default function EquipmentStep({ data, updateData, nextStep, prevStep }) {
   const equipment = [
-    { value: 'dumbbells', label: 'Dumbbells', icon: '🏋️' },
-    { value: 'barbell', label: 'Barbell', icon: '💪' },
-    { value: 'kettlebell', label: 'Kettlebell', icon: '⚫' },
-    { value: 'resistance_bands', label: 'Resistance Bands', icon: '🎗️' },
-    { value: 'pull_up_bar', label: 'Pull-up Bar', icon: '🔗' },
-    { value: 'bench', label: 'Bench', icon: '🛋️' },
-    { value: 'treadmill', label: 'Treadmill', icon: '🏃' },
-    { value: 'bike', label: 'Exercise Bike', icon: '🚴' },
-    { value: 'none', label: 'No Equipment', icon: '🤸' }
+    { value: 'dumbbells', label: 'Dumbbells', icon: '🏋️‍♀️', category: 'weights' },
+    { value: 'barbell', label: 'Barbell', icon: '🏋️', category: 'weights' },
+    { value: 'kettlebell', label: 'Kettlebell', icon: '⚫', category: 'weights' },
+    { value: 'weight_plates', label: 'Weight Plates', icon: '🟠', category: 'weights' },
+    { value: 'resistance_bands', label: 'Resistance Bands', icon: '🎗️', category: 'accessories' },
+    { value: 'pull_up_bar', label: 'Pull-up Bar', icon: '🔗', category: 'accessories' },
+    { value: 'dip_bars', label: 'Dip Bars', icon: '⚖️', category: 'accessories' },
+    { value: 'bench', label: 'Bench', icon: '🛋️', category: 'equipment' },
+    { value: 'squat_rack', label: 'Squat Rack', icon: '🏛️', category: 'equipment' },
+    { value: 'cable_machine', label: 'Cable Machine', icon: '⛓️', category: 'equipment' },
+    { value: 'treadmill', label: 'Treadmill', icon: '🏃', category: 'cardio' },
+    { value: 'bike', label: 'Exercise Bike', icon: '🚴', category: 'cardio' },
+    { value: 'rowing_machine', label: 'Rowing Machine', icon: '🚣', category: 'cardio' },
+    { value: 'jump_rope', label: 'Jump Rope', icon: '🪀', category: 'accessories' },
+    { value: 'yoga_mat', label: 'Yoga Mat', icon: '🧘', category: 'accessories' },
+    { value: 'none', label: 'No Equipment (Bodyweight)', icon: '🤸', category: 'bodyweight' }
+  ]
+
+  const presets = [
+    { name: 'Home Gym', items: ['dumbbells', 'resistance_bands', 'yoga_mat', 'jump_rope'] },
+    { name: 'Full Gym', items: ['dumbbells', 'barbell', 'bench', 'squat_rack', 'cable_machine', 'treadmill'] },
+    { name: 'Bodyweight Only', items: ['none'] }
   ]
 
   const toggleEquipment = (value) => {
     const current = data.equipment || []
-    if (current.includes(value)) {
-      updateData('equipment', current.filter(e => e !== value))
+    if (value === 'none') {
+      updateData('equipment', current.includes('none') ? [] : ['none'])
     } else {
-      updateData('equipment', [...current, value])
+      const filtered = current.filter(e => e !== 'none')
+      if (filtered.includes(value)) {
+        updateData('equipment', filtered.filter(e => e !== value))
+      } else {
+        updateData('equipment', [...filtered, value])
+      }
     }
+  }
+
+  const applyPreset = (items) => {
+    updateData('equipment', items)
+  }
+
+  const selectAll = () => {
+    updateData('equipment', equipment.filter(e => e.value !== 'none').map(e => e.value))
+  }
+
+  const clearAll = () => {
+    updateData('equipment', [])
   }
 
   const handleNext = () => {
@@ -33,7 +63,22 @@ export default function EquipmentStep({ data, updateData, nextStep, prevStep }) 
           <AnimatedIcon>🏋️‍♂️</AnimatedIcon>
         </IconWrapper>
         <Title>What equipment do you have?</Title>
-        <Subtitle>Select all that apply</Subtitle>
+        <Subtitle>Select all equipment you have access to</Subtitle>
+        
+        <PresetsWrapper>
+          <PresetsLabel>Quick Select:</PresetsLabel>
+          {presets.map((preset) => (
+            <PresetButton key={preset.name} onClick={() => applyPreset(preset.items)}>
+              {preset.name}
+            </PresetButton>
+          ))}
+          <PresetButton onClick={selectAll} style={{ background: 'rgba(76,175,80,0.2)', borderColor: 'rgba(76,175,80,0.4)' }}>
+            Select All
+          </PresetButton>
+          <PresetButton onClick={clearAll} style={{ background: 'rgba(244,67,54,0.2)', borderColor: 'rgba(244,67,54,0.4)' }}>
+            Clear All
+          </PresetButton>
+        </PresetsWrapper>
         
         <OptionsGrid>
           {equipment.map((eq) => (
@@ -99,13 +144,13 @@ const IconWrapper = styled.div`
 const AnimatedIcon = styled.div`
   font-size: 80px;
   animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(75,192,192,0.4));
+  filter: drop-shadow(0 10px 30px rgba(255,107,53,0.4));
 `
 
 const Title = styled.h1`
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 800;
-  background: linear-gradient(135deg, #4bc0c0, #36a2eb, #fff);
+  background: linear-gradient(135deg, #14e1ff, #7deaff, #fff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -116,6 +161,44 @@ const Subtitle = styled.p`
   font-size: 1.1rem;
   color: rgba(255,255,255,0.7);
   margin-bottom: 50px;
+`
+
+const PresetsWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,0.1);
+`
+
+const PresetsLabel = styled.span`
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  margin-right: 10px;
+`
+
+const PresetButton = styled.button`
+  padding: 8px 16px;
+  background: rgba(255,107,53,0.2);
+  border: 2px solid rgba(255,107,53,0.4);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255,107,53,0.3);
+    border-color: #ff6b35;
+    transform: translateY(-2px);
+  }
 `
 
 const OptionsGrid = styled.div`
@@ -130,8 +213,8 @@ const OptionsGrid = styled.div`
 
 const EquipCard = styled.div`
   position: relative;
-  background: ${p => p.$selected ? 'linear-gradient(135deg, #4bc0c0, #36a2eb)' : 'rgba(255,255,255,0.03)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,255,255,0.1)'};
+  background: ${p => p.$selected ? 'linear-gradient(135deg, #ff6b35, #ff8c42)' : 'rgba(255,255,255,0.05)'};
+  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,107,53,0.3)'};
   border-radius: 20px;
   padding: 30px 15px;
   cursor: pointer;
@@ -141,13 +224,13 @@ const EquipCard = styled.div`
   
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(75,192,192,0.3);
-    border-color: rgba(75,192,192,0.5);
+    box-shadow: 0 15px 40px rgba(255,107,53,0.3);
+    border-color: rgba(255,107,53,0.5);
   }
   
   ${p => p.$selected && css`
     animation: ${pulse} 0.5s ease;
-    box-shadow: 0 15px 40px rgba(75,192,192,0.5);
+    box-shadow: 0 15px 40px rgba(255,107,53,0.5);
   `}
 `
 
@@ -187,10 +270,10 @@ const SelectedCount = styled.div`
   margin-bottom: 30px;
   font-weight: 600;
   padding: 12px 24px;
-  background: rgba(75,192,192,0.1);
+  background: rgba(255,107,53,0.1);
   border-radius: 30px;
   display: inline-block;
-  border: 2px solid rgba(75,192,192,0.3);
+  border: 2px solid rgba(255,107,53,0.3);
 `
 
 const ButtonGroup = styled.div`
@@ -237,12 +320,12 @@ const BackButton = styled(Button)`
 `
 
 const NextButton = styled(Button)`
-  background: linear-gradient(135deg, #4bc0c0, #36a2eb);
+  background: linear-gradient(135deg, #ff6b35, #ff8c42);
   color: #fff;
-  box-shadow: 0 10px 40px rgba(75,192,192,0.4);
+  box-shadow: 0 10px 40px rgba(255,107,53,0.4);
   
   &:hover {
-    box-shadow: 0 15px 50px rgba(75,192,192,0.6);
+    box-shadow: 0 15px 50px rgba(255,107,53,0.6);
   }
   
   &:disabled {

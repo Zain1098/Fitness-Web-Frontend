@@ -133,7 +133,7 @@ function DashboardNavbar() {
             <span className="mobile-username">{user?.username}</span>
           </div>
           <button className="mobile-logout-btn" onClick={logout}>
-            🚪 Logout
+            ↪ Logout
           </button>
         </div>
       </div>
@@ -237,7 +237,7 @@ function DashboardNavbar() {
                 )}
               </div>
               <button className="logout-btn" onClick={logout} title="Logout">
-                🚪
+                ↪
               </button>
             </div>
             

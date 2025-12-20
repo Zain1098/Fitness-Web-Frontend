@@ -113,6 +113,14 @@ ol {
   Helper CSS
 -----------------------*/
 
+/* NEON CYAN THEME OVERRIDE - CRITICAL */
+:root {
+  --neon-cyan: #14e1ff;
+  --neon-cyan-light: #7deaff;
+  --neon-cyan-glow: rgba(20, 225, 255, 0.5);
+  --dark-text: #031b24;
+}
+
 .section-title {
 	margin-bottom: 45px;
 	text-align: center;
@@ -120,7 +128,7 @@ ol {
 
 .section-title span {
 	font-size: 16px;
-	color: #f36100;
+	color: #14e1ff !important;
 	text-transform: uppercase;
 	font-weight: 700;
 }
@@ -168,12 +176,13 @@ ol {
 	display: inline-block;
 	font-size: 14px;
 	padding: 17px 30px 16px;
-	color: #ffffff;
-	background: #f36100;
+	color: #031b24 !important;
+	background: linear-gradient(180deg, #7deaff, #14e1ff) !important;
 	line-height: normal;
 	letter-spacing: 1px;
 	text-transform: uppercase;
 	font-weight: 700;
+	box-shadow: 0 10px 24px rgba(20,225,255,.35) !important;
 }
 
 .primary-btn.btn-normal {
@@ -183,8 +192,10 @@ ol {
 }
 
 .primary-btn.btn-normal:hover {
-	background: #f36100;
-	border-color: #f36100;
+	background: linear-gradient(180deg, #14e1ff, #7deaff);
+	border-color: #14e1ff;
+	transform: translateY(-2px);
+	box-shadow: 0 15px 35px rgba(20,225,255,.45);
 }
 
 /* Preloder */
@@ -579,7 +590,8 @@ ol {
 }
 
 .hs-slider .hs-item .hi-text h1 strong {
-	color: #f36100;
+	color: #14e1ff !important;
+	filter: drop-shadow(0 0 15px rgba(20,225,255,.6)) !important;
 }
 
 .hs-slider .hs-item .hi-text .primary-btn {
@@ -603,22 +615,23 @@ ol {
 }
 
 .cs-item:hover span {
-	background: #f36100;
-	color: #ffffff;
+	background: #14e1ff;
+	color: #031b24;
 }
 
 .cs-item span {
 	height: 90px;
 	width: 90px;
-	background: rgba(255, 255, 255, 0.1);
+	background: rgba(20, 225, 255, 0.1) !important;
 	border-radius: 50%;
 	display: inline-block;
-	color: #f36100;
+	color: #14e1ff !important;
 	line-height: 90px;
 	text-align: center;
 	-webkit-transition: all 0.3s;
 	-o-transition: all 0.3s;
 	transition: all 0.3s;
+	box-shadow: 0 0 20px rgba(20,225,255,.15) !important;
 }
 
 .cs-item h4 {
@@ -674,7 +687,7 @@ ol {
 }
 
 .class-item .ci-text span {
-	color: #f36100;
+	color: #14e1ff;
 	font-size: 12px;
 	text-transform: uppercase;
 	font-weight: 700;
@@ -749,19 +762,21 @@ ol {
 
 .bs-text .primary-btn {
 	background: transparent;
-	border: 2px solid #f36100;
+	border: 2px solid #14e1ff;
+	color: #14e1ff;
 }
 
 .bs-text .play-btn {
 	display: inline-block;
 	height: 70px;
 	width: 70px;
-	background: #f36100;
+	background: linear-gradient(135deg, #14e1ff, #7deaff);
 	border-radius: 50%;
 	line-height: 70px;
 	text-align: center;
 	font-size: 36px;
-	color: #ffffff;
+	color: #031b24;
+	box-shadow: 0 10px 30px rgba(20,225,255,.4);
 }
 
 /*---------------------
@@ -809,7 +824,8 @@ ol {
 }
 
 .ps-item:hover .primary-btn.pricing-btn {
-	background: #f36100;
+	background: linear-gradient(180deg, #7deaff, #14e1ff);
+	color: #031b24;
 }
 
 .ps-item:hover .thumb-icon {
@@ -836,8 +852,9 @@ ol {
 
 .ps-item .pi-price h2 {
 	font-size: 60px;
-	color: #f36100;
+	color: #14e1ff;
 	font-weight: 600;
+	text-shadow: 0 0 20px rgba(20,225,255,.3);
 }
 
 .ps-item .pi-price span {
@@ -871,7 +888,8 @@ ol {
 
 .ps-item .thumb-icon {
 	font-size: 48px;
-	color: #f36100;
+	color: #14e1ff;
+	filter: drop-shadow(0 0 10px rgba(20,225,255,.5));
 	position: absolute;
 	left: 50px;
 	bottom: 120px;
@@ -918,7 +936,8 @@ ol {
 
 .gallery .gs-item .thumb-icon {
 	font-size: 48px;
-	color: #f36100;
+	color: #14e1ff;
+	filter: drop-shadow(0 0 10px rgba(20,225,255,.5));
 	display: -webkit-box;
 	display: -ms-flexbox;
 	display: flex;
@@ -985,7 +1004,8 @@ ol {
 
 .primary-btn.appoinment-btn {
 	background: transparent;
-	border: 2px solid #f36100;
+	border: 2px solid #14e1ff;
+	color: #14e1ff;
 	float: right;
 	margin-top: 10px;
 }
@@ -1010,7 +1030,7 @@ ol {
 }
 
 .ts-slider.owl-carousel .owl-dots button.active {
-	background: #f36100;
+	background: #14e1ff;
 }
 
 .ts-slider.owl-carousel .owl-dots button:last-child {
@@ -1080,16 +1100,17 @@ ol {
 
 .gt-text i {
 	font-size: 30px;
-	color: #ffffff;
+	color: #031b24;
 	display: inline-block;
 	height: 65px;
 	width: 65px;
-	background: #f36100;
+	background: linear-gradient(135deg, #14e1ff, #7deaff);
 	border-radius: 50%;
 	line-height: 65px;
 	text-align: center;
 	float: left;
 	margin-right: 20px;
+	box-shadow: 0 8px 25px rgba(20,225,255,.35);
 }
 
 .gt-text p {
@@ -1239,7 +1260,7 @@ ol {
 
 .copyright-text a,
 .copyright-text i {
-	color: #f36100;
+	color: #14e1ff;
 }
 
 /* ----------------------------------- Other Pages Styles ----------------------------------- */
@@ -1282,7 +1303,7 @@ ol {
 
 .breadcrumb-text .bt-option span {
 	font-size: 18px;
-	color: #f36100;
+	color: #14e1ff;
 	font-weight: 700;
 }
 
@@ -1307,12 +1328,13 @@ ol {
 	display: inline-block;
 	height: 70px;
 	width: 70px;
-	background: #f36100;
+	background: linear-gradient(135deg, #14e1ff, #7deaff);
 	border-radius: 50%;
 	line-height: 70px;
 	text-align: center;
 	font-size: 36px;
-	color: #ffffff;
+	color: #031b24;
+	box-shadow: 0 10px 30px rgba(20,225,255,.4);
 }
 
 .about-text {
@@ -1640,11 +1662,11 @@ ol {
 
 .class-timetable table thead tr th {
 	font-size: 14px;
-	color: #ffffff;
-	background: #f36100;
+	color: #031b24;
+	background: linear-gradient(135deg, #14e1ff, #7deaff);
 	border-right: 1px solid #363636;
 	padding: 15px 0;
-	font-weight: 400;
+	font-weight: 600;
 }
 
 .class-timetable table tbody tr td {
@@ -1654,7 +1676,7 @@ ol {
 
 .class-timetable table tbody tr td.class-time {
 	font-size: 12px;
-	color: #f36100;
+	color: #14e1ff;
 	background: #000000;
 	border: 1px solid #363636;
 }
@@ -1670,7 +1692,7 @@ ol {
 }
 
 .class-timetable table tbody tr td.hover-bg:hover {
-	background: #f36100;
+	background: rgba(20,225,255,.2);
 }
 
 .class-timetable table tbody tr td.blank-td {
@@ -2060,13 +2082,14 @@ ol {
 
 .chart-calculate-form form button {
 	font-size: 14px;
-	color: #ffffff;
+	color: #031b24;
 	text-transform: uppercase;
 	font-weight: 700;
 	width: 100%;
 	border: none;
 	padding: 15px 0;
-	background: #f36100;
+	background: linear-gradient(180deg, #7deaff, #14e1ff);
+	box-shadow: 0 8px 20px rgba(20,225,255,.3);
 }
 
 /*---------------------
@@ -2589,16 +2612,17 @@ ol {
 
 .contact-widget .cw-text i {
 	font-size: 30px;
-	color: #f36100;
+	color: #031b24;
 	display: inline-block;
 	height: 65px;
 	width: 65px;
-	background: #363636;
+	background: linear-gradient(135deg, #14e1ff, #7deaff);
 	border-radius: 50%;
 	line-height: 65px;
 	text-align: center;
 	float: left;
 	margin-right: 20px;
+	box-shadow: 0 8px 25px rgba(20,225,255,.35);
 }
 
 .contact-widget .cw-text p {
@@ -2701,10 +2725,10 @@ ol {
 
 .text-404 .search-404 input {
 	font-size: 15px;
-	color: #ffffffb3;
+	color: #031b24;
 	height: 46px;
 	width: 100%;
-	background: #f36100;
+	background: linear-gradient(90deg, #14e1ff, #7deaff);
 	border: none;
 	padding-left: 20px;
 }
@@ -2760,7 +2784,7 @@ ol {
 }
 
 .text-404 a i {
-	color: #f36100;
+	color: #14e1ff;
 	margin-right: 5px;
 }
 

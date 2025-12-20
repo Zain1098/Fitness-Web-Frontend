@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '../config/api.js'
 import VisitorNavbar from '../components/VisitorNavbar.jsx'
+import ScrollToTop from '../components/ScrollToTop.jsx'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import '../styles/neon.css'
 
@@ -9,14 +10,19 @@ export default function Contact(){
   return (
     <>
       <VisitorNavbar />
-      <section className="ff-section ff-particles" id="contact-hero">
-        <div className="ff-container">
+      <ScrollToTop />
+      <section className="ff-section ff-particles" id="contact-hero" style={{ position: 'relative', overflow: 'hidden' }}>
+        {[...Array(8)].map((_, i) => <div key={i} className="ff-particle" style={{ position: 'absolute', width: '5px', height: '5px', background: i % 2 === 0 ? '#ff6b35' : '#14e1ff', borderRadius: '50%', opacity: 0.7, animation: 'floatParticle 10s infinite', animationDelay: `${i * 0.9}s`, left: `${8 + i * 11}%`, top: `${15 + (i % 3) * 25}%`, boxShadow: `0 0 12px ${i % 2 === 0 ? '#ff6b35' : '#14e1ff'}`, zIndex: 0, pointerEvents: 'none' }} />)}
+        <div className="ff-container" style={{ position: 'relative', zIndex: 2 }}>
           <div className="ff-mission-grid">
             <div className="ff-float-in" style={{ width:'min(520px, 52vw)' }}>
               <lottie-player src="/icons/Connect with us.json" background="transparent" speed="1" loop autoplay style={{ width:'100%', maxWidth:'520px' }}></lottie-player>
             </div>
             <div className="ff-panel ff-float-in" style={{ padding:'22px' }}>
               <h2 className="ff-title">Get in Touch with FitForge</h2>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.05))', border: '1px solid #4caf50', borderRadius: '20px', padding: '6px 14px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '12px', color: '#4caf50', fontWeight: '600' }}>⚡ We respond within 24 hours</span>
+              </div>
               <p className="ff-sub" style={{ marginBottom:'12px' }}>Have a question, need support, or want to collaborate? Talk to us directly — no delays, no nonsense.</p>
               <p className="ff-sub" style={{ fontSize:'16px' }}>We’re here to help you with anything related to FirForge — whether it’s technical support, feedback, business inquiries, or partnership opportunities. Just reach out, and we’ll respond with clear, actionable answers.</p>
               <div style={{ display:'flex', gap:'12px', marginTop:'16px', flexWrap:'wrap' }}>
@@ -27,9 +33,51 @@ export default function Contact(){
           </div>
         </div>
       </section>
+      <ContactInfo />
       <ContactFormSection />
       <FooterSection />
     </>
+  )
+}
+
+function ContactInfo(){
+  const [contacts, setContacts] = useState([
+    { icon: '📞', title: 'Phone', info: '+1 (555) 123-4567', subinfo: 'Mon-Fri 9AM-6PM EST', color: '#14e1ff' },
+    { icon: '✉️', title: 'Email', info: 'support@fitforge.com', subinfo: 'We reply within 24 hours', color: '#ff6b35' },
+    { icon: '📍', title: 'Location', info: 'San Francisco, CA', subinfo: 'United States', color: '#4caf50' }
+  ])
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    async function fetchContactInfo() {
+      try {
+        const data = await fetch(API_BASE_URL + '/contact/info').then(res => res.json())
+        if (data.contacts) setContacts(data.contacts)
+      } catch (err) {
+        console.error('Failed to fetch contact info:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchContactInfo()
+  }, [])
+  return (
+    <section className="ff-section" id="contact-info" style={{ position: 'relative', background: 'linear-gradient(180deg, rgba(10, 14, 39, 0.8), rgba(26, 31, 58, 0.6))', overflow: 'hidden' }}>
+      {[...Array(6)].map((_, i) => <div key={i} className="ff-particle" style={{ position: 'absolute', width: '4px', height: '4px', background: '#14e1ff', borderRadius: '50%', opacity: 0.6, animation: 'floatParticle 12s infinite', animationDelay: `${i * 1.5}s`, right: `${10 + i * 12}%`, top: `${20 + (i % 2) * 35}%`, boxShadow: '0 0 10px #14e1ff', zIndex: 0, pointerEvents: 'none' }} />)}
+      <div className="ff-container" style={{ position: 'relative', zIndex: 2 }}>
+        <h2 className="ff-title" style={{ textAlign: 'center', color: '#fff', fontSize: '2.5rem', marginBottom: '50px' }}>Contact Information</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' }}>
+          {contacts.map((c, i) => (
+            <div key={i} className="ff-float-in ff-magnetic" style={{ padding: '30px', background: 'linear-gradient(135deg, rgba(20, 225, 255, 0.08), rgba(10, 14, 39, 0.9))', border: '2px solid rgba(20, 225, 255, 0.3)', borderRadius: '16px', textAlign: 'center', transition: 'all 0.3s ease', animationDelay: `${i * 0.15}s`, cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)'; e.currentTarget.style.boxShadow = `0 20px 60px ${c.color}60` }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = 'none' }}>
+              <div style={{ fontSize: '3.5rem', marginBottom: '15px' }}>{c.icon}</div>
+              <h3 style={{ color: c.color, fontSize: '1.4rem', marginBottom: '10px', fontWeight: '700', textShadow: `0 0 15px ${c.color}80` }}>{c.title}</h3>
+              <p style={{ color: '#fff', fontSize: '18px', marginBottom: '8px', fontWeight: '600' }}>{c.info}</p>
+              <p style={{ color: '#9fb3c8', fontSize: '14px' }}>{c.subinfo}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -112,8 +160,9 @@ function ContactFormSection(){
     }
   }
   return (
-    <section className="ff-section" id="contact-form">
-      <div className="ff-container">
+    <section className="ff-section" id="contact-form" style={{ position: 'relative', overflow: 'hidden' }}>
+      {[...Array(5)].map((_, i) => <div key={i} className="ff-particle" style={{ position: 'absolute', width: '6px', height: '6px', background: '#ff6b35', borderRadius: '50%', opacity: 0.7, animation: 'floatParticle 11s infinite', animationDelay: `${i * 1.1}s`, left: `${12 + i * 15}%`, top: `${25 + (i % 3) * 30}%`, boxShadow: '0 0 15px #ff6b35', zIndex: 0, pointerEvents: 'none' }} />)}
+      <div className="ff-container" style={{ position: 'relative', zIndex: 2 }}>
         <div className="ff-mission-grid">
           <div className="ff-panel ff-float-in" style={{ padding:'22px' }}>
             <h2 className="ff-title">Send a Message</h2>

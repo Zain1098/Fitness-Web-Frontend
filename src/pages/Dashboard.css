@@ -1,14 +1,14 @@
 /* CSS Variables */
 :root {
-  --primary-color: #ff6b35;
-  --primary-light: #ff8c42;
-  --bg-dark: #0f0f0f;
-  --bg-medium: #1a1a1a;
-  --text-primary: #fff;
+  --primary-color: #14e1ff;
+  --primary-light: #7deaff;
+  --bg-dark: #0a0e27;
+  --bg-medium: #1a1f3a;
+  --text-primary: #e6f0ff;
   --text-secondary: #ccc;
-  --text-muted: #999;
-  --border-color: rgba(255, 255, 255, 0.15);
-  --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  --text-muted: #9fb3c8;
+  --border-color: rgba(20, 225, 255, 0.25);
+  --card-bg: linear-gradient(135deg, rgba(20, 225, 255, 0.08), rgba(125, 234, 255, 0.03));
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -60,9 +60,10 @@
   font-size: 2.2rem;
   font-weight: bold;
   margin-bottom: 5px;
-  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  background: linear-gradient(45deg, #14e1ff, #7deaff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(20,225,255,.3));
 }
 
 .dashboard-header p {
@@ -241,10 +242,11 @@
 }
 
 .calorie-ring-progress {
-  stroke: var(--primary-color);
+  stroke: #14e1ff;
   stroke-linecap: round;
   transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fillRing 2s ease-out forwards;
+  filter: drop-shadow(0 0 8px rgba(20,225,255,.5));
 }
 
 @keyframes fillRing {
@@ -374,7 +376,8 @@
 }
 
 .progress-fill.workouts {
-  background: linear-gradient(90deg, #ff6b35, #ff8c42);
+  background: linear-gradient(90deg, #14e1ff, #7deaff);
+  box-shadow: 0 0 10px rgba(20,225,255,.4);
 }
 
 .progress-fill.meals {
@@ -510,7 +513,8 @@
 .streak-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #ff6b35;
+  color: #14e1ff;
+  text-shadow: 0 0 15px rgba(20,225,255,.5);
 }
 
 .streak-label {
@@ -549,9 +553,10 @@
 
 .goal-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b35, #ff8c42);
+  background: linear-gradient(90deg, #14e1ff, #7deaff);
   border-radius: 10px;
   transition: width 1s ease;
+  box-shadow: 0 0 10px rgba(20,225,255,.4);
 }
 
 .goal-compact-text {

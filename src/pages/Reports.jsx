@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext.jsx'
-import DashboardNavbar from '../components/DashboardNavbar.jsx'
+import UnifiedNavbar from '../components/UnifiedNavbar.jsx'
 import { API_BASE_URL } from '../config/api.js'
 
 export default function Reports(){
@@ -8,7 +8,7 @@ export default function Reports(){
   const download = ()=>{ window.open(API_BASE_URL + '/reports/workouts.csv', '_blank') }
   return (
     <>
-    <DashboardNavbar />
+    <UnifiedNavbar />
     <section className="ff-section" id="reports">
       <div className="ff-container">
         <h2 className="ff-title">Reports</h2>
