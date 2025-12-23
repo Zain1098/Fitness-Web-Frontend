@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled, { keyframes } from 'styled-components'
 
 export default function BodyMeasurementsStep({ data, updateData, nextStep, prevStep }) {
@@ -31,6 +31,13 @@ export default function BodyMeasurementsStep({ data, updateData, nextStep, prevS
       setBodyFat(Math.max(10, Math.min(50, bf)).toFixed(1))
     }
   }
+
+  // Auto-calculate when measurements change
+  useEffect(() => {
+    if (waist && data.height && data.weight) {
+      calculateBodyFat()
+    }
+  }, [waist, hips, unit])
 
   const handleNext = () => {
     const measurements = {

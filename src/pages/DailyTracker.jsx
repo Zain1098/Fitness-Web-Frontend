@@ -1,13 +1,17 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 const FitnessChatbot = lazy(() => import('../components/FitnessChatbot.jsx'))
 import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
+import { googleFitApi } from '../api/googleFit.js'
+import { showToast } from '../components/Toast.jsx'
 import './DailyTracker.css'
 
 export default function DailyTracker() {
   const { token, user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [tracker, setTracker] = useState({
     water: 0,
@@ -17,7 +21,8 @@ export default function DailyTracker() {
     energy: 5,
     workoutCompleted: false,
     mealsLogged: 0,
-    notes: ''
+    notes: '',
+    dataSource: 'manual'
   })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -25,7 +30,9 @@ export default function DailyTracker() {
   const [error, setError] = useState('')
   const [weeklyStats, setWeeklyStats] = useState(null)
   const [streak, setStreak] = useState(0)
-  const [showGuide, setShowGuide] = useState(false)
+  const [googleFitStatus, setGoogleFitStatus] = useState({ connected: false, lastSynced: null })
+  const [syncing, setSyncing] = useState(false)
+  const [showGoogleFitModal, setShowGoogleFitModal] = useState(false)
 
   const loadTracker = async () => {
     if (!token) return
@@ -70,18 +77,81 @@ export default function DailyTracker() {
 
   useEffect(() => {
     loadTracker()
+    loadGoogleFitStatus()
   }, [selectedDate, token])
   
   useEffect(() => {
-    const hasSeenGuide = localStorage.getItem('tracker_guide_seen')
-    if (!hasSeenGuide && user) {
-      setShowGuide(true)
+    const googleFitParam = searchParams.get('googlefit')
+    if (googleFitParam === 'connected') {
+      showToast('✅ Google Fit connected successfully!', 'success', 8000)
+      setSearchParams({})
+      handleSync()
     }
-  }, [user])
-  
-  const closeGuide = () => {
-    localStorage.setItem('tracker_guide_seen', 'true')
-    setShowGuide(false)
+  }, [searchParams])
+
+  const loadGoogleFitStatus = async () => {
+    if (!token) return
+    try {
+      const status = await googleFitApi.getStatus(token)
+      setGoogleFitStatus(status)
+    } catch (err) {
+      console.error('Failed to load Google Fit status:', err)
+    }
+  }
+
+  const handleConnectGoogleFit = async () => {
+    setShowGoogleFitModal(false)
+    try {
+      const { url } = await googleFitApi.getAuthUrl(token)
+      window.location.href = url
+    } catch (err) {
+      showToast('❌ Failed to connect Google Fit', 'error', 3000)
+    }
+  }
+
+  const handleSync = async () => {
+    if (!token) return
+    try {
+      setSyncing(true)
+      const result = await googleFitApi.sync(7, token)
+      const { summary } = result
+      
+      let message = `✅ Synced ${result.synced} days`
+      const details = []
+      if (summary.stepsCount > 0) details.push(`${summary.stepsCount} days steps`)
+      if (summary.caloriesCount > 0) details.push(`${summary.caloriesCount} days calories`)
+      if (summary.sleepCount > 0) details.push(`${summary.sleepCount} days sleep`)
+      if (summary.activeMinutesCount > 0) details.push(`${summary.activeMinutesCount} days activity`)
+      
+      if (details.length > 0) {
+        message += `: ${details.join(', ')}`
+      }
+      
+      showToast(message, 'success', 8000)
+      loadTracker()
+      loadGoogleFitStatus()
+    } catch (err) {
+      const errorMsg = err.message || 'Sync failed'
+      if (errorMsg.includes('Token expired')) {
+        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 8000)
+        setGoogleFitStatus({ connected: false, lastSynced: null })
+      } else {
+        showToast('❌ ' + errorMsg, 'error', 3000)
+      }
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    if (!confirm('Disconnect Google Fit? Your data will remain but won\'t sync anymore.')) return
+    try {
+      await googleFitApi.disconnect(token)
+      setGoogleFitStatus({ connected: false, lastSynced: null })
+      showToast('✅ Google Fit disconnected', 'success', 3000)
+    } catch (err) {
+      showToast('❌ Failed to disconnect', 'error', 3000)
+    }
   }
 
   const saveTracker = async () => {
@@ -100,6 +170,9 @@ export default function DailyTracker() {
       } else {
         setSuccess('✅ Saved!')
         setTimeout(() => setSuccess(''), 2000)
+        // Clear dashboard cache so fresh data loads
+        sessionStorage.removeItem('dashboardCache')
+        sessionStorage.removeItem('dashboardCacheTime')
       }
     } catch (err) {
       console.error('Save error:', err)
@@ -128,62 +201,74 @@ export default function DailyTracker() {
       </Suspense>
       <Tutorial page="dailyTracker" />
       
-      {/* First-time Guide */}
-      {showGuide && (
-        <div className="guide-overlay" onClick={closeGuide}>
-          <div className="guide-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="guide-close" onClick={closeGuide}>×</button>
-            <h2>👋 Welcome to Daily Tracker!</h2>
-            <p>Track your daily habits to build a healthier lifestyle:</p>
-            <div className="guide-features">
-              <div className="guide-item">
-                <span className="guide-icon">💧</span>
-                <div>
-                  <strong>Water Intake</strong>
-                  <p>Click glasses to track. Goal: 8 glasses/day</p>
+      {/* Google Fit Setup Modal */}
+      {showGoogleFitModal && (
+        <div className="googlefit-modal-overlay" onClick={() => setShowGoogleFitModal(false)}>
+          <div className="googlefit-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowGoogleFitModal(false)}>×</button>
+            
+            <div className="modal-icon">📱</div>
+            <h2>Connect Google Fit</h2>
+            <p className="modal-subtitle">Auto-sync your fitness data from Google Fit app</p>
+            
+            <div className="setup-steps">
+              <div className="setup-step">
+                <div className="step-number">1</div>
+                <div className="step-content">
+                  <h4>📲 Install Google Fit App</h4>
+                  <p>Download from <strong>Play Store</strong> (Android) or <strong>App Store</strong> (iPhone)</p>
                 </div>
               </div>
-              <div className="guide-item">
-                <span className="guide-icon">👟</span>
-                <div>
-                  <strong>Steps</strong>
-                  <p>Enter your daily steps. Goal: 10,000 steps</p>
+              
+              <div className="setup-step">
+                <div className="step-number">2</div>
+                <div className="step-content">
+                  <h4>📧 Use Same Email</h4>
+                  <p>Login with <strong>same email</strong> you use on FitForge</p>
                 </div>
               </div>
-              <div className="guide-item">
-                <span className="guide-icon">😴</span>
-                <div>
-                  <strong>Sleep</strong>
-                  <p>Log sleep hours. Optimal: 7-9 hours</p>
+              
+              <div className="setup-step">
+                <div className="step-number">3</div>
+                <div className="step-content">
+                  <h4>📊 Track in Google Fit</h4>
+                  <p>App will <strong>auto-track steps</strong>. Manually add <strong>weight & calories</strong> in app</p>
                 </div>
               </div>
-              <div className="guide-item">
-                <span className="guide-icon">😊</span>
-                <div>
-                  <strong>Mood & Energy</strong>
-                  <p>Track how you feel each day</p>
-                </div>
-              </div>
-              <div className="guide-item">
-                <span className="guide-icon">💪</span>
-                <div>
-                  <strong>Workout</strong>
-                  <p>Mark if you completed a workout today</p>
-                </div>
-              </div>
-              <div className="guide-item">
-                <span className="guide-icon">📊</span>
-                <div>
-                  <strong>Analytics</strong>
-                  <p>View your progress, streaks & trends</p>
+              
+              <div className="setup-step">
+                <div className="step-number">4</div>
+                <div className="step-content">
+                  <h4>🔗 Connect & Sync</h4>
+                  <p>Click below to connect, then use <strong>🔄 Sync button</strong> to import data</p>
                 </div>
               </div>
             </div>
-            <div className="guide-tip">
-              💡 <strong>Pro Tip:</strong> Workouts and meals auto-sync from their respective pages!
+            
+            <div className="benefits-section">
+              <h4>✨ Benefits</h4>
+              <div className="benefits-grid">
+                <div className="benefit-item">
+                  <span>👟</span>
+                  <span>Auto steps tracking</span>
+                </div>
+                <div className="benefit-item">
+                  <span>⚖️</span>
+                  <span>Weight sync</span>
+                </div>
+                <div className="benefit-item">
+                  <span>🔥</span>
+                  <span>Calories burned</span>
+                </div>
+                <div className="benefit-item">
+                  <span>💪</span>
+                  <span>Active minutes</span>
+                </div>
+              </div>
             </div>
-            <button className="guide-start-btn" onClick={closeGuide}>
-              Got it! Let's Start 🚀
+            
+            <button className="connect-now-btn" onClick={handleConnectGoogleFit}>
+              🚀 Connect Google Fit Now
             </button>
           </div>
         </div>
@@ -193,14 +278,129 @@ export default function DailyTracker() {
         <div className="tracker-container">
           <div className="tracker-header">
             <h1>📅 Daily Tracker</h1>
-            <input 
-              type="date" 
-              value={selectedDate} 
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="date-picker"
-              max={new Date().toISOString().split('T')[0]}
-            />
+            <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <input 
+                type="date" 
+                value={selectedDate} 
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="date-picker"
+                max={new Date().toISOString().split('T')[0]}
+              />
+              {!googleFitStatus.connected ? (
+                <button 
+                  className="googlefit-connect-btn"
+                  onClick={() => setShowGoogleFitModal(true)}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #4285f4, #34a853)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.9rem',
+                    transition: 'transform 0.3s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                >
+                  📱 Connect Google Fit
+                </button>
+              ) : (
+                <div style={{display: 'flex', gap: '8px'}}>
+                  <button 
+                    className="googlefit-sync-btn"
+                    onClick={handleSync}
+                    disabled={syncing}
+                    style={{
+                      padding: '10px 16px',
+                      background: 'rgba(66, 133, 244, 0.2)',
+                      border: '1px solid #4285f4',
+                      borderRadius: '8px',
+                      color: '#4285f4',
+                      fontWeight: '600',
+                      cursor: syncing ? 'not-allowed' : 'pointer',
+                      fontSize: '0.9rem',
+                      opacity: syncing ? 0.6 : 1
+                    }}
+                  >
+                    {syncing ? '🔄 Syncing...' : '🔄 Sync'}
+                  </button>
+                  <button 
+                    onClick={handleDisconnect}
+                    style={{
+                      padding: '10px 16px',
+                      background: 'rgba(255, 107, 53, 0.2)',
+                      border: '1px solid #ff6b35',
+                      borderRadius: '8px',
+                      color: '#ff6b35',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                    title="Disconnect Google Fit"
+                  >
+                    🔌
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+
+          {googleFitStatus.connected && googleFitStatus.lastSynced && (
+            <div style={{
+              padding: '14px 20px',
+              background: 'linear-gradient(135deg, rgba(66, 133, 244, 0.12), rgba(52, 168, 83, 0.08))',
+              border: '1px solid rgba(66, 133, 244, 0.25)',
+              borderRadius: '12px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '15px',
+              position: 'relative'
+            }}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <span style={{fontSize: '1.5rem'}}>📱</span>
+                <div>
+                  <div style={{color: '#4285f4', fontWeight: '600', fontSize: '0.95rem', marginBottom: '3px'}}>
+                    Google Fit Connected
+                  </div>
+                  <div style={{color: '#999', fontSize: '0.8rem'}}>
+                    Last synced: {new Date(googleFitStatus.lastSynced).toLocaleString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              </div>
+              <div 
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 193, 7, 0.2)',
+                  border: '2px solid #ffc107',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'help',
+                  fontSize: '0.85rem',
+                  fontWeight: 'bold',
+                  color: '#ffc107',
+                  flexShrink: 0
+                }}
+                title="Google Fit data may take up to 24 hours to sync. Today's data might appear tomorrow."
+              >
+                i
+              </div>
+            </div>
+          )}
 
           {success && <div role="status" aria-live="polite" className="message success">{success}</div>}
           {error && <div role="status" aria-live="assertive" className="message error">{error}</div>}
@@ -304,7 +504,22 @@ export default function DailyTracker() {
 
             {/* Steps */}
             <div className="tracker-card">
-              <h3>👟 Steps</h3>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <h3>👟 Steps</h3>
+                {tracker.dataSource === 'googlefit' && (
+                  <span style={{
+                    padding: '4px 10px',
+                    background: 'rgba(66, 133, 244, 0.2)',
+                    border: '1px solid #4285f4',
+                    borderRadius: '6px',
+                    color: '#4285f4',
+                    fontSize: '0.75rem',
+                    fontWeight: '600'
+                  }}>
+                    📱 Google Fit
+                  </span>
+                )}
+              </div>
               <input
                 type="number"
                 min="0"

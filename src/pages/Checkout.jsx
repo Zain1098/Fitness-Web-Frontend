@@ -21,8 +21,8 @@ export default function Checkout() {
 
   useEffect(() => {
     if (!user) {
-      showToast('Please login to continue', 'error')
-      navigate('/?auth=login')
+      showToast('⚠️ Please login to continue with checkout', 'error', 5000)
+      setTimeout(() => navigate('/?auth=login'), 2000)
     }
   }, [user, navigate])
 
@@ -34,25 +34,55 @@ export default function Checkout() {
         setPlans(data.plans || [])
         if (planId) {
           const plan = data.plans.find(p => p.planId === planId)
+          if (!plan) {
+            showToast('❌ Invalid plan selected. Redirecting...', 'error', 5000)
+            setTimeout(() => navigate('/services'), 2000)
+          }
           setSelectedPlan(plan)
         }
       } catch (error) {
         console.error('Failed to fetch plans:', error)
-        showToast('Failed to load pricing', 'error')
+        showToast('❌ Failed to load pricing plans. Please refresh the page.', 'error', 6000)
       } finally {
         setPlansLoading(false)
       }
     }
     fetchPlans()
-  }, [planId])
+  }, [planId, navigate])
 
-  if (!planId || plansLoading) return <Container><Card><Title>Loading...</Title></Card></Container>
+  if (!planId || plansLoading) {
+    return (
+      <Container>
+        <Card>
+          <LoadingSpinner>
+            <div className="spinner"></div>
+            <p>Loading checkout...</p>
+          </LoadingSpinner>
+        </Card>
+      </Container>
+    )
+  }
+  
   if (!selectedPlan) {
-    return <Container><Card><Title>Invalid plan selected</Title></Card></Container>
+    return (
+      <Container>
+        <Card>
+          <ErrorState>
+            <span style={{fontSize:'3rem'}}>⚠️</span>
+            <Title>Invalid Plan</Title>
+            <p>The selected plan could not be found.</p>
+            <BackButton onClick={() => navigate('/services')} style={{marginTop:'20px'}}>← Back to Services</BackButton>
+          </ErrorState>
+        </Card>
+      </Container>
+    )
   }
 
   const handleApplyPromo = async () => {
-    if (!promoCode.trim()) return
+    if (!promoCode.trim()) {
+      showToast('Please enter a promo code', 'warning', 4000)
+      return
+    }
     try {
       setPromoLoading(true)
       const response = await api('/promo/validate', {
@@ -61,9 +91,9 @@ export default function Checkout() {
         token
       })
       setPromoApplied(response)
-      showToast(`Promo code applied! ${response.discount}${response.discountType === 'percentage' ? '%' : '$'} off`, 'success')
+      showToast(`✅ Promo code applied! ${response.discount}${response.discountType === 'percentage' ? '%' : '$'} off`, 'success', 6000)
     } catch (error) {
-      showToast(error.message || 'Invalid promo code', 'error')
+      showToast(error.message || '❌ Invalid or expired promo code', 'error', 5000)
       setPromoApplied(null)
     } finally {
       setPromoLoading(false)
@@ -72,25 +102,40 @@ export default function Checkout() {
 
   const handleCheckout = async () => {
     if (!token) {
-      showToast('Please login to subscribe', 'error')
+      showToast('⚠️ Please login to subscribe', 'error', 5000)
       return
     }
     try {
       setLoading(true)
+      const body = { 
+        plan: planId,
+        billingCycle: isAnnual ? 'annual' : 'monthly'
+      }
+      
+      if (promoApplied) {
+        body.promoCode = promoApplied.code
+        body.discount = discount
+        body.finalAmount = finalPrice
+      }
+      
       const response = await api('/payment/create-checkout-session', {
         method: 'POST',
-        body: { plan: planId },
+        body,
         token
       })
       
       if (response.success && response.checkout_url) {
-        window.location.href = response.checkout_url
+        showToast('🔄 Redirecting to payment...', 'info', 3000)
+        setTimeout(() => {
+          window.location.href = response.checkout_url
+        }, 500)
       } else {
-        showToast('Failed to create checkout session', 'error')
+        showToast('❌ Failed to create checkout session. Please try again.', 'error', 6000)
       }
     } catch (error) {
       console.error('Checkout error:', error)
-      showToast(error.message || 'Payment initialization failed', 'error')
+      const errorMsg = error.message || 'Payment initialization failed. Please try again or contact support.'
+      showToast(`❌ ${errorMsg}`, 'error', 7000)
     } finally {
       setLoading(false)
     }
@@ -419,4 +464,46 @@ const OriginalPrice = styled.div`
   font-size: 0.9rem;
   text-decoration: line-through;
   margin-top: 5px;
+`
+
+const LoadingSpinner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 20px;
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #ff6b35;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  p {
+    color: #aaa;
+    font-size: 1.1rem;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`
+
+const ErrorState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  
+  p {
+    color: #aaa;
+    font-size: 1.1rem;
+    margin-top: 10px;
+  }
 `

@@ -52,6 +52,21 @@ export default function Settings() {
     }
   })
 
+  const [whatsappSettings, setWhatsappSettings] = useState({
+    enabled: false,
+    verified: false,
+    paused: false,
+    phoneNumber: '',
+    reminderTimes: { workout: '18:00', sleep: '22:00' },
+    dailyReport: { enabled: true, time: '20:00' }
+  })
+  const [whatsappOtp, setWhatsappOtp] = useState('')
+  const [whatsappOtpSent, setWhatsappOtpSent] = useState(false)
+  const [sendingOtp, setSendingOtp] = useState(false)
+  const [changingNumber, setChangingNumber] = useState(false)
+  const [newWhatsappNumber, setNewWhatsappNumber] = useState('')
+  const [savingWhatsApp, setSavingWhatsApp] = useState(false)
+
   const [passwordForm, setPasswordForm] = useState({
     current: '',
     new: '',
@@ -103,6 +118,18 @@ export default function Settings() {
         },
         notifications: prefs.notifications || prev.notifications
       }))
+      
+      // Load WhatsApp settings
+      if (userData.whatsappNotifications) {
+        setWhatsappSettings({
+          enabled: userData.whatsappNotifications.enabled || false,
+          verified: userData.whatsappNotifications.verified || false,
+          paused: userData.whatsappNotifications.paused || false,
+          phoneNumber: userData.whatsappNotifications.phoneNumber || '',
+          reminderTimes: userData.whatsappNotifications.reminderTimes || { workout: '18:00', sleep: '22:00' },
+          dailyReport: userData.whatsappNotifications.dailyReport || { enabled: true, time: '20:00' }
+        })
+      }
     } catch (err) {
       console.error('Failed to load settings:', err)
     } finally {
@@ -114,7 +141,25 @@ export default function Settings() {
     try {
       setSaving(true)
       
-      // Save to settings API
+      // Save WhatsApp settings if on WhatsApp tab and verified
+      if (activeTab === 'whatsapp' && whatsappSettings.verified) {
+        setSavingWhatsApp(true)
+        const response = await api('/whatsapp/settings', {
+          method: 'PUT',
+          token,
+          body: {
+            reminderTimes: whatsappSettings.reminderTimes,
+            dailyReport: whatsappSettings.dailyReport,
+            paused: whatsappSettings.paused
+          }
+        })
+        showToast('✅ WhatsApp settings saved successfully!', 'success')
+        loadSettings()
+        setSavingWhatsApp(false)
+        return
+      }
+      
+      // Save general settings for other tabs
       await api('/settings', { method: 'PUT', body: settings, token })
       
       // Also update onboarding_data with body measurements
@@ -138,9 +183,97 @@ export default function Settings() {
       })
       
       showToast('Settings saved successfully!', 'success')
-      loadSettings() // Reload to confirm
+      loadSettings()
     } catch (err) {
-      showToast('Failed to save settings', 'error')
+      console.error('Save settings error:', err)
+      showToast(err?.message || 'Failed to save settings', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const connectWhatsApp = async () => {
+    const phoneToVerify = changingNumber ? newWhatsappNumber : whatsappSettings.phoneNumber
+    
+    // Validate phone format
+    const cleanPhone = phoneToVerify.replace(/[^0-9+]/g, '')
+    if (!cleanPhone || cleanPhone.length < 10) {
+      showToast('Please enter a valid phone number', 'error')
+      return
+    }
+    if (!cleanPhone.startsWith('+')) {
+      showToast('Phone number must include country code (e.g., +92)', 'error')
+      return
+    }
+    
+    try {
+      setSendingOtp(true)
+      await api('/whatsapp/send-otp', {
+        method: 'POST',
+        token,
+        body: { phoneNumber: cleanPhone }
+      })
+      setWhatsappOtpSent(true)
+      showToast('📤 OTP sent to your WhatsApp! Check your phone.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to send OTP. Check your number.', 'error')
+    } finally {
+      setSendingOtp(false)
+    }
+  }
+
+  const verifyWhatsAppOtp = async () => {
+    if (!whatsappOtp || whatsappOtp.length !== 6) {
+      showToast('Please enter 6-digit OTP', 'error')
+      return
+    }
+    try {
+      setSaving(true)
+      await api('/whatsapp/verify-otp', {
+        method: 'POST',
+        token,
+        body: { otp: whatsappOtp }
+      })
+      showToast('✅ WhatsApp verified! Welcome message sent.', 'success')
+      setWhatsappOtpSent(false)
+      setWhatsappOtp('')
+      setChangingNumber(false)
+      setNewWhatsappNumber('')
+      loadSettings()
+    } catch (err) {
+      showToast(err?.message || 'Invalid OTP. Please try again.', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const togglePauseWhatsApp = async () => {
+    try {
+      setSavingWhatsApp(true)
+      const newPausedState = !whatsappSettings.paused
+      await api('/whatsapp/settings', {
+        method: 'PUT',
+        token,
+        body: { paused: newPausedState }
+      })
+      setWhatsappSettings({ ...whatsappSettings, paused: newPausedState })
+      showToast(newPausedState ? '⏸️ Notifications paused' : '▶️ Notifications resumed', 'success')
+    } catch (err) {
+      showToast('Failed to update', 'error')
+    } finally {
+      setSavingWhatsApp(false)
+    }
+  }
+
+  const disconnectWhatsApp = async () => {
+    if (!confirm('Are you sure you want to disconnect WhatsApp notifications?')) return
+    try {
+      setSaving(true)
+      await api('/whatsapp/disconnect', { method: 'POST', token })
+      setWhatsappSettings({ enabled: false, verified: false, phoneNumber: '', reminderTimes: { workout: '18:00', sleep: '22:00' }, dailyReport: { enabled: true, time: '20:00' } })
+      showToast('WhatsApp disconnected', 'success')
+    } catch (err) {
+      showToast('Failed to disconnect', 'error')
     } finally {
       setSaving(false)
     }
@@ -330,6 +463,7 @@ export default function Settings() {
                     { id: 'body', icon: '📐', label: 'Body' },
                     { id: 'nutrition', icon: '🥗', label: 'Nutrition' },
                     { id: 'notifications', icon: '🔔', label: 'Notifications' },
+                    { id: 'whatsapp', icon: '💬', label: 'WhatsApp' },
                     { id: 'security', icon: '🔒', label: 'Security' }
                   ].map(tab => (
                     <button
@@ -530,6 +664,200 @@ export default function Settings() {
                             </label>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'whatsapp' && (
+                    <div className="content-section">
+                      <h2>💬 WhatsApp Notifications</h2>
+                      <div className="info-box-pro" style={{background: 'rgba(37,211,102,0.1)', border: '2px solid rgba(37,211,102,0.3)', borderRadius: '12px', padding: '20px', marginBottom: '25px'}}>
+                        <div style={{display: 'flex', alignItems: 'start', gap: '15px'}}>
+                          <div style={{fontSize: '2rem'}}>💬</div>
+                          <div>
+                            <h3 style={{color: '#25d366', marginBottom: '8px', fontSize: '1.1rem'}}>Get Fitness Updates on WhatsApp</h3>
+                            <p style={{color: 'rgba(255,255,255,0.8)', lineHeight: '1.6', marginBottom: '12px'}}>Receive workout reminders, progress updates, and motivational messages directly on WhatsApp.</p>
+                            <ul style={{color: 'rgba(255,255,255,0.7)', paddingLeft: '20px', lineHeight: '1.8'}}>
+                              <li>Daily workout reminders at your preferred time</li>
+                              <li>Sleep reminders to maintain healthy habits</li>
+                              <li>Daily progress reports with stats</li>
+                              <li>Weekly summaries every Sunday</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="whatsapp-connect-section">
+                        {(!whatsappSettings.verified || changingNumber) ? (
+                          <>
+                            <div className="form-grid-pro">
+                              <div className="input-group-pro full">
+                                <label>📱 WhatsApp Number {changingNumber && <span style={{color: '#ff6b35'}}>(Changing)</span>}</label>
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                  <input 
+                                    type="tel" 
+                                    value={changingNumber ? newWhatsappNumber : whatsappSettings.phoneNumber}
+                                    onChange={(e) => changingNumber ? setNewWhatsappNumber(e.target.value) : setWhatsappSettings({...whatsappSettings, phoneNumber: e.target.value})}
+                                    placeholder="+92 300 1234567" 
+                                    style={{flex: 1}}
+                                    disabled={whatsappOtpSent}
+                                  />
+                                  {!whatsappOtpSent && (
+                                    <button 
+                                      className="btn-primary-pro" 
+                                      onClick={connectWhatsApp} 
+                                      disabled={sendingOtp}
+                                      style={{whiteSpace: 'nowrap'}}
+                                    >
+                                      {sendingOtp ? '⏳ Sending...' : '📤 Send OTP'}
+                                    </button>
+                                  )}
+                                </div>
+                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '8px', display: 'block'}}>Enter your WhatsApp number with country code (e.g., +92 for Pakistan)</small>
+                                {changingNumber && (
+                                  <button 
+                                    onClick={() => { setChangingNumber(false); setNewWhatsappNumber(''); }}
+                                    style={{marginTop: '10px', background: 'transparent', border: 'none', color: '#ff6b35', cursor: 'pointer', textDecoration: 'underline'}}
+                                  >
+                                    Cancel Change
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {whatsappOtpSent && (
+                              <div className="form-grid-pro" style={{marginTop: '20px'}}>
+                                <div className="input-group-pro full">
+                                  <label>🔐 Enter OTP</label>
+                                  <div style={{display: 'flex', gap: '10px'}}>
+                                    <input 
+                                      type="text" 
+                                      value={whatsappOtp}
+                                      onChange={(e) => setWhatsappOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                      placeholder="Enter 6-digit OTP" 
+                                      maxLength="6"
+                                      style={{flex: 1, fontSize: '1.2rem', letterSpacing: '0.5rem', textAlign: 'center'}}
+                                    />
+                                    <button 
+                                      className="btn-primary-pro" 
+                                      onClick={verifyWhatsAppOtp}
+                                      disabled={saving || whatsappOtp.length !== 6}
+                                      style={{whiteSpace: 'nowrap'}}
+                                    >
+                                      {saving ? '⏳ Verifying...' : '✅ Verify'}
+                                    </button>
+                                  </div>
+                                  <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '8px', display: 'block'}}>Check your WhatsApp for the 6-digit OTP code (valid for 10 minutes)</small>
+                                  <button 
+                                    onClick={() => { setWhatsappOtpSent(false); setWhatsappOtp(''); }}
+                                    style={{marginTop: '10px', background: 'transparent', border: 'none', color: '#ff6b35', cursor: 'pointer', textDecoration: 'underline'}}
+                                  >
+                                    Change Number
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <div className="form-grid-pro">
+                              <div className="input-group-pro full">
+                                <label>📱 Connected Number <span style={{color: '#25d366', marginLeft: '10px'}}>✓ Verified</span></label>
+                                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                                  <input 
+                                    type="tel" 
+                                    value={whatsappSettings.phoneNumber}
+                                    disabled
+                                    style={{flex: 1, opacity: 0.7}}
+                                  />
+                                  <button 
+                                    className="btn-primary-pro" 
+                                    onClick={() => { setChangingNumber(true); setNewWhatsappNumber(''); }}
+                                    style={{whiteSpace: 'nowrap', background: 'rgba(255,107,53,0.2)', border: '2px solid rgba(255,107,53,0.4)'}}
+                                  >
+                                    🔄 Change Number
+                                  </button>
+                                  <button 
+                                    className="btn-primary-pro" 
+                                    onClick={disconnectWhatsApp}
+                                    style={{whiteSpace: 'nowrap', background: 'rgba(255,107,107,0.2)', border: '2px solid rgba(255,107,107,0.4)'}}
+                                  >
+                                    🔌 Disconnect
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="form-grid-pro" style={{marginTop: '25px'}}>
+                              <div className="input-group-pro">
+                                <label>🏋️ Workout Reminder Time</label>
+                                <input 
+                                  type="time" 
+                                  value={whatsappSettings.reminderTimes.workout}
+                                  onChange={(e) => setWhatsappSettings({...whatsappSettings, reminderTimes: {...whatsappSettings.reminderTimes, workout: e.target.value}})}
+                                />
+                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '5px', display: 'block'}}>24-hour format (e.g., 18:00 for 6 PM)</small>
+                              </div>
+                              <div className="input-group-pro">
+                                <label>😴 Sleep Reminder Time</label>
+                                <input 
+                                  type="time" 
+                                  value={whatsappSettings.reminderTimes.sleep}
+                                  onChange={(e) => setWhatsappSettings({...whatsappSettings, reminderTimes: {...whatsappSettings.reminderTimes, sleep: e.target.value}})}
+                                />
+                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '5px', display: 'block'}}>24-hour format (e.g., 22:00 for 10 PM)</small>
+                              </div>
+                              <div className="input-group-pro">
+                                <label>📊 Daily Report Time</label>
+                                <input 
+                                  type="time" 
+                                  value={whatsappSettings.dailyReport.time}
+                                  onChange={(e) => setWhatsappSettings({...whatsappSettings, dailyReport: {...whatsappSettings.dailyReport, time: e.target.value}})}
+                                />
+                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '5px', display: 'block'}}>24-hour format (e.g., 20:00 for 8 PM)</small>
+                              </div>
+                            </div>
+                            
+                            <div className="toggles-pro" style={{marginTop: '25px'}}>
+                              <h3 style={{marginBottom: '15px', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem'}}>📬 Notification Preferences</h3>
+                              <div className="toggle-row">
+                                <div className="toggle-info-pro">
+                                  <div className="toggle-label-pro">📊 Daily Progress Reports</div>
+                                  <div className="toggle-desc-pro">Receive daily summary of workouts, meals, water, and sleep</div>
+                                </div>
+                                <label className="switch-pro">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={whatsappSettings.dailyReport.enabled}
+                                    onChange={(e) => setWhatsappSettings({...whatsappSettings, dailyReport: {...whatsappSettings.dailyReport, enabled: e.target.checked}})}
+                                  />
+                                  <span className="slider-pro"></span>
+                                </label>
+                              </div>
+                              <div className="toggle-row">
+                                <div className="toggle-info-pro">
+                                  <div className="toggle-label-pro">{whatsappSettings.paused ? '▶️ Resume Notifications' : '⏸️ Pause Notifications'}</div>
+                                  <div className="toggle-desc-pro">{whatsappSettings.paused ? 'Start receiving WhatsApp reminders again' : 'Temporarily stop all WhatsApp reminders'}</div>
+                                </div>
+                                <label className="switch-pro">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={whatsappSettings.paused}
+                                    onChange={togglePauseWhatsApp}
+                                    disabled={savingWhatsApp}
+                                  />
+                                  <span className="slider-pro"></span>
+                                </label>
+                              </div>
+                            </div>
+                            
+                            <div style={{marginTop: '20px', padding: '15px', background: 'rgba(20,225,255,0.1)', borderRadius: '10px', border: '1px solid rgba(20,225,255,0.3)'}}>
+                              <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', margin: 0}}>
+                                💡 <strong>Note:</strong> Weekly reports are sent every Sunday at 8:00 PM automatically. Click "Save Changes" below to update your settings.
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

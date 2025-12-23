@@ -1,20 +1,27 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
 import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { api } from '../api/client.js'
+import { googleFitApi } from '../api/googleFit.js'
+import { showToast } from '../components/Toast.jsx'
 import { logActivity } from '../utils/activityLogger.js'
 import './Progress.css'
 
 export default function Progress() {
   const { token, user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { convertWeight, convertHeight, convertHeightToDb, convertWeightToDb, getWeightUnit, getHeightUnit, formatDate, updateSettings } = useSettings()
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [googleFitStatus, setGoogleFitStatus] = useState({ connected: false, lastSynced: null })
+  const [syncing, setSyncing] = useState(false)
+  const [showGoogleFitModal, setShowGoogleFitModal] = useState(false)
   
   // Form states
   const [weight, setWeight] = useState('')
@@ -160,7 +167,78 @@ export default function Progress() {
 
   useEffect(() => {
     loadProgress()
+    loadGoogleFitStatus()
   }, [token])
+
+  useEffect(() => {
+    const googleFitParam = searchParams.get('googlefit')
+    if (googleFitParam === 'connected') {
+      showToast('✅ Google Fit connected successfully!', 'success', 8000)
+      setSearchParams({})
+      handleSync()
+    }
+  }, [searchParams])
+
+  const loadGoogleFitStatus = async () => {
+    if (!token) return
+    try {
+      const status = await googleFitApi.getStatus(token)
+      setGoogleFitStatus(status)
+    } catch (err) {
+      console.error('Failed to load Google Fit status:', err)
+    }
+  }
+
+  const handleConnectGoogleFit = async () => {
+    setShowGoogleFitModal(false)
+    try {
+      const { url } = await googleFitApi.getAuthUrl(token)
+      window.location.href = url
+    } catch (err) {
+      showToast('❌ Failed to connect Google Fit', 'error', 3000)
+    }
+  }
+
+  const handleSync = async () => {
+    if (!token) return
+    try {
+      setSyncing(true)
+      const result = await googleFitApi.sync(30, token)
+      const { summary } = result
+      
+      let message = `✅ Synced ${result.synced} days`
+      if (summary.weightCount > 0) {
+        message += `: ${summary.weightCount} weight entries`
+      } else {
+        message += ' (no weight data found in Google Fit)'
+      }
+      
+      showToast(message, 'success', 8000)
+      loadProgress()
+      loadGoogleFitStatus()
+    } catch (err) {
+      const errorMsg = err.message || 'Sync failed'
+      if (errorMsg.includes('Token expired')) {
+        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 8000)
+        setGoogleFitStatus({ connected: false, lastSynced: null })
+      } else {
+        showToast('❌ ' + errorMsg, 'error', 3000)
+      }
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    if (!confirm('Disconnect Google Fit? Your data will remain but won\'t sync anymore.')) return
+    try {
+      await googleFitApi.disconnect(token)
+      setGoogleFitStatus({ connected: false, lastSynced: null })
+      showToast('✅ Google Fit disconnected', 'success', 3000)
+    } catch (err) {
+      showToast('❌ Failed to disconnect', 'error', 3000)
+    }
+  }
 
   const addProgress = async () => {
     if (!weight.trim()) {
@@ -244,13 +322,205 @@ export default function Progress() {
       <DashboardNavbar />
       <FitnessChatbot />
       <Tutorial page="progress" />
+      
+      {/* Google Fit Setup Modal */}
+      {showGoogleFitModal && (
+        <div className="googlefit-modal-overlay" onClick={() => setShowGoogleFitModal(false)}>
+          <div className="googlefit-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowGoogleFitModal(false)}>×</button>
+            
+            <div className="modal-icon">📱</div>
+            <h2>Connect Google Fit</h2>
+            <p className="modal-subtitle">Auto-sync weight data from Google Fit app</p>
+            
+            <div className="setup-steps">
+              <div className="setup-step">
+                <div className="step-number">1</div>
+                <div className="step-content">
+                  <h4>📲 Install Google Fit App</h4>
+                  <p>Download from <strong>Play Store</strong> (Android) or <strong>App Store</strong> (iPhone)</p>
+                </div>
+              </div>
+              
+              <div className="setup-step">
+                <div className="step-number">2</div>
+                <div className="step-content">
+                  <h4>📧 Use Same Email</h4>
+                  <p>Login with <strong>same email</strong> you use on FitForge</p>
+                </div>
+              </div>
+              
+              <div className="setup-step">
+                <div className="step-number">3</div>
+                <div className="step-content">
+                  <h4>⚖️ Add Weight in App</h4>
+                  <p>Open Google Fit app, tap <strong>Profile → Add weight</strong> to log your weight</p>
+                </div>
+              </div>
+              
+              <div className="setup-step">
+                <div className="step-number">4</div>
+                <div className="step-content">
+                  <h4>🔗 Connect & Sync</h4>
+                  <p>Click below to connect, then use <strong>🔄 Sync button</strong> to import weight data</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="benefits-section">
+              <h4>✨ Benefits</h4>
+              <div className="benefits-grid">
+                <div className="benefit-item">
+                  <span>⚖️</span>
+                  <span>Auto weight sync</span>
+                </div>
+                <div className="benefit-item">
+                  <span>📊</span>
+                  <span>Track progress easily</span>
+                </div>
+                <div className="benefit-item">
+                  <span>📱</span>
+                  <span>Log from phone</span>
+                </div>
+                <div className="benefit-item">
+                  <span>⏱️</span>
+                  <span>Save time</span>
+                </div>
+              </div>
+            </div>
+            
+            <button className="connect-now-btn" onClick={handleConnectGoogleFit}>
+              🚀 Connect Google Fit Now
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="progress-page">
         <div className="progress-container">
           {/* Header */}
           <div className="progress-header">
-            <h1>📈 Progress Tracker</h1>
-            <p>Track your fitness journey and celebrate your wins</p>
+            <div>
+              <h1>📈 Progress Tracker</h1>
+              <p>Track your fitness journey and celebrate your wins</p>
+            </div>
+            <div style={{display: 'flex', gap: '10px'}}>
+              {!googleFitStatus.connected ? (
+                <button 
+                  className="googlefit-connect-btn"
+                  onClick={() => setShowGoogleFitModal(true)}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #4285f4, #34a853)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.9rem',
+                    transition: 'transform 0.3s',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                >
+                  📱 Connect Google Fit
+                </button>
+              ) : (
+                <div style={{display: 'flex', gap: '8px'}}>
+                  <button 
+                    onClick={handleSync}
+                    disabled={syncing}
+                    style={{
+                      padding: '10px 16px',
+                      background: 'rgba(66, 133, 244, 0.2)',
+                      border: '1px solid #4285f4',
+                      borderRadius: '8px',
+                      color: '#4285f4',
+                      fontWeight: '600',
+                      cursor: syncing ? 'not-allowed' : 'pointer',
+                      fontSize: '0.9rem',
+                      opacity: syncing ? 0.6 : 1,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {syncing ? '🔄 Syncing...' : '🔄 Sync'}
+                  </button>
+                  <button 
+                    onClick={handleDisconnect}
+                    style={{
+                      padding: '10px 16px',
+                      background: 'rgba(255, 107, 53, 0.2)',
+                      border: '1px solid #ff6b35',
+                      borderRadius: '8px',
+                      color: '#ff6b35',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                    title="Disconnect Google Fit"
+                  >
+                    🔌
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+
+          {googleFitStatus.connected && googleFitStatus.lastSynced && (
+            <div style={{
+              padding: '14px 20px',
+              background: 'linear-gradient(135deg, rgba(66, 133, 244, 0.12), rgba(52, 168, 83, 0.08))',
+              border: '1px solid rgba(66, 133, 244, 0.25)',
+              borderRadius: '12px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '15px',
+              position: 'relative'
+            }}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <span style={{fontSize: '1.5rem'}}>📱</span>
+                <div>
+                  <div style={{color: '#4285f4', fontWeight: '600', fontSize: '0.95rem', marginBottom: '3px'}}>
+                    Google Fit Connected
+                  </div>
+                  <div style={{color: '#999', fontSize: '0.8rem'}}>
+                    Last synced: {new Date(googleFitStatus.lastSynced).toLocaleString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              </div>
+              <div 
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 193, 7, 0.2)',
+                  border: '2px solid #ffc107',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'help',
+                  fontSize: '0.85rem',
+                  fontWeight: 'bold',
+                  color: '#ffc107',
+                  flexShrink: 0
+                }}
+                title="Google Fit data may take up to 24 hours to sync. Today's data might appear tomorrow."
+              >
+                i
+              </div>
+            </div>
+          )}
 
           {/* Navigation Tabs */}
           <div className="progress-tabs">
@@ -727,13 +997,36 @@ export default function Progress() {
                   .map((entry) => (
                     <div key={entry._id} className="timeline-card">
                       <div className="timeline-card-header">
-                        <div className="timeline-date-badge">
-                          📅 {formatDate(entry.date)}
+                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                          <div className="timeline-date-badge">
+                            📅 {formatDate(entry.date)}
+                          </div>
+                          {entry.dataSource === 'googlefit' && (
+                            <span style={{
+                              padding: '4px 10px',
+                              background: 'rgba(66, 133, 244, 0.2)',
+                              border: '1px solid #4285f4',
+                              borderRadius: '6px',
+                              color: '#4285f4',
+                              fontSize: '0.75rem',
+                              fontWeight: '600'
+                            }}>
+                              📱 Google Fit
+                            </span>
+                          )}
                         </div>
                         <div style={{display: 'flex', gap: '8px'}}>
                           <button 
                             className="edit-icon-btn"
-                            onClick={() => setEditingEntry(entry)}
+                            onClick={() => {
+                              if (entry.dataSource === 'googlefit') {
+                                if (confirm('Edit this Google Fit entry? It will become a manual entry.')) {
+                                  setEditingEntry({...entry, dataSource: 'manual'})
+                                }
+                              } else {
+                                setEditingEntry(entry)
+                              }
+                            }}
                             title="Edit"
                           >
                             ✏️
@@ -1290,7 +1583,8 @@ export default function Progress() {
                               weight: editingEntry.weight,
                               bodyFat: editingEntry.bodyFat,
                               muscle: editingEntry.muscle,
-                              notes: editingEntry.notes
+                              notes: editingEntry.notes,
+                              dataSource: editingEntry.dataSource
                             },
                             token
                           })

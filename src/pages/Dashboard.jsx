@@ -4,6 +4,7 @@ import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
 import PricingModal from '../components/PricingModal.jsx'
 import Tutorial from '../components/Tutorial.jsx'
+import SmartPromoPopup from '../components/SmartPromoPopup.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import { API_BASE_URL } from '../config/api.js'
@@ -44,11 +45,11 @@ export default function Dashboard() {
   const loadDashboardData = async (forceRefresh = false) => {
     if (!token) return
     
-    // Cache check - 5 minutes cache
+    // Cache check - 2 minutes cache (reduced from 5 minutes)
     if (!forceRefresh) {
       const cached = sessionStorage.getItem('dashboardCache')
       const cacheTime = sessionStorage.getItem('dashboardCacheTime')
-      if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
+      if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 120000) {
         const data = JSON.parse(cached)
         setSummary(data.summary)
         setTodayStats(data.todayStats)
@@ -91,12 +92,22 @@ export default function Dashboard() {
         new Date(b.date) - new Date(a.date)
       )[0]
       
-      const todayCalories = todayNutrition.reduce((sum, meal) => {
+      // Get today's tracker data for calories from Google Fit
+      const todayTrackerData = await api('/tracker/today', { token }).catch(() => null)
+      
+      // Calculate calories from nutrition (manual meals)
+      const nutritionCalories = todayNutrition.reduce((sum, meal) => {
         return sum + (meal.items || []).reduce((s, item) => s + (item.calories || 0), 0)
       }, 0)
       
+      // Get calories from tracker (Google Fit)
+      const trackerCalories = todayTrackerData?.calories || 0
+      
+      // Use whichever is higher (or combine if both exist)
+      const totalCalories = Math.max(nutritionCalories, trackerCalories)
+      
       setTodayStats({
-        calories: todayCalories,
+        calories: totalCalories,
         workouts: todayWorkouts.length,
         weight: latestProgress?.weight || 0
       })
@@ -172,7 +183,7 @@ export default function Dashboard() {
       setDailyQuote(quotes[dayOfYear % quotes.length])
       
       // Load today's tracker data
-      const trackerData = await api('/tracker/today', { token }).catch(() => null)
+      const trackerData = todayTrackerData || await api('/tracker/today', { token }).catch(() => null)
       if (trackerData) {
         setTodayTracker({
           water: trackerData.water || 0,
@@ -234,10 +245,21 @@ export default function Dashboard() {
       
       // Cache the data
       const cacheData = {
-        summary, todayStats, weeklyProgress, streak, weightTrend,
-        goalProgress, achievements, recentActivity: activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5),
+        summary: summaryData || { workouts: 0, meals: 0, progress: 0, exercises: 0 },
+        todayStats,
+        weeklyProgress,
+        streak,
+        weightTrend,
+        goalProgress,
+        achievements,
+        recentActivity: activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5),
         calorieGoal: calculatedCalorieGoal,
-        todayTracker: trackerData || { water: 0, steps: 0, sleep: 0, mood: '' }
+        todayTracker: trackerData ? {
+          water: trackerData.water || 0,
+          steps: trackerData.steps || 0,
+          sleep: trackerData.sleep || 0,
+          mood: trackerData.mood || ''
+        } : { water: 0, steps: 0, sleep: 0, mood: '' }
       }
       sessionStorage.setItem('dashboardCache', JSON.stringify(cacheData))
       sessionStorage.setItem('dashboardCacheTime', Date.now().toString())
@@ -254,18 +276,25 @@ export default function Dashboard() {
     const plan = searchParams.get('plan')
     const sessionId = searchParams.get('session_id')
     
-    if (payment === 'success') {
-      showToast(`🎉 Payment successful! Your subscription is being activated...`, 'success')
-      setSearchParams({})
-      loadDashboardData(true)
+    if (payment === 'success' && sessionId) {
+      // Verify payment and update subscription
+      api('/payment/verify-payment', {
+        method: 'POST',
+        body: { session_id: sessionId },
+        token
+      }).then(() => {
+        showToast(`🎉 Payment successful! Your ${plan || 'subscription'} plan is now active!`, 'success', 6000)
+        setSearchParams({})
+        loadDashboardData(true)
+      }).catch(err => {
+        console.error('Payment verification failed:', err)
+        showToast('⚠️ Payment received but verification pending. Please refresh.', 'warning', 5000)
+        setSearchParams({})
+        loadDashboardData(true)
+      })
     } else if (payment === 'cancelled') {
       showToast('Payment was cancelled', 'info')
       setSearchParams({})
-    } else if (sessionId) {
-      // Stripe redirect with session_id
-      showToast('🎉 Payment successful! Welcome to your new plan!', 'success')
-      setSearchParams({})
-      loadDashboardData(true)
     } else {
       loadDashboardData()
     }
@@ -282,6 +311,7 @@ export default function Dashboard() {
       <FitnessChatbot />
       <PricingModal open={pricingModalOpen} onClose={() => setPricingModalOpen(false)} />
       <Tutorial page="dashboard" />
+      <SmartPromoPopup user={user} />
       <div className="dashboard-page">
         <div className="dashboard-container">
           {/* Header */}

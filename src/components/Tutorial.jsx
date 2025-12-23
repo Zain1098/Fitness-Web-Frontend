@@ -42,6 +42,12 @@ const tutorialSteps = {
   ],
   dailyTracker: [
     {
+      target: '.googlefit-connect-btn',
+      title: '📱 Connect Google Fit',
+      description: 'Install Google Fit app on your phone, track steps/weight/calories there, then connect here to auto-sync data to FitForge. No manual entry needed!',
+      position: 'bottom'
+    },
+    {
       target: '[data-tutorial="view-analytics"]',
       title: 'View Full Analytics',
       description: 'Click here to see detailed insights, trends, and comprehensive analysis of your daily habits and fitness records.',
@@ -238,38 +244,30 @@ const Tutorial = ({ page, onComplete }) => {
           const rect = element.getBoundingClientRect();
           const position = steps[currentStep].position || 'bottom';
           
-          let top, left;
-          
-          // Check if element is near bottom or would cause tooltip to go off-screen
-          const tooltipHeight = 250; // Approximate tooltip height
+          const tooltipHeight = 280;
+          const tooltipWidth = Math.min(380, window.innerWidth - 40);
           const spaceBelow = window.innerHeight - rect.bottom;
           const spaceAbove = rect.top;
           
-          if (position === 'left' || position === 'right') {
-            // For left/right positions, center vertically in viewport
-            top = window.innerHeight / 2;
-            if (position === 'left') {
-              left = rect.left - 350;
-            } else {
-              left = rect.right + 20;
-            }
-          } else if (position === 'bottom' && spaceBelow < tooltipHeight) {
-            // If not enough space below, show above
-            top = rect.top - tooltipHeight - 20;
-            left = rect.left + rect.width / 2;
-          } else if (position === 'top' || (position === 'bottom' && spaceBelow < tooltipHeight)) {
-            top = rect.top - 20;
-            left = rect.left + rect.width / 2;
+          let top, left;
+          
+          // Always center horizontally
+          left = window.innerWidth / 2;
+          
+          // Determine vertical position
+          if (position === 'top' || (position === 'bottom' && spaceBelow < tooltipHeight + 40)) {
+            // Show above if not enough space below
+            top = Math.max(20, rect.top - tooltipHeight - 30);
+          } else if (position === 'left' || position === 'right') {
+            // Center vertically for left/right
+            top = Math.max(20, Math.min(window.innerHeight - tooltipHeight - 20, rect.top + rect.height / 2 - tooltipHeight / 2));
           } else {
-            top = rect.bottom + 20;
-            left = rect.left + rect.width / 2;
+            // Show below by default
+            top = Math.min(window.innerHeight - tooltipHeight - 20, rect.bottom + 30);
           }
           
           // Ensure tooltip stays within viewport
-          if (left < 180) left = 180;
-          if (left > window.innerWidth - 180) left = window.innerWidth - 180;
-          if (top < 20) top = 20;
-          if (top > window.innerHeight - tooltipHeight - 20) top = window.innerHeight - tooltipHeight - 20;
+          top = Math.max(20, Math.min(top, window.innerHeight - tooltipHeight - 20));
           
           setTooltipPosition({ top, left });
         }, 100);
