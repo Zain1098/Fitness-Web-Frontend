@@ -173,7 +173,7 @@ export default function Progress() {
   useEffect(() => {
     const googleFitParam = searchParams.get('googlefit')
     if (googleFitParam === 'connected') {
-      showToast('✅ Google Fit connected successfully!', 'success', 8000)
+      showToast('✅ Google Fit connected successfully!', 'success', 6000)
       setSearchParams({})
       handleSync()
     }
@@ -195,7 +195,7 @@ export default function Progress() {
       const { url } = await googleFitApi.getAuthUrl(token)
       window.location.href = url
     } catch (err) {
-      showToast('❌ Failed to connect Google Fit', 'error', 3000)
+      showToast('❌ Failed to connect Google Fit', 'error', 5000)
     }
   }
 
@@ -219,7 +219,7 @@ export default function Progress() {
     } catch (err) {
       const errorMsg = err.message || 'Sync failed'
       if (errorMsg.includes('Token expired')) {
-        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 8000)
+        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 6000)
         setGoogleFitStatus({ connected: false, lastSynced: null })
       } else {
         showToast('❌ ' + errorMsg, 'error', 3000)
@@ -234,9 +234,9 @@ export default function Progress() {
     try {
       await googleFitApi.disconnect(token)
       setGoogleFitStatus({ connected: false, lastSynced: null })
-      showToast('✅ Google Fit disconnected', 'success', 3000)
+      showToast('✅ Google Fit disconnected', 'success', 5000)
     } catch (err) {
-      showToast('❌ Failed to disconnect', 'error', 3000)
+      showToast('❌ Failed to disconnect', 'error', 5000)
     }
   }
 
@@ -558,6 +558,10 @@ export default function Progress() {
                   <div className="stat-info">
                     <span className="stat-value">{convertWeight(stats.currentWeight || onboardingData?.weight || 0)} {getWeightUnit()}</span>
                     <span className="stat-label">Current Weight</span>
+                    {/* Debug info */}
+                    <span style={{fontSize: '0.7rem', color: '#999', marginTop: '4px', display: 'block'}}>
+                      {stats.currentWeight > 0 ? '📊 From Progress' : onboardingData?.weight ? '👤 From Profile' : '❌ No Data'}
+                    </span>
                   </div>
                 </div>
                 <div className="quick-stat-card">

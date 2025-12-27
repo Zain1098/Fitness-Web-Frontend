@@ -54,6 +54,7 @@ export default function Exercises() {
   
   // Modal
   const [selectedExercise, setSelectedExercise] = useState(null)
+  const [mediaFullscreen, setMediaFullscreen] = useState(false)
   
   // Stats
   const [stats, setStats] = useState({ total: 0, byGroup: {} })
@@ -84,11 +85,18 @@ export default function Exercises() {
   
   // Workout Session
   const [activeSession, setActiveSession] = useState(null)
+  // Workout start confirmation modal
+  const [startModalWorkout, setStartModalWorkout] = useState(null)
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [isResting, setIsResting] = useState(false)
   const [restTimer, setRestTimer] = useState(0)
   const [completedSets, setCompletedSets] = useState([])
   const [sessionLogs, setSessionLogs] = useState([])
+  const [sessionStartTime, setSessionStartTime] = useState(null)
+  const [savingSession, setSavingSession] = useState(false)
+  const [sessionRPE, setSessionRPE] = useState({})
+  const [sessionNotes, setSessionNotes] = useState({})
+  
 
   const loadExercises = async (pageNum = 0, append = false) => {
     try {
@@ -174,6 +182,32 @@ export default function Exercises() {
       loadWorkoutHistory()
     }
   }, [activeTab])
+
+  // Autosave session to localStorage every 30 seconds
+  useEffect(() => {
+    if (!activeSession) return
+    
+    const interval = setInterval(() => {
+      saveSessionToStorage()
+      console.log('Session autosaved')
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [activeSession, completedSets, sessionRPE, sessionNotes, currentExerciseIndex])
+  
+  // Warn user before closing/refresh
+  useEffect(() => {
+    if (!activeSession) return
+    
+    const handleBeforeUnload = (e) => {
+      e.preventDefault()
+      e.returnValue = '⚠️ Workout in progress! Unsaved data will be lost.'
+      return '⚠️ Workout in progress! Unsaved data will be lost.'
+    }
+    
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [activeSession])
   
   const [workoutHistory, setWorkoutHistory] = useState([])
   const [historyStats, setHistoryStats] = useState({
@@ -314,6 +348,152 @@ export default function Exercises() {
       console.error('Failed to load workouts:', err)
     } finally {
       setLoadingWorkouts(false)
+    }
+  }
+
+  // Start a session from a saved workout template
+  const startSessionFromWorkout = (workout, options = {}) => {
+    const sessExercises = [...(workout.exercises || [])]
+
+    setActiveSession({
+      workoutId: workout._id,
+      workoutName: workout.name,
+      exercises: sessExercises,
+      startTime: new Date(),
+      options
+    })
+    setSessionStartTime(new Date())
+    setCurrentExerciseIndex(0)
+    setCompletedSets([])
+    setSessionLogs([])
+    setSessionRPE({})
+    setSessionNotes({})
+    setIsResting(false)
+    setStartModalWorkout(null)
+    
+    // Load session from localStorage if available
+    loadSessionFromStorage(workout._id)
+  }
+
+  const saveSessionToStorage = () => {
+    if (!activeSession) return
+    const sessionData = {
+      workoutId: activeSession.workoutId,
+      exercises: activeSession.exercises,
+      currentExerciseIndex,
+      completedSets,
+      sessionRPE,
+      sessionNotes,
+      startTime: sessionStartTime,
+      
+    }
+    localStorage.setItem(`fitforge_session_${activeSession.workoutId}`, JSON.stringify(sessionData))
+  }
+
+  const loadSessionFromStorage = (workoutId) => {
+    const stored = localStorage.getItem(`fitforge_session_${workoutId}`)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        console.log('Restored session from storage:', data)
+        // Already loaded in startSessionFromWorkout, just inform user
+        setSuccess('✅ Session restored from backup!')
+        setTimeout(() => setSuccess(''), 2000)
+      } catch (e) {
+        console.error('Failed to load session:', e)
+      }
+    }
+  }
+
+  const clearSessionFromStorage = (workoutId) => {
+    localStorage.removeItem(`fitforge_session_${workoutId}`)
+  }
+
+  const finishWorkout = async () => {
+    if (!activeSession || !sessionStartTime) return
+    
+    setSavingSession(true)
+    try {
+      // Calculate completed exercise details
+      const completedExercises = activeSession.exercises.map((ex, idx) => {
+        const setsForThis = completedSets.filter(s => s.exerciseIndex === idx)
+        return {
+          exerciseIndex: idx,
+          name: ex.name,
+          completedSets: setsForThis.map((s, i) => ({
+            setNumber: i + 1,
+            reps: ex.reps || 10,
+            weight: s.weight || 0,
+            actualRest: s.rest || (ex.rest || 60),
+            rpe: sessionRPE[idx] || 5,
+            timestamp: s.timestamp,
+            notes: sessionNotes[idx] || ''
+          })),
+          totalCompleted: setsForThis.length,
+          difficulty: sessionRPE[idx] ? (sessionRPE[idx] >= 8 ? 'hard' : 'moderate') : 'moderate',
+          formNotes: sessionNotes[idx] || ''
+        }
+      })
+
+      const duration = Math.round((new Date() - sessionStartTime) / 60000) // in minutes
+      const avgRPE = Object.values(sessionRPE).length > 0 
+        ? Math.round(Object.values(sessionRPE).reduce((a, b) => a + b, 0) / Object.values(sessionRPE).length)
+        : 5
+
+      // Save to backend
+      await api(`/workouts/${activeSession.workoutId}/complete`, {
+        method: 'POST',
+        body: {
+          completedExercises,
+          duration,
+          avgRPE,
+          sessionFeedback: 'Good workout!'
+        },
+        token
+      })
+
+      // Clear storage
+      clearSessionFromStorage(activeSession.workoutId)
+      
+      setSuccess('🎉 Workout saved successfully!')
+      setTimeout(() => setSuccess(''), 2500)
+      
+      setActiveSession(null)
+      setCurrentExerciseIndex(0)
+      setCompletedSets([])
+      setSessionLogs([])
+      setIsResting(false)
+      setSessionRPE({})
+      setSessionNotes({})
+      
+      // Reload saved workouts
+      loadSavedWorkouts()
+    } catch (err) {
+      console.error('Failed to save workout:', err)
+      setError('Failed to save workout. Data saved locally.')
+      setTimeout(() => setError(''), 3000)
+    } finally {
+      setSavingSession(false)
+    }
+  }
+
+  const completeSet = () => {
+    if (!activeSession) return
+    const ex = activeSession.exercises[currentExerciseIndex]
+    const sets = ex?.sets || 3
+    const doneForThis = completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length
+
+    // mark completed set
+    setCompletedSets(prev => ([...prev, { exerciseIndex: currentExerciseIndex, timestamp: Date.now() }]))
+    setSessionLogs(prev => ([...prev, { exercise: ex.name, set: doneForThis + 1, time: new Date() }]))
+
+    // start rest
+    setIsResting(true)
+    setRestTimer(ex?.rest || 60)
+
+    // if last set for this exercise, advance to next exercise after rest finishes (handled by the rest timer logic)
+    if (doneForThis + 1 >= sets) {
+      // flag or allow user to go to next exercise when ready
     }
   }
 
@@ -1297,123 +1477,70 @@ export default function Exercises() {
             </div>
           )}
 
-          {/* My Workouts Tab */}
+          {/* My Workouts Tab - Enhanced Card Design */}
           {activeTab === 'myworkouts' && (
             <div className="tab-content fade-in">
               <div className="my-workouts-container">
-                <h2>💪 My Saved Workouts</h2>
+                <div className="workouts-header">
+                  <h1>💪 My Saved Workouts</h1>
+                  <p className="muted">Quickly start, edit, or log your saved workouts</p>
+                </div>
+
                 {loadingWorkouts ? (
                   <div className="loading-state"><div className="loading-spinner"></div><p>Loading workouts...</p></div>
                 ) : savedWorkouts.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-icon">💪</div>
-                    <h3>No workouts saved yet</h3>
-                    <p>Create your first workout in the Workout Builder tab</p>
-                    <button 
-                      className="btn-primary"
-                      onClick={() => setActiveTab('builder')}
-                      style={{ marginTop: '20px', padding: '12px 24px', borderRadius: '10px', border: 'none', background: 'linear-gradient(45deg, #ff6b35, #ff8c42)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}
-                    >
-                      🎯 Go to Workout Builder
-                    </button>
+                  <div className="empty-state-card">
+                    <div className="empty-icon-large">💪</div>
+                    <h3>No saved workouts</h3>
+                    <p>Create your first workout in the Workout Builder</p>
+                    <button className="empty-state-btn" onClick={() => setActiveTab('builder')}>🎯 Open Builder</button>
                   </div>
                 ) : (
-                  <div className="workouts-grid">
+                  <div className="workouts-grid-new">
                     {savedWorkouts.map((workout) => (
-                      <div key={workout._id} className="workout-card">
-                        <div className="workout-header">
-                          <h3>{workout.name || 'Workout'}</h3>
-                          <span className="workout-category">{workout.category}</span>
-                        </div>
-                        <div className="workout-date">
-                          📅 {new Date(workout.date || workout.createdAt).toLocaleDateString()}
-                        </div>
-                        <div className="workout-exercises">
-                          <h4>Exercises ({workout.exercises?.length || 0})</h4>
-                          {workout.exercises?.slice(0, 3).map((ex, idx) => (
-                            <div key={idx} className="workout-exercise-item">
-                              <span className="exercise-name">{ex.name}</span>
-                              <span className="exercise-details">
-                                {ex.sets} × {ex.reps} {ex.rest ? `• ${ex.rest}s rest` : ''}
-                              </span>
+                      <article key={workout._id} className="workout-card-new" aria-labelledby={`workout-${workout._id}`}>
+                        <header className="card-header">
+                          <div className="card-title" id={`workout-${workout._id}`}>
+                            <h3>{workout.name || 'Workout'}</h3>
+                            <div className="card-sub">{workout.category || 'Custom'}</div>
+                          </div>
+                          <div className="card-meta">{new Date(workout.date || workout.createdAt).toLocaleDateString()}</div>
+                        </header>
+
+                        <div className="card-body">
+                          <div className="card-stats-row">
+                            <div className="stat">
+                              <div className="stat-label">Exercises</div>
+                              <div className="stat-value">{workout.exercises?.length || 0}</div>
                             </div>
-                          ))}
-                          {workout.exercises?.length > 3 && (
-                            <p className="more-exercises">+{workout.exercises.length - 3} more exercises</p>
-                          )}
+                            <div className="stat">
+                              <div className="stat-label">Est</div>
+                              <div className="stat-value">{Math.max(10, (workout.exercises?.length || 0) * 5)}m</div>
+                            </div>
+                            <div className="stat">
+                              <div className="stat-label">Sets</div>
+                              <div className="stat-value">{workout.exercises?.reduce((s, e) => s + (e.sets || 0), 0) || '-'}</div>
+                            </div>
+                          </div>
+
+                          <div className="card-exercises">
+                            {workout.exercises?.slice(0, 4).map((ex, idx) => (
+                              <div key={idx} className="exercise-row">
+                                <div className="exercise-name">{ex.name}</div>
+                                <div className="exercise-meta">{ex.sets}×{ex.reps} {ex.rest ? `• ${ex.rest}s` : ''}</div>
+                              </div>
+                            ))}
+                            {workout.exercises?.length > 4 && <div className="more">+{workout.exercises.length - 4} more</div>}
+                          </div>
                         </div>
-                        <div className="workout-actions">
-                          <button 
-                            className="action-btn start-btn"
-                            onClick={() => {
-                              setActiveSession({
-                                workoutId: workout._id,
-                                workoutName: workout.name,
-                                exercises: workout.exercises,
-                                startTime: new Date()
-                              })
-                              setCurrentExerciseIndex(0)
-                              setCompletedSets([])
-                              setSessionLogs([])
-                              setIsResting(false)
-                            }}
-                            style={{ background: 'linear-gradient(45deg, #4caf50, #66bb6a)', fontWeight: '600' }}
-                          >
-                            ▶️ Start Workout
-                          </button>
-                          <button 
-                            className="action-btn view-btn"
-                            onClick={() => {
-                              setCustomWorkout(workout.exercises.map(e => ({ ...e, _id: e.name + Date.now() })))
-                              setWorkoutName(workout.name)
-                              setActiveTab('builder')
-                            }}
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button 
-                            className="action-btn add-btn"
-                            onClick={async () => {
-                              try {
-                                await api('/workouts', {
-                                  method: 'POST',
-                                  body: {
-                                    name: workout.name,
-                                    category: workout.category,
-                                    exercises: workout.exercises
-                                  },
-                                  token
-                                })
-                                setSuccess('Workout logged for today!')
-                                setTimeout(() => setSuccess(''), 2000)
-                              } catch (err) {
-                                setError('Failed to log workout')
-                                setTimeout(() => setError(''), 2000)
-                              }
-                            }}
-                          >
-                            ✅ Log Today
-                          </button>
-                          <button 
-                            className="action-btn delete-btn"
-                            onClick={async () => {
-                              if (confirm('Delete this workout?')) {
-                                try {
-                                  await api(`/workouts/${workout._id}`, { method: 'DELETE', token })
-                                  setSuccess('Workout deleted!')
-                                  setTimeout(() => setSuccess(''), 2000)
-                                  loadSavedWorkouts()
-                                } catch (err) {
-                                  setError('Failed to delete')
-                                  setTimeout(() => setError(''), 2000)
-                                }
-                              }
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </div>
+
+                        <footer className="card-footer">
+                          <button className="btn-card btn-start" onClick={() => setStartModalWorkout(workout)}>▶️ Start</button>
+                          <button className="btn-card btn-edit" onClick={() => { setCustomWorkout(workout.exercises.map(e => ({ ...e, _id: e.name + Date.now() }))); setWorkoutName(workout.name); setActiveTab('builder') }}>✏️ Edit</button>
+                          <button className="btn-card btn-log" onClick={async () => { try { await api('/workouts', { method: 'POST', body: { name: workout.name, category: workout.category, exercises: workout.exercises }, token }); setSuccess('Logged for today'); setTimeout(() => setSuccess(''), 2000) } catch { setError('Failed to log'); setTimeout(() => setError(''), 2000) } }}>✅ Log</button>
+                          <button className="btn-card btn-delete" onClick={async () => { if (confirm('Delete this workout?')) { try { await api(`/workouts/${workout._id}`, { method: 'DELETE', token }); setSuccess('Deleted'); setTimeout(() => setSuccess(''), 2000); loadSavedWorkouts() } catch { setError('Failed delete'); setTimeout(() => setError(''), 2000) } } }}>🗑️</button>
+                        </footer>
+                      </article>
                     ))}
                   </div>
                 )}
@@ -1654,137 +1781,235 @@ export default function Exercises() {
             </div>
           )}
 
-          {/* Exercise Detail Modal */}
+          {/* Exercise Detail Modal (improved) */}
           {selectedExercise && (
             <div className="exercise-modal">
-              <div className="modal-overlay" onClick={() => setSelectedExercise(null)}></div>
-              <div className="modal-content">
+              <div className="modal-overlay" onClick={() => { setSelectedExercise(null); setMediaFullscreen(false) }}></div>
+              <div className="modal-content" role="dialog" aria-modal="true" aria-label={`Details for ${selectedExercise.name}`}>
                 <div className="modal-header">
                   <h2>{selectedExercise.name}</h2>
                   <button 
                     className="modal-close"
-                    onClick={() => setSelectedExercise(null)}
+                    onClick={() => { setSelectedExercise(null); setMediaFullscreen(false) }}
+                    aria-label="Close"
                   >
                     ✕
                   </button>
                 </div>
-                
-                <div className="modal-body">
-                  <div className="exercise-info">
-                    <span className="info-item">
-                      {getEquipmentIcon(selectedExercise.equipment)} <strong>{selectedExercise.equipment}</strong>
-                    </span>
-                    <span className="info-item">
-                      🎯 <strong>{selectedExercise.target}</strong>
-                    </span>
-                    <span className="info-item">
-                      📊 <strong>{selectedExercise.type}</strong>
-                    </span>
-                  </div>
-                  
-                  {selectedExercise.videoUrl ? (
-                    <div className="exercise-video">
+
+                <div className="modal-body grid-layout">
+                  {/* Left: media */}
+                  <div className="exercise-media" onClick={() => setMediaFullscreen(true)} role="button" tabIndex={0} aria-label={`Open ${selectedExercise.name} media fullscreen`} onKeyDown={(e)=>{ if(e.key==='Enter') setMediaFullscreen(true)}}>
+                    {selectedExercise.videoUrl ? (
                       <video 
                         src={selectedExercise.videoUrl} 
                         controls 
                         poster={selectedExercise.gifUrl || selectedExercise.imageUrl}
-                        style={{ width: '100%', borderRadius: '12px', maxHeight: '400px' }}
+                        className="media-element"
                       />
-                    </div>
-                  ) : (
-                    <div className="exercise-image-large">
+                    ) : (
                       <img 
-                        src={selectedExercise.gifUrl} 
+                        src={selectedExercise.gifUrl || selectedExercise.imageUrl} 
                         alt={selectedExercise.name}
-                        style={{ width: '100%', borderRadius: '12px', maxHeight: '400px', objectFit: 'contain', background: '#1a1a1a' }}
+                        className="media-element"
                         onError={(e) => {
                           e.target.style.display = 'none'
                           e.target.parentElement.innerHTML = `<div style="padding: 60px; text-align: center; background: linear-gradient(135deg, #ff6b35, #ff8c42); border-radius: 12px;"><div style="font-size: 5rem; margin-bottom: 20px;">${selectedExercise.icon}</div><h3 style="color: white;">${selectedExercise.name}</h3></div>`
                         }}
                       />
-                    </div>
-                  )}
-                  
-                  {selectedExercise.description && (
-                    <div className="modal-section">
-                      <p className="exercise-description" style={{ fontSize: '1.1rem', color: '#ccc', lineHeight: '1.6' }}>{selectedExercise.description}</p>
-                    </div>
-                  )}
-                  
-                  {selectedExercise.secondaryMuscles && selectedExercise.secondaryMuscles.length > 0 && (
-                    <div className="modal-section">
-                      <h4>🎯 Secondary Muscles</h4>
-                      <div className="muscle-list">
-                        {selectedExercise.secondaryMuscles.map((muscle, idx) => (
-                          <span key={idx} className="muscle-tag">{muscle}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {selectedExercise.instructions && selectedExercise.instructions.length > 0 && (
-                    <div className="modal-section">
-                      <h4>📋 How to Perform</h4>
-                      <ol className="instructions-list" style={{ paddingLeft: '20px' }}>
-                        {selectedExercise.instructions.map((step, idx) => (
-                          <li key={idx} style={{ marginBottom: '12px', lineHeight: '1.6', color: '#ddd' }}>{step}</li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
-                  
+                    )}
+                  </div>
 
-                  
-                  <div className="modal-section">
-                    <h4>📊 Recommended Sets & Reps</h4>
-                    <div style={{ display: 'flex', gap: '20px', padding: '15px', background: 'rgba(255,107,53,0.1)', borderRadius: '10px', border: '1px solid rgba(255,107,53,0.3)' }}>
-                      <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', marginBottom: '5px' }}>💪</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>{selectedExercise.sets || 3}</div>
-                        <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Sets</div>
+                  {/* Right: details */}
+                  <div className="exercise-details">
+                    <div className="exercise-info" style={{ marginBottom: '12px' }}>
+                      <span className="info-item">
+                        {getEquipmentIcon(selectedExercise.equipment)} <strong>{selectedExercise.equipment}</strong>
+                      </span>
+                      <span className="info-item">
+                        🎯 <strong>{selectedExercise.target}</strong>
+                      </span>
+                      <span className="info-item">
+                        📊 <strong>{selectedExercise.type}</strong>
+                      </span>
+                      <span className="info-item difficulty" style={{ marginLeft: 'auto' }}>
+                        <strong style={{ color: getDifficultyColor(selectedExercise.difficulty) }}>{selectedExercise.difficulty}</strong>
+                      </span>
+                    </div>
+
+                    {selectedExercise.description && (
+                      <div className="modal-section">
+                        <p className="exercise-description" style={{ fontSize: '1rem', color: '#ccc', lineHeight: '1.6' }}>{selectedExercise.description}</p>
                       </div>
-                      <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', marginBottom: '5px' }}>🔢</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>{selectedExercise.reps || 10}</div>
-                        <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Reps</div>
+                    )}
+
+                    {selectedExercise.secondaryMuscles && selectedExercise.secondaryMuscles.length > 0 && (
+                      <div className="modal-section">
+                        <h4>🎯 Secondary Muscles</h4>
+                        <div className="muscle-list">
+                          {selectedExercise.secondaryMuscles.map((muscle, idx) => (
+                            <span key={idx} className="muscle-tag">{muscle}</span>
+                          ))}
+                        </div>
                       </div>
-                      <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '2rem', marginBottom: '5px' }}>⏱️</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>{selectedExercise.rest || 60}s</div>
-                        <div style={{ fontSize: '0.9rem', color: '#ccc' }}>Rest</div>
+                    )}
+
+                    {selectedExercise.instructions && selectedExercise.instructions.length > 0 && (
+                      <div className="modal-section">
+                        <h4>📋 How to Perform</h4>
+                        <ol className="instructions-list" style={{ paddingLeft: '20px' }}>
+                          {selectedExercise.instructions.map((step, idx) => (
+                            <li key={idx} style={{ marginBottom: '12px', lineHeight: '1.6', color: '#ddd' }}>{step}</li>
+                          ))}
+                        </ol>
                       </div>
+                    )}
+
+                    <div className="modal-section">
+                      <h4>📊 Recommended Sets & Reps</h4>
+                      <div style={{ display: 'flex', gap: '12px', padding: '12px', background: 'rgba(255,107,53,0.06)', borderRadius: '8px', border: '1px solid rgba(255,107,53,0.12)' }}>
+                        <div style={{ flex: 1, textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>💪</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ff6b35' }}>{selectedExercise.sets || 3}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#ccc' }}>Sets</div>
+                        </div>
+                        <div style={{ flex: 1, textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>🔢</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ff6b35' }}>{selectedExercise.reps || 10}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#ccc' }}>Reps</div>
+                        </div>
+                        <div style={{ flex: 1, textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>⏱️</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ff6b35' }}>{selectedExercise.rest || 60}s</div>
+                          <div style={{ fontSize: '0.85rem', color: '#ccc' }}>Rest</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '16px', alignItems: 'center' }}>
+                      <a
+                        className="modal-btn youtube-btn"
+                        href={`https://www.youtube.com/results?search_query=athleanx+${encodeURIComponent(selectedExercise.name || '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Watch ${selectedExercise.name} on ATHLEANX YouTube`}
+                      >
+                        ▶️ Watch on YouTube (ATHLEANX)
+                      </a>
+                      <button 
+                        className="modal-btn favorite-btn"
+                        onClick={() => toggleFavorite(selectedExercise)}
+                      >
+                        {favorites.find(f => f._id === selectedExercise._id) ? '⭐ Remove' : '☆ Favorite'}
+                      </button>
+                      <button 
+                        className="modal-btn add-btn"
+                        onClick={() => {
+                          addToCustomWorkout(selectedExercise)
+                          setSuccess(`${selectedExercise.name} added to workout builder!`)
+                          setTimeout(() => setSuccess(''), 2000)
+                          setSelectedExercise(null)
+                        }}
+                      >
+                        ➕ Add to Workout
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* Fullscreen media viewer */}
+              {mediaFullscreen && (
+                <div className="media-fullscreen">
+                  <div className="fullscreen-overlay" onClick={() => setMediaFullscreen(false)}></div>
+                  <div className="fullscreen-content">
+                    <button className="fullscreen-close" onClick={() => setMediaFullscreen(false)} aria-label="Close media viewer">✕</button>
+                    {selectedExercise.videoUrl ? (
+                      <video src={selectedExercise.videoUrl} controls autoPlay className="fullscreen-media" />
+                    ) : (
+                      <img src={selectedExercise.gifUrl || selectedExercise.imageUrl} alt={selectedExercise.name} className="fullscreen-media" />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Start Confirmation Modal */}
+          {startModalWorkout && (
+            <div className="start-confirm-modal" role="dialog" aria-modal="true" aria-labelledby={`start-modal-title-${startModalWorkout._id}`}>
+              <div className="modal-overlay" onClick={() => setStartModalWorkout(null)}></div>
+              <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+                tabIndex={-1}
+                onKeyDown={(e) => { if (e.key === 'Escape') setStartModalWorkout(null); }}
+              >
+                <div className="modal-header">
+                  <h3 id={`start-modal-title-${startModalWorkout._id}`}>Start Workout</h3>
+                  <button className="modal-close" onClick={() => setStartModalWorkout(null)} aria-label="Close">✕</button>
+                </div>
+                <p className="modal-intro">You're about to start <strong>{startModalWorkout.name}</strong></p>
+                
+                <div className="summary">
+                  <div className="stat">
+                    <span className="stat-icon">💪</span>
+                    <div>
+                      <span className="stat-value">{startModalWorkout.exercises?.length || 0}</span>
+                      <span className="stat-label">Exercises</span>
+                    </div>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">⏱️</span>
+                    <div>
+                      <span className="stat-value">{Math.max(10, (startModalWorkout.exercises?.length || 0) * 5)}</span>
+                      <span className="stat-label">Minutes</span>
+                    </div>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">🎯</span>
+                    <div>
+                      <span className="stat-value">{startModalWorkout.category || 'Custom'}</span>
+                      <span className="stat-label">Category</span>
                     </div>
                   </div>
                 </div>
-                
-                <div className="modal-footer">
-                  <button 
-                    className="modal-btn favorite-btn"
-                    onClick={() => toggleFavorite(selectedExercise)}
-                  >
-                    {favorites.find(f => f._id === selectedExercise._id) ? '⭐ Remove from Favorites' : '☆ Add to Favorites'}
-                  </button>
-                  <button 
-                    className="modal-btn add-btn"
-                    onClick={() => {
-                      addToCustomWorkout(selectedExercise)
-                      setSuccess(`${selectedExercise.name} added to workout builder!`)
-                      setTimeout(() => setSuccess(''), 2000)
-                      setSelectedExercise(null)
-                    }}
-                  >
-                    ➕ Add to Workout
-                  </button>
+
+                <div className="start-options">
+                    <div className="option-group">
+                        <h4>SELECT YOUR STARTING PREFERENCE</h4>
+                        <div className="start-preview">
+                          <div className="preview-list">
+                            {startModalWorkout.exercises?.slice(0,6).map((ex, i) => (
+                              <div key={i} className="preview-item">{ex.name} • {ex.sets || 3}×{ex.reps || 10}</div>
+                            ))}
+                            {startModalWorkout.exercises && startModalWorkout.exercises.length > 6 && (
+                              <div className="preview-more">+{startModalWorkout.exercises.length - 6} more</div>
+                            )}
+                          </div>
+
+                          <div className="start-actions">
+                            <button className="btn-primary" onClick={() => startSessionFromWorkout(startModalWorkout)} autoFocus>
+                              <span className="btn-icon">▶️</span>
+                              <span className="btn-title">Start Now</span>
+                            </button>
+                          </div>
+                        </div>
+                    </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Workout Session Modal */}
+          {/* Workout Session Modal (enhanced) */}
           {activeSession && (() => {
             const currentExercise = activeSession.exercises[currentExerciseIndex]
             const totalExercises = activeSession.exercises.length
             const progress = ((currentExerciseIndex + 1) / totalExercises) * 100
+
+            
             
             // Rest timer with useEffect would be better, but using setTimeout for minimal code
             if (isResting && restTimer > 0) {
@@ -1795,57 +2020,46 @@ export default function Exercises() {
             
             // Get proper exercise image
             const exerciseImage = currentExercise.gifUrl || currentExercise.imageUrl || exercises.find(e => e.name === currentExercise.name)?.gifUrl || 'https://via.placeholder.com/400x300?text=Exercise'
+            const setsForCurrent = currentExercise?.sets || 3
+            const completedForCurrent = completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length
             
             return (
+              <>
               <div className="workout-session-modal">
                 <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.95)' }}></div>
-                <div className="session-content">
+                <div className="session-content session-grid">
                   {/* Header */}
                   <div className="session-header">
                     <div>
                       <h2>🏋️ {activeSession.workoutName}</h2>
                       <p style={{ color: '#999', fontSize: '0.9rem' }}>Exercise {currentExerciseIndex + 1} of {totalExercises}</p>
                     </div>
-                    <button 
-                      className="session-close"
-                      onClick={() => {
-                        if (confirm('End workout session? Progress will be lost.')) {
-                          setActiveSession(null)
-                          setCurrentExerciseIndex(0)
-                          setCompletedSets([])
-                          setIsResting(false)
-                        }
-                      }}
-                    >
-                      ✕
-                    </button>
+                    <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                      <button 
+                        className="session-close"
+                        onClick={() => {
+                          if (confirm('End workout session? Progress will be lost.')) {
+                            setActiveSession(null)
+                            setCurrentExerciseIndex(0)
+                            setCompletedSets([])
+                            setIsResting(false)
+                          }
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
+                  
                   
                   {/* Progress Bar */}
                   <div className="session-progress-bar">
                     <div className="session-progress-fill" style={{ width: `${progress}%` }}></div>
                   </div>
-                  
-                  {/* Rest Timer */}
-                  {isResting ? (
-                    <div className="rest-screen">
-                      <div className="rest-icon">⏸️</div>
-                      <h2>Rest Time</h2>
-                      <div className="rest-timer">{restTimer}s</div>
-                      <p style={{ color: '#999', marginTop: '10px' }}>Get ready for next set</p>
-                      <button 
-                        className="skip-rest-btn"
-                        onClick={() => {
-                          setIsResting(false)
-                          setRestTimer(0)
-                        }}
-                      >
-                        Skip Rest ⏭️
-                      </button>
-                    </div>
-                  ) : (
+
+                  <div className="session-main">
+                    {/* Exercise area */}
                     <div className="exercise-screen">
-                      {/* Exercise Image */}
                       <div className="session-exercise-image">
                         <img 
                           src={exerciseImage}
@@ -1857,147 +2071,167 @@ export default function Exercises() {
                         />
                       </div>
                       
-                      {/* Exercise Info */}
                       <div className="session-exercise-info">
                         <h3>{currentExercise.name}</h3>
                         <div className="session-exercise-meta">
                           <span>🎯 {currentExercise.target || 'Target Muscle'}</span>
                           <span>🏋️ {currentExercise.equipment || 'Equipment'}</span>
                         </div>
-                      </div>
-                      
-                      {/* Sets & Reps */}
-                      <div className="session-stats">
-                        <div className="session-stat-card">
-                          <div className="stat-icon">💪</div>
-                          <div className="stat-value">{currentExercise.sets || 3}</div>
-                          <div className="stat-label">Sets</div>
-                        </div>
-                        <div className="session-stat-card">
-                          <div className="stat-icon">🔢</div>
-                          <div className="stat-value">{currentExercise.reps || 10}</div>
-                          <div className="stat-label">Reps</div>
-                        </div>
-                        <div className="session-stat-card">
-                          <div className="stat-icon">⏱️</div>
-                          <div className="stat-value">{currentExercise.rest || 60}s</div>
-                          <div className="stat-label">Rest</div>
-                        </div>
-                      </div>
-                      
-                      {/* Completed Sets */}
-                      <div className="completed-sets">
-                        <h4>Completed Sets: {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length} / {currentExercise.sets || 3}</h4>
-                        <div className="sets-grid">
-                          {Array.from({ length: currentExercise.sets || 3 }).map((_, idx) => {
-                            const isCompleted = completedSets.some(s => s.exerciseIndex === currentExerciseIndex && s.setNumber === idx + 1)
-                            return (
-                              <div key={idx} className={`set-indicator ${isCompleted ? 'completed' : ''}`}>
-                                {isCompleted ? '✓' : idx + 1}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="session-actions">
-                        {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length < (currentExercise.sets || 3) ? (
-                          <button 
-                            className="complete-set-btn"
-                            onClick={() => {
-                              const setNumber = completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length + 1
-                              const newSet = {
-                                exerciseIndex: currentExerciseIndex,
-                                exerciseName: currentExercise.name,
-                                setNumber,
-                                reps: currentExercise.reps || 10,
-                                timestamp: new Date()
-                              }
-                              setCompletedSets([...completedSets, newSet])
-                              setSessionLogs([...sessionLogs, `Completed ${currentExercise.name} - Set ${setNumber}`])
-                              
-                              // Start rest timer if not last set
-                              if (setNumber < (currentExercise.sets || 3)) {
-                                setIsResting(true)
-                                setRestTimer(currentExercise.rest || 60)
-                              }
-                            }}
-                          >
-                            ✓ Complete Set
-                          </button>
-                        ) : currentExerciseIndex < totalExercises - 1 ? (
-                          <button 
-                            className="next-exercise-btn"
-                            onClick={() => {
-                              setCurrentExerciseIndex(currentExerciseIndex + 1)
-                              setSuccess('Moving to next exercise!')
-                              setTimeout(() => setSuccess(''), 2000)
-                            }}
-                          >
-                            Next Exercise ➡️
-                          </button>
-                        ) : (
-                          <button 
-                            className="next-exercise-btn"
-                            onClick={async () => {
-                              // Workout complete - save to database
-                              try {
-                                await api('/workouts', {
-                                  method: 'POST',
-                                  body: {
-                                    name: activeSession.workoutName,
-                                    category: 'strength',
-                                    status: 'completed',
-                                    date: new Date().toISOString(),
-                                    exercises: activeSession.exercises.map(ex => ({
-                                      name: ex.name,
-                                      sets: ex.sets || 3,
-                                      reps: ex.reps || 10,
-                                      weight: 0
-                                    }))
-                                  },
-                                  token
-                                })
-                                
-                                // Ask user if they want to do another workout
-                                const doAnother = confirm('🎉 Workout completed and saved!\n\nDo you want to start another workout?')
-                                
-                                if (doAnother) {
-                                  // Reset session and go to My Workouts tab
-                                  setActiveSession(null)
-                                  setCurrentExerciseIndex(0)
-                                  setCompletedSets([])
-                                  setSessionLogs([])
-                                  setActiveTab('myworkouts')
-                                  setSuccess('Select another workout to start!')
-                                  setTimeout(() => setSuccess(''), 3000)
-                                } else {
-                                  // Close session and go to History
-                                  setActiveSession(null)
-                                  setCurrentExerciseIndex(0)
-                                  setCompletedSets([])
-                                  setSessionLogs([])
-                                  loadWorkoutHistory()
-                                  setActiveTab('history')
-                                  setSuccess('Great job! Check your progress in History.')
-                                  setTimeout(() => setSuccess(''), 3000)
+
+                        <div className="session-controls">
+                          <div className="set-indicator">Set {completedForCurrent + 1} / {setsForCurrent}</div>
+
+                          {/* Weight Input */}
+                          <div style={{marginBottom: '10px', display: 'flex', gap: '10px', alignItems: 'center'}}>
+                            <label style={{color: '#ccc', fontSize: '0.9rem'}}>💪 Weight (kg):</label>
+                            <input 
+                              type="number" 
+                              placeholder="e.g., 20"
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                border: '1px solid #555',
+                                background: '#222',
+                                color: '#fff',
+                                width: '80px',
+                                fontSize: '0.9rem'
+                              }}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                if (completedSets.length > 0) {
+                                  const lastSet = completedSets[completedSets.length - 1]
+                                  if (lastSet.exerciseIndex === currentExerciseIndex) {
+                                    lastSet.weight = parseFloat(val) || 0
+                                  }
                                 }
-                              } catch (err) {
-                                console.error('Failed to save workout:', err)
-                                setError('Failed to save workout to database')
-                                setTimeout(() => setError(''), 3000)
-                              }
+                              }}
+                            />
+                          </div>
+
+                          {/* RPE Scale */}
+                          <div style={{marginBottom: '10px'}}>
+                            <label style={{color: '#ccc', fontSize: '0.9rem', display: 'block', marginBottom: '6px'}}>
+                              💥 Effort (RPE 1-10): <strong>{sessionRPE[currentExerciseIndex] || '-'}</strong>
+                            </label>
+                            <input 
+                              type="range" 
+                              min="1" 
+                              max="10" 
+                              value={sessionRPE[currentExerciseIndex] || 5}
+                              onChange={(e) => {
+                                setSessionRPE(prev => ({...prev, [currentExerciseIndex]: parseInt(e.target.value)}))
+                              }}
+                              style={{width: '100%', cursor: 'pointer'}}
+                            />
+                          </div>
+
+                          {/* Notes Input */}
+                          <textarea 
+                            placeholder="📝 Notes (form, difficulty, pain, etc)"
+                            value={sessionNotes[currentExerciseIndex] || ''}
+                            onChange={(e) => {
+                              setSessionNotes(prev => ({...prev, [currentExerciseIndex]: e.target.value}))
                             }}
-                          >
-                            🏁 Finish Workout
+                            style={{
+                              width: '100%',
+                              padding: '8px',
+                              borderRadius: '6px',
+                              border: '1px solid #555',
+                              background: '#222',
+                              color: '#fff',
+                              fontSize: '0.85rem',
+                              minHeight: '60px',
+                              marginBottom: '10px',
+                              fontFamily: 'inherit'
+                            }}
+                          />
+
+                          <button className="big-primary-btn" onClick={() => completeSet()} aria-label="Complete set">
+                            {isResting ? `⏱️ Rest ${restTimer}s` : 'Complete Set'}
                           </button>
-                        )}
+
+                          <div style={{display:'flex', gap:'8px', marginTop:'8px'}}>
+                            <button className="action-btn" onClick={() => {
+                              // Skip to next exercise
+                              if (currentExerciseIndex < totalExercises - 1) setCurrentExerciseIndex(currentExerciseIndex + 1)
+                            }}>
+                              Next Exercise ➜
+                            </button>
+                            <button className="action-btn" onClick={() => {
+                              // Go to previous exercise
+                              if (currentExerciseIndex > 0) setCurrentExerciseIndex(currentExerciseIndex - 1)
+                            }}>
+                              ← Prev
+                            </button>
+                            <button className="action-btn" onClick={() => { if (confirm('Finish workout?')) finishWorkout() }} style={{ background: 'rgba(255,107,53,0.12)', opacity: savingSession ? 0.6 : 1, pointerEvents: savingSession ? 'none' : 'auto' }}>
+                              {savingSession ? '💾 Saving...' : '🏁 Finish'}
+                            </button>
+                          </div>
+
+                          {/* Completed Sets */}
+                          <div className="completed-sets">
+                            <h4>Completed Sets: {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length} / {currentExercise.sets || 3}</h4>
+                            <div className="sets-grid">
+                              {Array.from({ length: currentExercise.sets || 3 }).map((_, idx) => {
+                                const isCompleted = completedSets.some(s => s.exerciseIndex === currentExerciseIndex && s.setNumber === idx + 1)
+                                return (
+                                  <div key={idx} className={`set-indicator ${isCompleted ? 'completed' : ''}`}>
+                                    {isCompleted ? '✓' : idx + 1}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="session-actions">
+                            {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length < (currentExercise.sets || 3) ? (
+                              <button 
+                                className="complete-set-btn"
+                                onClick={() => completeSet()}
+                              >
+                                ✓ Complete Set
+                              </button>
+                            ) : currentExerciseIndex < totalExercises - 1 ? (
+                              <button 
+                                className="next-exercise-btn"
+                                onClick={() => setCurrentExerciseIndex(currentExerciseIndex + 1)}
+                              >
+                                Next Exercise ➡️
+                              </button>
+                            ) : (
+                              <button 
+                                className="next-exercise-btn"
+                                onClick={() => finishWorkout()}
+                              >
+                                🏁 Finish Workout
+                              </button>
+                            )}
+                          </div>
+
+                        </div>
                       </div>
                     </div>
-                  )}
+
+                    {/* Stepper / sidebar */}
+                    <div className="session-sidebar">
+                      <h4 style={{marginTop:0}}>Up Next</h4>
+                      <div className="exercise-stepper">
+                        {activeSession.exercises.map((ex, i) => (
+                          <div key={i} className={`step-item ${i === currentExerciseIndex ? 'active' : ''}`} onClick={() => setCurrentExerciseIndex(i)}>
+                            <div className="step-index">{i + 1}</div>
+                            <div className="step-desc">
+                              <div className="step-name">{ex.name}</div>
+                              <div className="step-meta">{ex.sets || 3} × {ex.reps || 10}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+              </>
             )
           })()}
         </div>

@@ -48,7 +48,8 @@ export default function Settings() {
       workoutReminders: true,
       progressUpdates: true,
       nutritionAlerts: true,
-      weeklyReports: true
+      weeklyReports: true,
+      paused: false
     }
   })
 
@@ -57,8 +58,18 @@ export default function Settings() {
     verified: false,
     paused: false,
     phoneNumber: '',
-    reminderTimes: { workout: '18:00', sleep: '22:00' },
-    dailyReport: { enabled: true, time: '20:00' }
+    reminderTimes: { 
+      workout: '18:00', 
+      workoutEnabled: true, 
+      sleep: '22:00', 
+      sleepEnabled: true,
+      preWorkout: true,
+      hydration: true,
+      mealReminder: true
+    },
+    dailyReport: { enabled: true, time: '08:00' },
+    achievements: true,
+    motivational: true
   })
   const [whatsappOtp, setWhatsappOtp] = useState('')
   const [whatsappOtpSent, setWhatsappOtpSent] = useState(false)
@@ -126,8 +137,18 @@ export default function Settings() {
           verified: userData.whatsappNotifications.verified || false,
           paused: userData.whatsappNotifications.paused || false,
           phoneNumber: userData.whatsappNotifications.phoneNumber || '',
-          reminderTimes: userData.whatsappNotifications.reminderTimes || { workout: '18:00', sleep: '22:00' },
-          dailyReport: userData.whatsappNotifications.dailyReport || { enabled: true, time: '20:00' }
+          reminderTimes: {
+            workout: userData.whatsappNotifications.reminderTimes?.workout || '18:00',
+            workoutEnabled: userData.whatsappNotifications.reminderTimes?.workoutEnabled !== false,
+            sleep: userData.whatsappNotifications.reminderTimes?.sleep || '22:00',
+            sleepEnabled: userData.whatsappNotifications.reminderTimes?.sleepEnabled !== false,
+            preWorkout: userData.whatsappNotifications.reminderTimes?.preWorkout !== false,
+            hydration: userData.whatsappNotifications.reminderTimes?.hydration !== false,
+            mealReminder: userData.whatsappNotifications.reminderTimes?.mealReminder !== false
+          },
+          dailyReport: userData.whatsappNotifications.dailyReport || { enabled: true, time: '08:00' },
+          achievements: userData.whatsappNotifications.achievements !== false,
+          motivational: userData.whatsappNotifications.motivational !== false
         })
       }
     } catch (err) {
@@ -144,49 +165,34 @@ export default function Settings() {
       // Save WhatsApp settings if on WhatsApp tab and verified
       if (activeTab === 'whatsapp' && whatsappSettings.verified) {
         setSavingWhatsApp(true)
-        const response = await api('/whatsapp/settings', {
+        await api('/whatsapp/settings', {
           method: 'PUT',
           token,
           body: {
             reminderTimes: whatsappSettings.reminderTimes,
             dailyReport: whatsappSettings.dailyReport,
-            paused: whatsappSettings.paused
+            paused: whatsappSettings.paused,
+            achievements: whatsappSettings.achievements,
+            motivational: whatsappSettings.motivational
           }
         })
-        showToast('✅ WhatsApp settings saved successfully!', 'success')
+        showToast('✅ WhatsApp settings saved successfully!', 'success', 5000)
         loadSettings()
         setSavingWhatsApp(false)
         return
       }
       
+      console.log('[Frontend] Saving settings:', settings)
+      console.log('[Frontend] Notifications:', settings.notifications)
+      
       // Save general settings for other tabs
       await api('/settings', { method: 'PUT', body: settings, token })
       
-      // Also update onboarding_data with body measurements
-      await api('/user/onboarding', {
-        method: 'POST',
-        token,
-        body: {
-          body_measurements: {
-            chest: parseFloat(settings.bodyMeasurements.chest) || 0,
-            waist: parseFloat(settings.bodyMeasurements.waist) || 0,
-            hips: parseFloat(settings.bodyMeasurements.hips) || 0,
-            arms: parseFloat(settings.bodyMeasurements.arms) || 0,
-            thighs: parseFloat(settings.bodyMeasurements.thighs) || 0
-          },
-          allergens: settings.allergens,
-          meals_per_day: parseInt(settings.mealsPerDay) || 3,
-          dietary_preference: settings.dietaryPreference,
-          water_intake_goal: parseInt(settings.waterIntakeGoal) || 8,
-          sleep_goal: parseFloat(settings.sleepGoal) || 8
-        }
-      })
-      
-      showToast('Settings saved successfully!', 'success')
+      showToast('Settings saved successfully!', 'success', 5000)
       loadSettings()
     } catch (err) {
       console.error('Save settings error:', err)
-      showToast(err?.message || 'Failed to save settings', 'error')
+      showToast(err?.message || 'Failed to save settings', 'error', 5000)
     } finally {
       setSaving(false)
     }
@@ -198,11 +204,11 @@ export default function Settings() {
     // Validate phone format
     const cleanPhone = phoneToVerify.replace(/[^0-9+]/g, '')
     if (!cleanPhone || cleanPhone.length < 10) {
-      showToast('Please enter a valid phone number', 'error')
+      showToast('Please enter a valid phone number', 'error', 5000)
       return
     }
     if (!cleanPhone.startsWith('+')) {
-      showToast('Phone number must include country code (e.g., +92)', 'error')
+      showToast('Phone number must include country code (e.g., +92)', 'error', 5000)
       return
     }
     
@@ -214,9 +220,9 @@ export default function Settings() {
         body: { phoneNumber: cleanPhone }
       })
       setWhatsappOtpSent(true)
-      showToast('📤 OTP sent to your WhatsApp! Check your phone.', 'success')
+      showToast('📤 OTP sent to your WhatsApp! Check your phone.', 'success', 5000)
     } catch (err) {
-      showToast(err?.message || 'Failed to send OTP. Check your number.', 'error')
+      showToast(err?.message || 'Failed to send OTP. Check your number.', 'error', 5000)
     } finally {
       setSendingOtp(false)
     }
@@ -224,7 +230,7 @@ export default function Settings() {
 
   const verifyWhatsAppOtp = async () => {
     if (!whatsappOtp || whatsappOtp.length !== 6) {
-      showToast('Please enter 6-digit OTP', 'error')
+      showToast('Please enter 6-digit OTP', 'error', 5000)
       return
     }
     try {
@@ -234,14 +240,14 @@ export default function Settings() {
         token,
         body: { otp: whatsappOtp }
       })
-      showToast('✅ WhatsApp verified! Welcome message sent.', 'success')
+      showToast('✅ WhatsApp verified! Welcome message sent.', 'success', 5000)
       setWhatsappOtpSent(false)
       setWhatsappOtp('')
       setChangingNumber(false)
       setNewWhatsappNumber('')
       loadSettings()
     } catch (err) {
-      showToast(err?.message || 'Invalid OTP. Please try again.', 'error')
+      showToast(err?.message || 'Invalid OTP. Please try again.', 'error', 5000)
     } finally {
       setSaving(false)
     }
@@ -257,9 +263,9 @@ export default function Settings() {
         body: { paused: newPausedState }
       })
       setWhatsappSettings({ ...whatsappSettings, paused: newPausedState })
-      showToast(newPausedState ? '⏸️ Notifications paused' : '▶️ Notifications resumed', 'success')
+      showToast(newPausedState ? '⏸️ Notifications paused' : '▶️ Notifications resumed', 'success', 5000)
     } catch (err) {
-      showToast('Failed to update', 'error')
+      showToast('Failed to update', 'error', 5000)
     } finally {
       setSavingWhatsApp(false)
     }
@@ -270,10 +276,10 @@ export default function Settings() {
     try {
       setSaving(true)
       await api('/whatsapp/disconnect', { method: 'POST', token })
-      setWhatsappSettings({ enabled: false, verified: false, phoneNumber: '', reminderTimes: { workout: '18:00', sleep: '22:00' }, dailyReport: { enabled: true, time: '20:00' } })
-      showToast('WhatsApp disconnected', 'success')
+      setWhatsappSettings({ enabled: false, verified: false, phoneNumber: '', reminderTimes: { workout: '18:00', workoutEnabled: true, sleep: '22:00', sleepEnabled: true, preWorkout: true, hydration: true, mealReminder: true }, dailyReport: { enabled: true, time: '08:00' }, achievements: true, motivational: true })
+      showToast('WhatsApp disconnected', 'success', 5000)
     } catch (err) {
-      showToast('Failed to disconnect', 'error')
+      showToast('Failed to disconnect', 'error', 5000)
     } finally {
       setSaving(false)
     }
@@ -281,11 +287,11 @@ export default function Settings() {
 
   const changePassword = async () => {
     if (passwordForm.new.length < 8) {
-      showToast('Password must be at least 8 characters', 'error')
+      showToast('Password must be at least 8 characters', 'error', 5000)
       return
     }
     if (passwordForm.new !== passwordForm.confirm) {
-      showToast('Passwords do not match', 'error')
+      showToast('Passwords do not match', 'error', 5000)
       return
     }
     try {
@@ -294,66 +300,66 @@ export default function Settings() {
         body: { currentPassword: passwordForm.current, newPassword: passwordForm.new },
         token
       })
-      showToast('Password changed successfully!', 'success')
+      showToast('Password changed successfully!', 'success', 5000)
       setPasswordForm({ current: '', new: '', confirm: '', showCurrent: false, showNew: false, showConfirm: false })
     } catch (err) {
-      showToast(err?.message || 'Failed to change password', 'error')
+      showToast(err?.message || 'Failed to change password', 'error', 5000)
     }
   }
 
   const requestNameChange = async () => {
     if (!newName || newName.trim().length < 2) {
-      showToast('Please enter a valid name', 'error')
+      showToast('Please enter a valid name', 'error', 5000)
       return
     }
     try {
       await api('/user/request-name-change', { method: 'POST', token, body: { newName } })
-      showToast('OTP sent to your email', 'success')
+      showToast('OTP sent to your email', 'success', 5000)
       setOtpSent(true)
     } catch (err) {
-      showToast(err?.message || 'Failed to send OTP', 'error')
+      showToast(err?.message || 'Failed to send OTP', 'error', 5000)
     }
   }
 
   const verifyNameChange = async () => {
     try {
       const result = await api('/user/verify-name-change', { method: 'POST', token, body: { otp: nameOtp } })
-      showToast('Name updated successfully!', 'success')
+      showToast('Name updated successfully!', 'success', 5000)
       setShowNameModal(false)
       setNewName('')
       setNameOtp('')
       setOtpSent(false)
       loadSettings()
     } catch (err) {
-      showToast(err?.message || 'Invalid OTP', 'error')
+      showToast(err?.message || 'Invalid OTP', 'error', 5000)
     }
   }
 
   const requestEmailChange = async () => {
     if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-      showToast('Please enter a valid email', 'error')
+      showToast('Please enter a valid email', 'error', 5000)
       return
     }
     try {
       await api('/user/request-email-change', { method: 'POST', token, body: { newEmail } })
-      showToast('OTP sent to new email', 'success')
+      showToast('OTP sent to new email', 'success', 5000)
       setOtpSent(true)
     } catch (err) {
-      showToast(err?.message || 'Failed to send OTP', 'error')
+      showToast(err?.message || 'Failed to send OTP', 'error', 5000)
     }
   }
 
   const verifyEmailChange = async () => {
     try {
       await api('/user/verify-email-change', { method: 'POST', token, body: { otp: emailOtp } })
-      showToast('Email updated successfully!', 'success')
+      showToast('Email updated successfully!', 'success', 5000)
       setShowEmailModal(false)
       setNewEmail('')
       setEmailOtp('')
       setOtpSent(false)
       loadSettings()
     } catch (err) {
-      showToast(err?.message || 'Invalid OTP', 'error')
+      showToast(err?.message || 'Invalid OTP', 'error', 5000)
     }
   }
 
@@ -375,23 +381,23 @@ export default function Settings() {
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
       
-      showToast('Data exported successfully!', 'success')
+      showToast('Data exported successfully!', 'success', 5000)
       setShowExportModal(false)
     } catch (err) {
-      showToast(err?.message || 'Failed to export data', 'error')
+      showToast(err?.message || 'Failed to export data', 'error', 5000)
     }
   }
 
   const deleteAccount = async () => {
     // Validation
     if (!deletePassword || deletePassword.trim() === '') {
-      showToast('Please enter your password', 'error')
+      showToast('Please enter your password', 'error', 5000)
       alert('Please enter your password') // Backup alert
       return
     }
     
     if (deleteConfirm !== 'DELETE') {
-      showToast('Please type DELETE to confirm', 'error')
+      showToast('Please type DELETE to confirm', 'error', 5000)
       alert('Please type DELETE to confirm') // Backup alert
       return
     }
@@ -408,7 +414,7 @@ export default function Settings() {
         } 
       })
       
-      showToast('Account deleted successfully. Redirecting...', 'success')
+      showToast('Account deleted successfully. Redirecting...', 'success', 5000)
       alert('Account deleted successfully. Redirecting...') // Backup alert
       
       // Clear all data
@@ -424,7 +430,7 @@ export default function Settings() {
     } catch (err) {
       console.error('Delete account error:', err)
       const errorMessage = err.message || 'Failed to delete account'
-      showToast(errorMessage, 'error')
+      showToast(errorMessage, 'error', 5000)
       alert(errorMessage) // Backup alert
       setIsDeleting(false)
     }
@@ -646,24 +652,84 @@ export default function Settings() {
                   {activeTab === 'notifications' && (
                     <div className="content-section">
                       <h2>🔔 Notifications</h2>
-                      <div className="toggles-pro">
-                        {[
-                          { key: 'workoutReminders', label: 'Workout Reminders', desc: 'Get reminded about scheduled workouts' },
-                          { key: 'progressUpdates', label: 'Progress Updates', desc: 'Receive updates on your fitness progress' },
-                          { key: 'nutritionAlerts', label: 'Nutrition Alerts', desc: 'Meal logging and nutrition goals' },
-                          { key: 'weeklyReports', label: 'Weekly Reports', desc: 'Weekly summary of your journey' }
-                        ].map(item => (
-                          <div key={item.key} className="toggle-row">
-                            <div className="toggle-info-pro">
-                              <div className="toggle-label-pro">{item.label}</div>
-                              <div className="toggle-desc-pro">{item.desc}</div>
+                      
+                      {/* Notification Types */}
+                      <div style={{marginBottom: '25px'}}>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px'}}>
+                          {[
+                            { key: 'workoutReminders', icon: '🏋️', label: 'Workout Reminders', desc: 'Get reminded about scheduled workouts' },
+                            { key: 'progressUpdates', icon: '📈', label: 'Progress Updates', desc: 'Receive updates on your fitness progress' },
+                            { key: 'nutritionAlerts', icon: '🍽️', label: 'Nutrition Alerts', desc: 'Meal logging and nutrition goals' },
+                            { key: 'weeklyReports', icon: '📊', label: 'Weekly Reports', desc: 'Weekly summary of your journey' }
+                          ].map(item => (
+                            <div key={item.key} style={{
+                              background: 'rgba(255,255,255,0.03)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '12px',
+                              padding: '15px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                            onClick={() => setSettings({...settings, notifications: {...settings.notifications, [item.key]: !settings.notifications[item.key]}})}>
+                              <div style={{fontSize: '1.8rem', flexShrink: 0}}>{item.icon}</div>
+                              <div style={{flex: 1, minWidth: 0}}>
+                                <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '0.95rem', fontWeight: '500', marginBottom: '3px'}}>{item.label}</div>
+                                <div style={{color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem'}}>{item.desc}</div>
+                              </div>
+                              <label className="switch-pro" style={{margin: 0}} onClick={(e) => e.stopPropagation()}>
+                                <input type="checkbox" checked={settings.notifications[item.key]} onChange={(e) => setSettings({...settings, notifications: {...settings.notifications, [item.key]: e.target.checked}})} />
+                                <span className="slider-pro"></span>
+                              </label>
                             </div>
-                            <label className="switch-pro">
-                              <input type="checkbox" checked={settings.notifications[item.key]} onChange={(e) => setSettings({...settings, notifications: {...settings.notifications, [item.key]: e.target.checked}})} />
-                              <span className="slider-pro"></span>
-                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Pause All */}
+                      <div style={{
+                        background: settings.notifications.paused ? 'rgba(255,107,53,0.1)' : 'rgba(37,211,102,0.1)',
+                        border: `2px solid ${settings.notifications.paused ? 'rgba(255,107,53,0.3)' : 'rgba(37,211,102,0.3)'}`,
+                        borderRadius: '12px',
+                        padding: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '15px'
+                      }}>
+                        <div style={{fontSize: '2rem'}}>{settings.notifications.paused ? '⏸️' : '▶️'}</div>
+                        <div style={{flex: 1}}>
+                          <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '1rem', fontWeight: '600', marginBottom: '4px'}}>
+                            {settings.notifications.paused ? 'All Notifications Paused' : 'All Notifications Active'}
                           </div>
-                        ))}
+                          <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem'}}>
+                            {settings.notifications.paused ? 'Click to resume all browser notifications' : 'Click to pause all browser notifications temporarily'}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setSettings({...settings, notifications: {...settings.notifications, paused: !settings.notifications.paused}})}
+                          style={{
+                            padding: '10px 20px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: settings.notifications.paused ? 'rgba(37,211,102,0.2)' : 'rgba(255,107,53,0.2)',
+                            color: '#fff',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          {settings.notifications.paused ? '▶️ Resume' : '⏸️ Pause'}
+                        </button>
+                      </div>
+                      
+                      <div style={{marginTop: '20px', padding: '15px', background: 'rgba(20,225,255,0.1)', borderRadius: '10px', border: '1px solid rgba(20,225,255,0.3)'}}>
+                        <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', margin: 0}}>
+                          💡 <strong>Note:</strong> For WhatsApp notifications, go to the WhatsApp tab. These settings control browser push notifications only.
+                        </p>
                       </div>
                     </div>
                   )}
@@ -678,10 +744,13 @@ export default function Settings() {
                             <h3 style={{color: '#25d366', marginBottom: '8px', fontSize: '1.1rem'}}>Get Fitness Updates on WhatsApp</h3>
                             <p style={{color: 'rgba(255,255,255,0.8)', lineHeight: '1.6', marginBottom: '12px'}}>Receive workout reminders, progress updates, and motivational messages directly on WhatsApp.</p>
                             <ul style={{color: 'rgba(255,255,255,0.7)', paddingLeft: '20px', lineHeight: '1.8'}}>
-                              <li>Daily workout reminders at your preferred time</li>
-                              <li>Sleep reminders to maintain healthy habits</li>
-                              <li>Daily progress reports with stats</li>
+                              <li>Workout & pre-workout reminders</li>
+                              <li>Sleep & hydration reminders</li>
+                              <li>Meal logging reminders</li>
+                              <li>Daily progress reports</li>
                               <li>Weekly summaries every Sunday</li>
+                              <li>Achievement notifications</li>
+                              <li>Motivational messages</li>
                             </ul>
                           </div>
                         </div>
@@ -818,36 +887,121 @@ export default function Settings() {
                               </div>
                             </div>
                             
-                            <div className="toggles-pro" style={{marginTop: '25px'}}>
-                              <h3 style={{marginBottom: '15px', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem'}}>📬 Notification Preferences</h3>
-                              <div className="toggle-row">
-                                <div className="toggle-info-pro">
-                                  <div className="toggle-label-pro">📊 Daily Progress Reports</div>
-                                  <div className="toggle-desc-pro">Receive daily summary of workouts, meals, water, and sleep</div>
-                                </div>
-                                <label className="switch-pro">
-                                  <input 
-                                    type="checkbox" 
-                                    checked={whatsappSettings.dailyReport.enabled}
-                                    onChange={(e) => setWhatsappSettings({...whatsappSettings, dailyReport: {...whatsappSettings.dailyReport, enabled: e.target.checked}})}
-                                  />
-                                  <span className="slider-pro"></span>
-                                </label>
+                            <div style={{marginTop: '25px'}}>
+                              <h3 style={{marginBottom: '20px', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                <span>📬</span> Notification Preferences
+                              </h3>
+                              
+                              {/* Compact Grid Layout */}
+                              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px'}}>
+                                {[
+                                  { key: 'workoutEnabled', path: 'reminderTimes', icon: '🏋️', label: 'Workout Reminders', desc: 'At your workout time' },
+                                  { key: 'preWorkout', path: 'reminderTimes', icon: '⏰', label: 'Pre-Workout Alert', desc: '30 mins before workout' },
+                                  { key: 'sleepEnabled', path: 'reminderTimes', icon: '😴', label: 'Sleep Reminders', desc: 'At your sleep time' },
+                                  { key: 'enabled', path: 'dailyReport', icon: '📊', label: 'Daily Reports', desc: 'Yesterday\'s summary' },
+                                  { key: 'hydration', path: 'reminderTimes', icon: '💧', label: 'Hydration', desc: '10 AM, 2 PM, 6 PM' },
+                                  { key: 'mealReminder', path: 'reminderTimes', icon: '🍽️', label: 'Meal Reminders', desc: 'Breakfast, lunch, dinner' },
+                                  { key: 'achievements', path: null, icon: '🎯', label: 'Achievements', desc: 'Milestone notifications' },
+                                  { key: 'motivational', path: null, icon: '💪', label: 'Motivational', desc: 'Encouragement & alerts' }
+                                ].map(item => (
+                                  <div key={item.key} style={{
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    transition: 'all 0.3s ease',
+                                    cursor: 'pointer'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                  onClick={() => {
+                                    if (item.path) {
+                                      setWhatsappSettings({
+                                        ...whatsappSettings,
+                                        [item.path]: {
+                                          ...whatsappSettings[item.path],
+                                          [item.key]: !whatsappSettings[item.path][item.key]
+                                        }
+                                      })
+                                    } else {
+                                      setWhatsappSettings({
+                                        ...whatsappSettings,
+                                        [item.key]: !whatsappSettings[item.key]
+                                      })
+                                    }
+                                  }}>
+                                    <div style={{fontSize: '1.8rem', flexShrink: 0}}>{item.icon}</div>
+                                    <div style={{flex: 1, minWidth: 0}}>
+                                      <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '0.95rem', fontWeight: '500', marginBottom: '3px'}}>{item.label}</div>
+                                      <div style={{color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem'}}>{item.desc}</div>
+                                    </div>
+                                    <label className="switch-pro" style={{margin: 0}} onClick={(e) => e.stopPropagation()}>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={item.path ? whatsappSettings[item.path][item.key] : whatsappSettings[item.key]}
+                                        onChange={(e) => {
+                                          if (item.path) {
+                                            setWhatsappSettings({
+                                              ...whatsappSettings,
+                                              [item.path]: {
+                                                ...whatsappSettings[item.path],
+                                                [item.key]: e.target.checked
+                                              }
+                                            })
+                                          } else {
+                                            setWhatsappSettings({
+                                              ...whatsappSettings,
+                                              [item.key]: e.target.checked
+                                            })
+                                          }
+                                        }}
+                                      />
+                                      <span className="slider-pro"></span>
+                                    </label>
+                                  </div>
+                                ))}
                               </div>
-                              <div className="toggle-row">
-                                <div className="toggle-info-pro">
-                                  <div className="toggle-label-pro">{whatsappSettings.paused ? '▶️ Resume Notifications' : '⏸️ Pause Notifications'}</div>
-                                  <div className="toggle-desc-pro">{whatsappSettings.paused ? 'Start receiving WhatsApp reminders again' : 'Temporarily stop all WhatsApp reminders'}</div>
+                              
+                              {/* Pause All - Prominent */}
+                              <div style={{
+                                marginTop: '20px',
+                                background: whatsappSettings.paused ? 'rgba(255,107,53,0.1)' : 'rgba(37,211,102,0.1)',
+                                border: `2px solid ${whatsappSettings.paused ? 'rgba(255,107,53,0.3)' : 'rgba(37,211,102,0.3)'}`,
+                                borderRadius: '12px',
+                                padding: '18px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '15px'
+                              }}>
+                                <div style={{fontSize: '2rem'}}>{whatsappSettings.paused ? '⏸️' : '▶️'}</div>
+                                <div style={{flex: 1}}>
+                                  <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '1rem', fontWeight: '600', marginBottom: '4px'}}>
+                                    {whatsappSettings.paused ? 'Notifications Paused' : 'All Notifications Active'}
+                                  </div>
+                                  <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem'}}>
+                                    {whatsappSettings.paused ? 'Click to resume all reminders' : 'Click to pause all reminders temporarily'}
+                                  </div>
                                 </div>
-                                <label className="switch-pro">
-                                  <input 
-                                    type="checkbox" 
-                                    checked={whatsappSettings.paused}
-                                    onChange={togglePauseWhatsApp}
-                                    disabled={savingWhatsApp}
-                                  />
-                                  <span className="slider-pro"></span>
-                                </label>
+                                <button
+                                  onClick={togglePauseWhatsApp}
+                                  disabled={savingWhatsApp}
+                                  style={{
+                                    padding: '10px 20px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: whatsappSettings.paused ? 'rgba(37,211,102,0.2)' : 'rgba(255,107,53,0.2)',
+                                    color: '#fff',
+                                    fontWeight: '600',
+                                    cursor: savingWhatsApp ? 'not-allowed' : 'pointer',
+                                    opacity: savingWhatsApp ? 0.5 : 1,
+                                    transition: 'all 0.3s ease'
+                                  }}
+                                >
+                                  {savingWhatsApp ? '⏳' : (whatsappSettings.paused ? '▶️ Resume' : '⏸️ Pause')}
+                                </button>
                               </div>
                             </div>
                             

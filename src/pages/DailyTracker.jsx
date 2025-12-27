@@ -83,7 +83,7 @@ export default function DailyTracker() {
   useEffect(() => {
     const googleFitParam = searchParams.get('googlefit')
     if (googleFitParam === 'connected') {
-      showToast('✅ Google Fit connected successfully!', 'success', 8000)
+      showToast('✅ Google Fit connected successfully!', 'success', 6000)
       setSearchParams({})
       handleSync()
     }
@@ -105,7 +105,7 @@ export default function DailyTracker() {
       const { url } = await googleFitApi.getAuthUrl(token)
       window.location.href = url
     } catch (err) {
-      showToast('❌ Failed to connect Google Fit', 'error', 3000)
+      showToast('❌ Failed to connect Google Fit', 'error', 5000)
     }
   }
 
@@ -113,7 +113,7 @@ export default function DailyTracker() {
     if (!token) return
     try {
       setSyncing(true)
-      const result = await googleFitApi.sync(7, token)
+      const result = await googleFitApi.sync(30, token)
       const { summary } = result
       
       let message = `✅ Synced ${result.synced} days`
@@ -127,16 +127,16 @@ export default function DailyTracker() {
         message += `: ${details.join(', ')}`
       }
       
-      showToast(message, 'success', 8000)
+      showToast(message, 'success', 6000)
       loadTracker()
       loadGoogleFitStatus()
     } catch (err) {
       const errorMsg = err.message || 'Sync failed'
       if (errorMsg.includes('Token expired')) {
-        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 8000)
+        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 6000)
         setGoogleFitStatus({ connected: false, lastSynced: null })
       } else {
-        showToast('❌ ' + errorMsg, 'error', 3000)
+        showToast('❌ ' + errorMsg, 'error', 5000)
       }
     } finally {
       setSyncing(false)
@@ -148,9 +148,9 @@ export default function DailyTracker() {
     try {
       await googleFitApi.disconnect(token)
       setGoogleFitStatus({ connected: false, lastSynced: null })
-      showToast('✅ Google Fit disconnected', 'success', 3000)
+      showToast('✅ Google Fit disconnected', 'success', 5000)
     } catch (err) {
-      showToast('❌ Failed to disconnect', 'error', 3000)
+      showToast('❌ Failed to disconnect', 'error', 5000)
     }
   }
 

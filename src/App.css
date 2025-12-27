@@ -54,3 +54,109 @@ input[type="number"] {
 *:focus:not(:focus-visible) {
   outline: none;
 }
+
+/* Start confirmation modal (My Saved Workouts -> Start) */
+.start-confirm-modal .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 900;
+}
+.start-confirm-modal .modal-content {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  color: #111827;
+  width: min(680px, 94%);
+  border-radius: 14px;
+  padding: 20px 20px 18px;
+  box-shadow: 0 12px 30px rgba(15,23,42,0.25);
+  z-index: 1000;
+}
+.start-confirm-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.start-confirm-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.start-confirm-modal .modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.05rem;
+  cursor: pointer;
+  color: #374151;
+}
+.start-confirm-modal .modal-intro {
+  color: #4b5563;
+  margin: 8px 0 12px;
+}
+.start-confirm-modal .summary {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+.start-confirm-modal .summary .stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 10px;
+  flex: 1 1 0;
+}
+.start-confirm-modal .summary .stat-icon {
+  font-size: 1.35rem;
+}
+.start-confirm-modal .summary .stat-value {
+  display: block;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.start-confirm-modal .summary .stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+.start-confirm-modal .start-options .option-group h4 {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 8px 0 10px;
+}
+.start-confirm-modal .btn-primary,
+.start-confirm-modal .btn-secondary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.start-confirm-modal .btn-primary {
+  background: linear-gradient(90deg,#14e1ff,#7deaff);
+  color: #04202b;
+  box-shadow: 0 6px 18px rgba(20,225,255,0.18);
+}
+.start-confirm-modal .btn-secondary {
+  background: #fff;
+  color: #0f1724;
+  border-color: #e6eef6;
+}
+.start-confirm-modal .btn-icon { font-size: 1.25rem; }
+.start-confirm-modal .btn-title { font-weight: 700; display:block }
+.start-confirm-modal .btn-subtitle { font-size: 0.82rem; color: #6b7280; display:block }
+
+@media (max-width: 520px) {
+  .start-confirm-modal .summary { flex-direction: column; }
+}
