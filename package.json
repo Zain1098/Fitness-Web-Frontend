@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mediapipe/pose": "^0.5.1635989137",
+    "@mediapipe/camera_utils": "^0.3.1632432234",
+    "@mediapipe/drawing_utils": "^0.3.1620248257",
     "@react-spring/web": "^10.0.3",
     "@stripe/stripe-js": "^8.5.3",
     "@tailwindcss/vite": "^4.1.17",

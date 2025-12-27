@@ -491,19 +491,13 @@ export default function Exercises() {
     setCompletedSets(prev => ([...prev, { exerciseIndex: currentExerciseIndex, timestamp: Date.now() }]))
     setSessionLogs(prev => ([...prev, { exercise: ex.name, set: doneForThis + 1, time: new Date() }]))
 
-    // if last set for this exercise, auto-advance to next exercise
+    // start rest
+    setIsResting(true)
+    setRestTimer(ex?.rest || 60)
+
+    // if last set for this exercise, advance to next exercise after rest finishes (handled by the rest timer logic)
     if (doneForThis + 1 >= sets) {
-      const nextIndex = currentExerciseIndex + 1
-      if (nextIndex < activeSession.exercises.length) {
-        setTimeout(() => {
-          setCurrentExerciseIndex(nextIndex)
-          setIsResting(false)
-        }, 500)
-      }
-    } else {
-      // start rest for next set
-      setIsResting(true)
-      setRestTimer(ex?.rest || 60)
+      // flag or allow user to go to next exercise when ready
     }
   }
 
@@ -1545,8 +1539,13 @@ export default function Exercises() {
                         </div>
 
                         <footer className="card-footer">
-                          <button className="btn-card btn-start" onClick={() => startSessionFromWorkout(workout)}>▶️ Start</button>
+                          <button className="btn-card btn-start" onClick={() => setStartModalWorkout(workout)}>▶️ Start</button>
+                          <button className="btn-card btn-ai" onClick={() => {
+                            setSelectedExerciseForAI(workout.exercises?.[0] ? { name: workout.exercises[0].name } : { name: workout.name })
+                            setShowAICoach(true)
+                          }} style={{ background: 'linear-gradient(135deg, #14e1ff, #0ea5e9)', color: '#000', fontWeight: '600' }}>🤖 AI Coach</button>
                           <button className="btn-card btn-edit" onClick={() => { setCustomWorkout(workout.exercises.map(e => ({ ...e, _id: e.name + Date.now() }))); setWorkoutName(workout.name); setActiveTab('builder') }}>✏️ Edit</button>
+                          <button className="btn-card btn-log" onClick={async () => { try { await api('/workouts', { method: 'POST', body: { name: workout.name, category: workout.category, exercises: workout.exercises }, token }); setSuccess('Logged for today'); setTimeout(() => setSuccess(''), 2000) } catch { setError('Failed to log'); setTimeout(() => setError(''), 2000) } }}>✅ Log</button>
                           <button className="btn-card btn-delete" onClick={async () => { if (confirm('Delete this workout?')) { try { await api(`/workouts/${workout._id}`, { method: 'DELETE', token }); setSuccess('Deleted'); setTimeout(() => setSuccess(''), 2000); loadSavedWorkouts() } catch { setError('Failed delete'); setTimeout(() => setError(''), 2000) } } }}>🗑️</button>
                         </footer>
                       </article>
@@ -1946,282 +1945,326 @@ export default function Exercises() {
             </div>
           )}
 
-          {/* Workout Session Modal - Simplified */}
+          {/* Start Confirmation Modal */}
+          {startModalWorkout && (
+            <div className="start-confirm-modal" role="dialog" aria-modal="true" aria-labelledby={`start-modal-title-${startModalWorkout._id}`}>
+              <div className="modal-overlay" onClick={() => setStartModalWorkout(null)}></div>
+              <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+                tabIndex={-1}
+                onKeyDown={(e) => { if (e.key === 'Escape') setStartModalWorkout(null); }}
+              >
+                <div className="modal-header">
+                  <h3 id={`start-modal-title-${startModalWorkout._id}`}>Start Workout</h3>
+                  <button className="modal-close" onClick={() => setStartModalWorkout(null)} aria-label="Close">✕</button>
+                </div>
+                <p className="modal-intro">You're about to start <strong>{startModalWorkout.name}</strong></p>
+                
+                <div className="summary">
+                  <div className="stat">
+                    <span className="stat-icon">💪</span>
+                    <div>
+                      <span className="stat-value">{startModalWorkout.exercises?.length || 0}</span>
+                      <span className="stat-label">Exercises</span>
+                    </div>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">⏱️</span>
+                    <div>
+                      <span className="stat-value">{Math.max(10, (startModalWorkout.exercises?.length || 0) * 5)}</span>
+                      <span className="stat-label">Minutes</span>
+                    </div>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">🎯</span>
+                    <div>
+                      <span className="stat-value">{startModalWorkout.category || 'Custom'}</span>
+                      <span className="stat-label">Category</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="start-options">
+                    <div className="option-group">
+                        <h4>SELECT YOUR STARTING PREFERENCE</h4>
+                        <div className="start-preview">
+                          <div className="preview-list">
+                            {startModalWorkout.exercises?.slice(0,6).map((ex, i) => (
+                              <div key={i} className="preview-item">{ex.name} • {ex.sets || 3}×{ex.reps || 10}</div>
+                            ))}
+                            {startModalWorkout.exercises && startModalWorkout.exercises.length > 6 && (
+                              <div className="preview-more">+{startModalWorkout.exercises.length - 6} more</div>
+                            )}
+                          </div>
+
+                          <div className="start-actions">
+                            <button className="btn-primary" onClick={() => startSessionFromWorkout(startModalWorkout)} autoFocus>
+                              <span className="btn-icon">▶️</span>
+                              <span className="btn-title">Start Now</span>
+                            </button>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Workout Session Modal (enhanced) */}
           {activeSession && (() => {
             const currentExercise = activeSession.exercises[currentExerciseIndex]
             const totalExercises = activeSession.exercises.length
             const progress = ((currentExerciseIndex + 1) / totalExercises) * 100
-            const exerciseImage = currentExercise.gifUrl || currentExercise.imageUrl || exercises.find(e => e.name === currentExercise.name)?.gifUrl || 'https://via.placeholder.com/600x400?text=Exercise'
+
+            
+            
+            // Rest timer with useEffect would be better, but using setTimeout for minimal code
+            if (isResting && restTimer > 0) {
+              setTimeout(() => setRestTimer(restTimer - 1), 1000)
+            } else if (isResting && restTimer === 0) {
+              setIsResting(false)
+            }
+            
+            // Get proper exercise image
+            const exerciseImage = currentExercise.gifUrl || currentExercise.imageUrl || exercises.find(e => e.name === currentExercise.name)?.gifUrl || 'https://via.placeholder.com/400x300?text=Exercise'
             const setsForCurrent = currentExercise?.sets || 3
             const completedForCurrent = completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length
-            const isLastExercise = currentExerciseIndex === totalExercises - 1
-            const allSetsCompleted = completedForCurrent >= setsForCurrent
             
             return (
-              <div className="workout-session-modal" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-                <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: -1 }}></div>
-                <div className="session-content" style={{ position: 'relative', maxWidth: '1100px', width: '100%', height: '90vh', background: '#1a1a1a', borderRadius: '20px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  
-                  <div style={{ padding: '18px 25px', background: 'linear-gradient(135deg, #ff6b35, #ff8c42)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <>
+              <div className="workout-session-modal">
+                <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.95)' }}></div>
+                <div className="session-content session-grid">
+                  {/* Header */}
+                  <div className="session-header">
                     <div>
-                      <h2 style={{ margin: 0, color: '#fff', fontSize: '1.3rem' }}>🏋️ {activeSession.workoutName}</h2>
-                      <p style={{ margin: '5px 0 0 0', color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem' }}>Exercise {currentExerciseIndex + 1} of {totalExercises}</p>
+                      <h2>🏋️ {activeSession.workoutName}</h2>
+                      <p style={{ color: '#999', fontSize: '0.9rem' }}>Exercise {currentExerciseIndex + 1} of {totalExercises}</p>
                     </div>
-                    <button 
-                      onClick={() => {
-                        if (confirm('End workout? Progress will be lost.')) {
-                          setActiveSession(null)
-                          setCurrentExerciseIndex(0)
-                          setCompletedSets([])
-                        }
-                      }}
-                      style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: '1.3rem', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer' }}
-                    >
-                      ✕
-                    </button>
+                    <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                      <button 
+                        className="session-close"
+                        onClick={() => {
+                          if (confirm('End workout session? Progress will be lost.')) {
+                            setActiveSession(null)
+                            setCurrentExerciseIndex(0)
+                            setCompletedSets([])
+                            setIsResting(false)
+                          }
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                   
-                  <div style={{ height: '4px', background: '#333', flexShrink: 0 }}>
-                    <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #14e1ff, #0ea5e9)', transition: 'width 0.3s' }}></div>
+                  
+                  {/* Progress Bar */}
+                  <div className="session-progress-bar">
+                    <div className="session-progress-fill" style={{ width: `${progress}%` }}></div>
                   </div>
 
-                  <div style={{ flex: 1, padding: '15px', display: 'grid', gridTemplateColumns: '1fr 320px', gap: '15px', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                      <div style={{ position: 'relative', background: '#222', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px', flexShrink: 0 }}>
+                  <div className="session-main">
+                    {/* Exercise area */}
+                    <div className="exercise-screen">
+                      <div className="session-exercise-image">
                         <img 
                           src={exerciseImage}
                           alt={currentExercise.name}
-                          style={{ width: '100%', height: '280px', objectFit: 'contain', background: '#000' }}
-                          onError={(e) => { e.target.src = 'https://via.placeholder.com/600x280?text=' + encodeURIComponent(currentExercise.name) }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '12px' }}
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/400x300?text=' + encodeURIComponent(currentExercise.name)
+                          }}
                         />
-                        <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
-                          <a
-                            href={`https://www.youtube.com/results?search_query=athleanx+${encodeURIComponent(currentExercise.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              background: 'rgba(255, 0, 0, 0.9)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#fff',
-                              fontSize: '1.2rem',
-                              textDecoration: 'none',
-                              boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-                              transition: 'all 0.3s'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                            title="Watch on YouTube (ATHLEANX)"
-                          >
-                            ▶️
-                          </a>
-                          <div
-                            style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              background: 'rgba(20, 225, 255, 0.9)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#000',
-                              fontSize: '1.2rem',
-                              cursor: 'pointer',
-                              boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-                              transition: 'all 0.3s',
-                              position: 'relative'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'scale(1.1)'
-                              e.currentTarget.querySelector('.info-tooltip').style.display = 'block'
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'scale(1)'
-                              e.currentTarget.querySelector('.info-tooltip').style.display = 'none'
-                            }}
-                          >
-                            ℹ️
-                            <div 
-                              className="info-tooltip"
+                      </div>
+                      
+                      <div className="session-exercise-info">
+                        <h3>{currentExercise.name}</h3>
+                        <div className="session-exercise-meta">
+                          <span>🎯 {currentExercise.target || 'Target Muscle'}</span>
+                          <span>🏋️ {currentExercise.equipment || 'Equipment'}</span>
+                        </div>
+
+                        <div className="session-controls">
+                          <div className="set-indicator">Set {completedForCurrent + 1} / {setsForCurrent}</div>
+
+                          {/* Weight Input */}
+                          <div style={{marginBottom: '10px', display: 'flex', gap: '10px', alignItems: 'center'}}>
+                            <label style={{color: '#ccc', fontSize: '0.9rem'}}>💪 Weight (kg):</label>
+                            <input 
+                              type="number" 
+                              placeholder="e.g., 20"
                               style={{
-                                display: 'none',
-                                position: 'absolute',
-                                top: '50px',
-                                right: '0',
-                                width: '250px',
-                                background: 'rgba(0, 0, 0, 0.95)',
-                                border: '2px solid #14e1ff',
-                                borderRadius: '10px',
-                                padding: '12px',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                border: '1px solid #555',
+                                background: '#222',
                                 color: '#fff',
-                                fontSize: '0.8rem',
-                                lineHeight: '1.4',
-                                zIndex: 1000,
-                                boxShadow: '0 10px 30px rgba(0,0,0,0.8)'
+                                width: '80px',
+                                fontSize: '0.9rem'
                               }}
-                            >
-                              <div style={{ fontWeight: '600', color: '#14e1ff', marginBottom: '6px', fontSize: '0.85rem' }}>🎯 {currentExercise.name}</div>
-                              <div style={{ marginBottom: '5px', fontSize: '0.75rem' }}><strong>🏋️ Equipment:</strong> {currentExercise.equipment || 'Bodyweight'}</div>
-                              <div style={{ marginBottom: '5px', fontSize: '0.75rem' }}><strong>🎯 Target:</strong> {currentExercise.target || 'General'}</div>
-                              <div style={{ marginBottom: '5px', fontSize: '0.75rem' }}><strong>💪 Sets × Reps:</strong> {currentExercise.sets || 3} × {currentExercise.reps || 10}</div>
-                              <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #333', color: '#14e1ff', fontSize: '0.75rem' }}>
-                                💡 <strong>Tip:</strong> Focus on form over speed.
-                              </div>
+                              onChange={(e) => {
+                                const val = e.target.value
+                                if (completedSets.length > 0) {
+                                  const lastSet = completedSets[completedSets.length - 1]
+                                  if (lastSet.exerciseIndex === currentExerciseIndex) {
+                                    lastSet.weight = parseFloat(val) || 0
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+
+                          {/* RPE Scale */}
+                          <div style={{marginBottom: '10px'}}>
+                            <label style={{color: '#ccc', fontSize: '0.9rem', display: 'block', marginBottom: '6px'}}>
+                              💥 Effort (RPE 1-10): <strong>{sessionRPE[currentExerciseIndex] || '-'}</strong>
+                            </label>
+                            <input 
+                              type="range" 
+                              min="1" 
+                              max="10" 
+                              value={sessionRPE[currentExerciseIndex] || 5}
+                              onChange={(e) => {
+                                setSessionRPE(prev => ({...prev, [currentExerciseIndex]: parseInt(e.target.value)}))
+                              }}
+                              style={{width: '100%', cursor: 'pointer'}}
+                            />
+                          </div>
+
+                          {/* Notes Input */}
+                          <textarea 
+                            placeholder="📝 Notes (form, difficulty, pain, etc)"
+                            value={sessionNotes[currentExerciseIndex] || ''}
+                            onChange={(e) => {
+                              setSessionNotes(prev => ({...prev, [currentExerciseIndex]: e.target.value}))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px',
+                              borderRadius: '6px',
+                              border: '1px solid #555',
+                              background: '#222',
+                              color: '#fff',
+                              fontSize: '0.85rem',
+                              minHeight: '60px',
+                              marginBottom: '10px',
+                              fontFamily: 'inherit'
+                            }}
+                          />
+
+                          <button className="big-primary-btn" onClick={() => completeSet()} aria-label="Complete set">
+                            {isResting ? `⏱️ Rest ${restTimer}s` : 'Complete Set'}
+                          </button>
+
+                          <div style={{display:'flex', gap:'8px', marginTop:'8px'}}>
+                            <button className="action-btn" onClick={() => {
+                              // Skip to next exercise
+                              if (currentExerciseIndex < totalExercises - 1) setCurrentExerciseIndex(currentExerciseIndex + 1)
+                            }}>
+                              Next Exercise ➜
+                            </button>
+                            <button className="action-btn" onClick={() => {
+                              // Go to previous exercise
+                              if (currentExerciseIndex > 0) setCurrentExerciseIndex(currentExerciseIndex - 1)
+                            }}>
+                              ← Prev
+                            </button>
+                            <button className="action-btn" onClick={() => { if (confirm('Finish workout?')) finishWorkout() }} style={{ background: 'rgba(255,107,53,0.12)', opacity: savingSession ? 0.6 : 1, pointerEvents: savingSession ? 'none' : 'auto' }}>
+                              {savingSession ? '💾 Saving...' : '🏁 Finish'}
+                            </button>
+                          </div>
+
+                          {/* Completed Sets */}
+                          <div className="completed-sets">
+                            <h4>Completed Sets: {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length} / {currentExercise.sets || 3}</h4>
+                            <div className="sets-grid">
+                              {Array.from({ length: currentExercise.sets || 3 }).map((_, idx) => {
+                                const isCompleted = completedSets.some(s => s.exerciseIndex === currentExerciseIndex && s.setNumber === idx + 1)
+                                return (
+                                  <div key={idx} className={`set-indicator ${isCompleted ? 'completed' : ''}`}>
+                                    {isCompleted ? '✓' : idx + 1}
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="session-actions">
+                            <button 
+                              className="ai-coach-session-btn"
+                              onClick={() => {
+                                setSelectedExerciseForAI({ name: currentExercise.name })
+                                setShowAICoach(true)
+                              }}
+                              style={{
+                                background: 'linear-gradient(135deg, #14e1ff, #0ea5e9)',
+                                color: '#000',
+                                padding: '12px 20px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                fontSize: '1rem',
+                                marginBottom: '10px',
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                              }}
+                            >
+                              🤖 AI Form Coach
+                            </button>
+                            {completedSets.filter(s => s.exerciseIndex === currentExerciseIndex).length < (currentExercise.sets || 3) ? (
+                              <button 
+                                className="complete-set-btn"
+                                onClick={() => completeSet()}
+                              >
+                                ✓ Complete Set
+                              </button>
+                            ) : currentExerciseIndex < totalExercises - 1 ? (
+                              <button 
+                                className="next-exercise-btn"
+                                onClick={() => setCurrentExerciseIndex(currentExerciseIndex + 1)}
+                              >
+                                Next Exercise ➡️
+                              </button>
+                            ) : (
+                              <button 
+                                className="next-exercise-btn"
+                                onClick={() => finishWorkout()}
+                              >
+                                🏁 Finish Workout
+                              </button>
+                            )}
+                          </div>
+
                         </div>
-                      </div>
-                      
-                      <h3 style={{ color: '#fff', fontSize: '1.3rem', marginBottom: '6px', marginTop: 0, flexShrink: 0 }}>{currentExercise.name}</h3>
-                      <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', fontSize: '0.85rem', flexShrink: 0 }}>
-                        <span style={{ color: '#999' }}>🎯 {currentExercise.target || 'Target'}</span>
-                        <span style={{ color: '#999' }}>🏋️ {currentExercise.equipment || 'Equipment'}</span>
-                        <span style={{ color: '#ff6b35', fontWeight: '600' }}>{currentExercise.sets || 3} × {currentExercise.reps || 10}</span>
-                      </div>
-                      
-                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                        <button 
-                          onClick={() => {
-                            setSelectedExerciseForAI({ name: currentExercise.name, reps: currentExercise.reps })
-                            setShowAICoach(true)
-                          }}
-                          style={{
-                            flex: 1,
-                            padding: '14px',
-                            background: 'linear-gradient(135deg, #14e1ff, #0ea5e9)',
-                            border: 'none',
-                            borderRadius: '10px',
-                            color: '#000',
-                            fontWeight: '600',
-                            fontSize: '0.95rem',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          🤖 AI Coach
-                        </button>
-                        
-                        {!allSetsCompleted ? (
-                          <button 
-                            onClick={() => completeSet()}
-                            style={{
-                              flex: 1,
-                              padding: '14px',
-                              background: 'linear-gradient(135deg, #4caf50, #45a049)',
-                              border: 'none',
-                              borderRadius: '10px',
-                              color: '#fff',
-                              fontWeight: '600',
-                              fontSize: '0.95rem',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ✓ Complete Set {completedForCurrent + 1}
-                          </button>
-                        ) : !isLastExercise ? (
-                          <button 
-                            onClick={() => setCurrentExerciseIndex(currentExerciseIndex + 1)}
-                            style={{
-                              flex: 1,
-                              padding: '14px',
-                              background: 'linear-gradient(135deg, #ff6b35, #ff8c42)',
-                              border: 'none',
-                              borderRadius: '10px',
-                              color: '#fff',
-                              fontWeight: '600',
-                              fontSize: '0.95rem',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Next Exercise ➡️
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => finishWorkout()}
-                            disabled={savingSession}
-                            style={{
-                              flex: 1,
-                              padding: '14px',
-                              background: savingSession ? '#666' : 'linear-gradient(135deg, #9c27b0, #7b1fa2)',
-                              border: 'none',
-                              borderRadius: '10px',
-                              color: '#fff',
-                              fontWeight: '600',
-                              fontSize: '0.95rem',
-                              cursor: savingSession ? 'not-allowed' : 'pointer'
-                            }}
-                          >
-                            {savingSession ? '💾 Saving...' : '🏁 Finish'}
-                          </button>
-                        )}
                       </div>
                     </div>
 
-                    <div style={{ background: '#222', borderRadius: '12px', padding: '15px', maxHeight: '100%', overflowY: 'auto' }}>
-                      <h4 style={{ color: '#fff', marginBottom: '12px', fontSize: '1rem', marginTop: 0 }}>Workout Exercises</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {activeSession.exercises.map((ex, i) => {
-                          const setsForEx = ex?.sets || 3
-                          const completedForEx = completedSets.filter(s => s.exerciseIndex === i).length
-                          return (
-                            <div 
-                              key={i}
-                              onClick={() => setCurrentExerciseIndex(i)}
-                              style={{
-                                padding: '12px',
-                                background: i === currentExerciseIndex ? 'linear-gradient(135deg, #ff6b35, #ff8c42)' : '#333',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                <div style={{
-                                  width: '26px',
-                                  height: '26px',
-                                  borderRadius: '50%',
-                                  background: i === currentExerciseIndex ? 'rgba(255,255,255,0.3)' : '#444',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: '#fff',
-                                  fontWeight: '600',
-                                  fontSize: '0.8rem',
-                                  flexShrink: 0
-                                }}>
-                                  {i + 1}
-                                </div>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ color: '#fff', fontWeight: '600', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.name}</div>
-                                  <div style={{ color: i === currentExerciseIndex ? 'rgba(255,255,255,0.8)' : '#999', fontSize: '0.75rem' }}>
-                                    {ex.sets || 3} × {ex.reps || 10}
-                                  </div>
-                                </div>
-                                {completedForEx >= setsForEx && (
-                                  <div style={{ color: '#4caf50', fontSize: '1.1rem', flexShrink: 0 }}>✓</div>
-                                )}
-                              </div>
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                {Array.from({ length: setsForEx }).map((_, idx) => (
-                                  <div key={idx} style={{
-                                    flex: 1,
-                                    height: '6px',
-                                    background: idx < completedForEx ? (i === currentExerciseIndex ? 'rgba(255,255,255,0.9)' : '#14e1ff') : (i === currentExerciseIndex ? 'rgba(255,255,255,0.3)' : '#555'),
-                                    borderRadius: '3px'
-                                  }}></div>
-                                ))}
-                              </div>
+                    {/* Stepper / sidebar */}
+                    <div className="session-sidebar">
+                      <h4 style={{marginTop:0}}>Up Next</h4>
+                      <div className="exercise-stepper">
+                        {activeSession.exercises.map((ex, i) => (
+                          <div key={i} className={`step-item ${i === currentExerciseIndex ? 'active' : ''}`} onClick={() => setCurrentExerciseIndex(i)}>
+                            <div className="step-index">{i + 1}</div>
+                            <div className="step-desc">
+                              <div className="step-name">{ex.name}</div>
+                              <div className="step-meta">{ex.sets || 3} × {ex.reps || 10}</div>
                             </div>
-                          )
-                        })}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+              </>
             )
           })()}
 
@@ -2229,11 +2272,6 @@ export default function Exercises() {
           {showAICoach && selectedExerciseForAI && (
             <AICoach 
               exercise={selectedExerciseForAI}
-              workoutId={activeSession?.workoutId}
-              onComplete={(reps) => {
-                // Mark set as completed when AI Coach finishes
-                completeSet()
-              }}
               onClose={() => {
                 setShowAICoach(false)
                 setSelectedExerciseForAI(null)
