@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
-import styled from 'styled-components'
+import { ArrowUp } from 'lucide-react'
 
 export default function ScrollToTop() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const toggleVisible = () => {
-      setVisible(window.pageYOffset > 300)
+      setVisible(window.scrollY > 300)
     }
-    window.addEventListener('scroll', toggleVisible)
+    window.addEventListener('scroll', toggleVisible, { passive: true })
     return () => window.removeEventListener('scroll', toggleVisible)
   }, [])
 
@@ -17,51 +17,14 @@ export default function ScrollToTop() {
   }
 
   return (
-    <StyledButton onClick={scrollToTop} className={visible ? 'visible' : ''}>
-      <i className="fa fa-arrow-up"></i>
-    </StyledButton>
+    <button
+      onClick={scrollToTop}
+      aria-label="Scroll to top"
+      className={`fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 font-black shadow-[0_6px_25px_rgba(212,246,61,0.45)] hover:shadow-[0_8px_30px_rgba(212,246,61,0.65)] hover:scale-110 active:scale-95 flex items-center justify-center transition-all duration-300 ${
+        visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'
+      }`}
+    >
+      <ArrowUp className="w-5 h-5 stroke-[2.5]" />
+    </button>
   )
 }
-
-const StyledButton = styled.button`
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #14e1ff, #7deaff);
-  border: none;
-  border-radius: 50%;
-  color: #031b24;
-  font-size: 20px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 8px 25px rgba(20, 225, 255, 0.4);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(20px);
-  transition: all 0.3s ease;
-
-  &.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(20, 225, 255, 0.6);
-  }
-
-  &:active {
-    transform: translateY(-2px);
-  }
-
-  @media (max-width: 768px) {
-    bottom: 20px;
-    right: 20px;
-    width: 45px;
-    height: 45px;
-    font-size: 18px;
-  }
-`

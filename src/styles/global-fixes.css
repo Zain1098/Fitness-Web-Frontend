@@ -1,17 +1,11 @@
-/* Global Text Visibility Fixes for All Pages */
+/* Global Text Visibility Fixes for Legacy Dark Pages */
 
-/* Fix all select/dropdown text visibility */
-select,
-select option,
+/* Fix select/dropdown text visibility in legacy dark pages */
+.dark-page select,
+.dark-page select option,
 .setting-input,
 .filter-select,
-.meal-select,
-input[type="text"],
-input[type="email"],
-input[type="number"],
-input[type="password"],
-input[type="date"],
-textarea {
+.meal-select {
   color: #fff !important;
   background: rgba(255, 255, 255, 0.1) !important;
 }
@@ -23,94 +17,69 @@ select option {
   padding: 8px !important;
 }
 
-/* Placeholder text */
-::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
-  opacity: 1 !important;
-}
-
-:-ms-input-placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-::-ms-input-placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* Focus states */
-select:focus,
-input:focus,
-textarea:focus {
+/* Legacy Dark Pages Focus and Autofill */
+.dark-page select:focus,
+.dark-page input:focus,
+.dark-page textarea:focus {
   color: #fff !important;
   background: rgba(255, 255, 255, 0.15) !important;
   outline: 2px solid #ff6b35 !important;
 }
 
-/* Disabled states */
-select:disabled,
-input:disabled,
-textarea:disabled {
+.dark-page select:disabled,
+.dark-page input:disabled,
+.dark-page textarea:disabled {
   color: rgba(255, 255, 255, 0.4) !important;
   background: rgba(255, 255, 255, 0.05) !important;
   cursor: not-allowed !important;
 }
 
-/* Read-only states */
-select[readonly],
-input[readonly],
-textarea[readonly] {
-  color: rgba(255, 255, 255, 0.7) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+/* ------------------------------------------------------------- */
+/* Auth Modal & Login/Signup Forms (Clean, High-Contrast Inputs) */
+/* ------------------------------------------------------------- */
+.auth-modal,
+.auth-modal form {
+  color: #0f172a !important;
 }
 
-/* Autofill fix for Chrome */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #1a1a1a inset !important;
-  -webkit-text-fill-color: #fff !important;
-  caret-color: #fff !important;
+.auth-modal label {
+  color: #334155 !important;
+  font-weight: 700 !important;
 }
 
-/* Date input text color */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
+.auth-modal input,
+.auth-input {
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  caret-color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
 
-/* Number input arrows */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  opacity: 1;
-  filter: invert(1);
+.auth-modal input::placeholder,
+.auth-input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
 }
 
-/* Text selection */
-::selection {
-  background: rgba(255, 107, 53, 0.3);
-  color: #fff;
+.auth-modal input:focus,
+.auth-input:focus {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #0f172a !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.15) !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
 
-::-moz-selection {
-  background: rgba(255, 107, 53, 0.3);
-  color: #fff;
-}
-
-/* Modal/Dialog text */
-.modal input,
-.modal select,
-.modal textarea,
-.dialog input,
-.dialog select,
-.dialog textarea {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Form labels */
-label {
-  color: #ccc !important;
+.auth-modal input:-webkit-autofill,
+.auth-modal input:-webkit-autofill:hover,
+.auth-modal input:-webkit-autofill:focus,
+.auth-modal input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
 }
 
 /* Button text */

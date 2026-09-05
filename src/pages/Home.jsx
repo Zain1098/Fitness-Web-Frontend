@@ -1,867 +1,853 @@
-import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components'
-import VisitorNavbar from '../components/VisitorNavbar.jsx';
-import PromoPopup from '../components/PromoPopup.jsx';
-import ScrollToTop from '../components/ScrollToTop.jsx';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import { showToast } from '../components/Toast.jsx';
-import Clock from '@/components/ui/clock'
-import { AnimatedTestimonials } from '@/components/ui/animated-testimonials.jsx'
-import PricingCard from '@/components/ui/PricingCard.jsx'
-import SwitchBilling from '@/components/ui/SwitchBilling.jsx'
-import '../styles/neon.css';
-import { useInView, useTilt, animateCounter, animateBars, startBarsLoop } from '../utils/anim.js';
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { EffectCards, Pagination } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/effect-cards'
-import 'swiper/css/pagination'
-import { api } from '@/api/client.js';
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import VisitorNavbar from '../components/VisitorNavbar.jsx'
+import AuthModal from '../components/AuthModal.jsx'
+import PricingModal from '../components/PricingModal.jsx'
+import ScrollToTop from '../components/ScrollToTop.jsx'
+import Card3D from '../components/ui/Card3D.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
+import {
+  Dumbbell,
+  Activity,
+  Flame,
+  Heart,
+  Play,
+  Sparkles,
+  ShieldCheck,
+  Check,
+  ArrowRight,
+  Star,
+  Users,
+  Calendar,
+  Layers,
+  ChevronRight,
+  TrendingUp,
+  Award
+} from 'lucide-react'
 
-function WhyTracking() {
-  const ref = useRef(null);
-  const inView = useInView(ref);
+export default function Home() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [pricingModalOpen, setPricingModalOpen] = useState(false)
+  const [activeYogaTab, setActiveYogaTab] = useState('all')
+  const [annualBilling, setAnnualBilling] = useState(false)
+
   useEffect(() => {
-    if (inView) ref.current.querySelectorAll('.ff-card').forEach((c, i) => { c.classList.add('ff-in'); c.style.transitionDelay = `${i * 120}ms`; });
-  }, [inView]);
-  const cards = [
-    { icon: 'flaticon-002-dumbell', title: 'Train Smarter', text: 'Structure sets, reps, load and rest with clarity. Auto‑calculate training volume and intensity, track PRs and warm‑up ramps, and avoid junk volume.', bullets: ['Volume & intensity', 'Warm‑up ramps', 'PR tracking'] },
-    { icon: 'flaticon-033-juice', title: 'Recover Better', text: 'Balance training with sleep, hydration and mobility. Log soreness and HR, get recovery flags and see how rest days impact performance.', bullets: ['Sleep & hydration', 'Recovery flags', 'Mobility focus'] },
-    { icon: 'flaticon-014-heart-beat', title: 'Build Consistency', text: 'Turn sessions into streaks and micro‑goals. Gentle reminders, habit chains and weekly targets keep momentum without pressure.', bullets: ['Streaks', 'Micro‑goals', 'Weekly targets'] },
-    { icon: 'fa fa-line-chart', title: 'See Progress', text: 'Visualize trends that matter: peak sets, weekly volume, effort zones and exercise balance. Spot plateaus early and adjust with confidence.', bullets: ['Peak sets', 'Effort zones', 'Balance insights'] },
-    { icon: 'fa fa-magic', title: 'Plan With AI', text: 'Get goal‑based plans that adapt to your schedule and recovery. FitForge suggests sets, rep ranges and progression so you focus on execution.', bullets: ['Adaptive plans', 'Suggested progressions', 'Goal‑based blocks'] },
-    { icon: 'fa fa-cogs', title: 'Technique & Form', text: 'Log tempo, range of motion and coaching cues. Track form ratings per set to spot breakdowns and keep mechanics clean under load.', bullets: ['Tempo/ROM', 'Coaching cues', 'Form ratings'] },
-    { icon: 'fa fa-bolt', title: 'Energy & Readiness', text: 'Capture RPE, sleep and HRV to compute a daily readiness score. Use intensity suggestions to train smart—not just hard.', bullets: ['RPE', 'HRV readiness', 'Intensity guide'] },
-    { icon: 'fa fa-cutlery', title: 'Nutrition Sync', text: 'Align calories and macros with training blocks. See pre/post‑workout timing, hydration and recovery foods that boost performance.', bullets: ['Macros & timing', 'Hydration', 'Recovery foods'] },
-    { icon: 'fa fa-flag-checkered', title: 'Goal Tracking', text: 'Set milestones and periodization blocks. Weekly reviews highlight wins, gaps and the next best step toward your target.', bullets: ['Milestones', 'Periodization', 'Weekly reviews'] },
-    { icon: 'fa fa-bell-o', title: 'Smart Reminders', text: 'Low‑friction nudges, calendar sync and micro‑goals keep you moving. FitForge reduces decision fatigue so consistency becomes natural.', bullets: ['Calendar sync', 'Nudges', 'Decision ease'] }
-  ];
+    if (location.hash) {
+      const id = location.hash.replace('#', '')
+      const tryScroll = () => {
+        const el = document.getElementById(id)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' })
+          return true
+        }
+        return false
+      }
+
+      if (!tryScroll()) {
+        const t1 = setTimeout(tryScroll, 120)
+        const t2 = setTimeout(tryScroll, 350)
+        const t3 = setTimeout(tryScroll, 700)
+        return () => {
+          clearTimeout(t1)
+          clearTimeout(t2)
+          clearTimeout(t3)
+        }
+      }
+    }
+  }, [location.pathname, location.hash])
+
+  useEffect(() => {
+    if (user) {
+      if (user.onboarding_completed) {
+        navigate('/dashboard')
+      } else {
+        navigate('/onboarding')
+      }
+    }
+  }, [user, navigate])
+
+  const openAuth = () => setAuthModalOpen(true)
+
+  const yogaStyles = [
+    {
+      title: 'Muscle Stretch',
+      category: 'Mobility',
+      duration: '20 min',
+      level: 'All Levels',
+      image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80',
+      badge: 'Recovery'
+    },
+    {
+      title: 'Relaxation Stretch',
+      category: 'Mind & Body',
+      duration: '25 min',
+      level: 'Beginner',
+      image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
+      badge: 'Calm'
+    },
+    {
+      title: 'Balance Booster',
+      category: 'Core Stability',
+      duration: '30 min',
+      level: 'Intermediate',
+      image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80',
+      badge: 'Balance'
+    },
+    {
+      title: 'Flexibility Enhancer',
+      category: 'Full Stretch',
+      duration: '35 min',
+      level: 'Intermediate',
+      image: 'https://images.unsplash.com/photo-1552196563-552368174c86?auto=format&fit=crop&w=600&q=80',
+      badge: 'Flex'
+    },
+    {
+      title: 'Full-Body Flow',
+      category: 'Vinyasa',
+      duration: '45 min',
+      level: 'Advanced',
+      image: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?auto=format&fit=crop&w=600&q=80',
+      badge: 'Full Body'
+    },
+    {
+      title: 'Strength Flow',
+      category: 'Power Yoga',
+      duration: '40 min',
+      level: 'Advanced',
+      image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80',
+      badge: 'Power'
+    }
+  ]
+
+  const events = [
+    {
+      id: '01',
+      title: 'FitForge Wellness & Vision Expo',
+      date: 'Full-day event • Oct 24, 2026',
+      location: 'Main Arena & Live Stream',
+      tag: 'Global Event'
+    },
+    {
+      id: '02',
+      title: 'Mind Balance & Mobility Retreat',
+      date: 'Weekend retreat • Nov 12, 2026',
+      location: 'Zen Studio & Digital Hub',
+      tag: 'Workshop'
+    },
+    {
+      id: '03',
+      title: 'Functional Hypertrophy Training Camp',
+      date: '3-Day Masterclass • Dec 05, 2026',
+      location: 'Olympic Training Center',
+      tag: 'Advanced'
+    },
+    {
+      id: '04',
+      title: 'Precision Meal Planning & Bio-Nutrition',
+      date: 'Online Seminar • Dec 18, 2026',
+      location: 'Interactive Webinar',
+      tag: 'Nutrition'
+    }
+  ]
+
   return (
-    <section className="ff-section ff-particles" id="why" style={{ position: 'relative' }}>
-      {[...Array(6)].map((_, i) => <div key={i} className="ff-particle" />)}
-      <div className="ff-container" ref={ref}>
-        <h2 className="ff-title ff-glitch" data-text="Why Fitness Tracking Matters">Why Fitness Tracking Matters</h2>
-        <p className="ff-sub">A clear view of training turns effort into intelligent progress.</p>
-        <div className="ff-cards-wrap">
-          <div className="ff-cards">
-          <Swiper
-            effect={'cards'}
-            grabCursor={true}
-            allowTouchMove={true}
-            simulateTouch={true}
-            loop={true}
-            navigation={false}
-            pagination={{ clickable: true }}
-            modules={[EffectCards, Pagination]}
-            className="Carousal_002"
-          >
-            {cards.map((c, idx) => (
-              <SwiperSlide key={idx} className="rounded-3xl ff-neon-border">
-                <div>
-                  <div className="ff-icon ff-pulse-container">
-                    <i className={c.icon}></i>
-                    <div className="ff-pulse-ring"></div>
-                    <div className="ff-pulse-ring"></div>
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-hidden font-['Plus_Jakarta_Sans',sans-serif]">
+      <ScrollToTop />
+      <VisitorNavbar authModalOpen={authModalOpen} setAuthModalOpen={setAuthModalOpen} />
+
+      {/* ----------------- 1. HERO SECTION ----------------- */}
+      <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Subtle Ambient Radial Glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-lime-200/40 via-cyan-100/30 to-purple-100/30 blur-3xl -z-10 rounded-full pointer-events-none" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Left Column: Headlines & CTAs */}
+          <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-pill text-xs font-semibold text-slate-800 tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
+              <span>AI-Powered Biomechanics & Posture Vision</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-950 font-['Outfit'] leading-[1.08]">
+              Perfect Fitness Path <br />
+              With <span className="text-slate-900 relative">
+                FitForge
+                <span className="absolute left-0 -bottom-1 w-full h-2.5 bg-[#D4F63D]/60 -z-10 rounded-full" />
+              </span>
+            </h1>
+
+            <p className="text-base sm:text-lg text-slate-600 max-w-xl font-normal leading-relaxed">
+              Unlock your full potential with tailored training programs, real-time AI computer vision posture feedback, and precision nutrition plans all crafted to keep you consistent.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <button
+                onClick={openAuth}
+                className="group px-7 py-3.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 font-black text-sm transition-all shadow-[0_8px_25px_rgba(212,246,61,0.4)] hover:shadow-[0_10px_30px_rgba(212,246,61,0.55)] hover:scale-105 flex items-center gap-2"
+              >
+                <span>Get Started Free</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+              <a
+                href="#how-it-works"
+                className="px-6 py-3.5 rounded-full bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition-all shadow-sm flex items-center gap-2"
+              >
+                <span>Explore Features</span>
+              </a>
+            </div>
+
+            {/* Key Metrics Counters */}
+            <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-200/70 w-full max-w-md">
+              <div>
+                <div className="text-3xl sm:text-4xl font-extrabold font-['Outfit'] text-slate-950">500k+</div>
+                <div className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Personalized programs delivered</div>
+              </div>
+              <div>
+                <div className="text-3xl sm:text-4xl font-extrabold font-['Outfit'] text-slate-950">10k+</div>
+                <div className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Active members achieving results</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Hero Visual with 3D Perspective Tilt & Pose Keypoints */}
+          <div className="lg:col-span-6 relative flex justify-center items-center">
+            <Card3D maxTilt={8} className="w-full max-w-lg">
+              {/* Main Stage Frame */}
+              <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(15,23,42,0.12)] border border-white/60 bg-gradient-to-b from-slate-100 to-slate-200">
+                <img
+                  src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=85"
+                  alt="Fitness Athlete Pose"
+                  className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700"
+                />
+
+                {/* Glowing Pose Vision Keypoints Overlaid on Joints */}
+                <div className="absolute top-[32%] left-[46%] w-4 h-4 rounded-full bg-white border-2 border-[#10B981] shadow-lg keypoint-dot pointer-events-none" />
+                <div className="absolute top-[44%] left-[36%] w-3.5 h-3.5 rounded-full bg-white border-2 border-cyan-400 shadow-md keypoint-dot pointer-events-none" />
+                <div className="absolute top-[42%] left-[58%] w-3.5 h-3.5 rounded-full bg-white border-2 border-cyan-400 shadow-md keypoint-dot pointer-events-none" />
+                <div className="absolute top-[58%] left-[48%] w-4 h-4 rounded-full bg-white border-2 border-[#10B981] shadow-lg keypoint-dot pointer-events-none" />
+                <div className="absolute top-[72%] left-[38%] w-3.5 h-3.5 rounded-full bg-white border-2 border-[#D4F63D] shadow-md keypoint-dot pointer-events-none" />
+                <div className="absolute top-[70%] left-[62%] w-3.5 h-3.5 rounded-full bg-white border-2 border-[#D4F63D] shadow-md keypoint-dot pointer-events-none" />
+
+                {/* Connected Vision Overlay Subtle Grid */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+              </div>
+
+              {/* Floating Glass Metric Card 1: Activity & Accuracy Gauges (Top Left) */}
+              <div
+                style={{ transform: 'translateZ(40px)' }}
+                className="absolute -top-4 -left-4 sm:-left-8 glass-panel rounded-3xl p-4 shadow-xl border border-white/80 animate-soft-float"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col items-center justify-center">
+                    <Activity className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>{c.title}</h4>
-                  <p style={{ color: 'var(--ff-muted)' }}>{c.text}</p>
-                  <div className="ff-bullets">
-                    {c.bullets?.map((b, bi) => (
-                      <span key={bi} className="ff-pill ff-magnetic">{b}</span>
-                    ))}
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">AI Accuracy</span>
+                    <div className="text-xl font-black font-['Outfit'] text-slate-900">96.8%</div>
                   </div>
                 </div>
-              </SwiperSlide>
+              </div>
+
+              {/* Floating Glass Metric Card 2: Stretch & Coaching Status (Top Right) */}
+              <div
+                style={{ transform: 'translateZ(35px)' }}
+                className="absolute top-10 -right-4 sm:-right-6 glass-panel rounded-3xl p-3.5 shadow-xl border border-white/80 animate-soft-float-delayed"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="px-2.5 py-1 rounded-full bg-[#D4F63D] text-slate-950 text-[11px] font-bold">
+                    Pose Check
+                  </span>
+                  <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                </div>
+                <div className="mt-2 text-xs font-semibold text-slate-800">
+                  Spine Alignment: <span className="text-emerald-600 font-bold">Optimal</span>
+                </div>
+              </div>
+
+              {/* Floating Card 3: Community & Coach Feedback (Bottom) */}
+              <div
+                style={{ transform: 'translateZ(45px)' }}
+                className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-[88%] glass-panel rounded-2xl p-3.5 shadow-2xl border border-white/90 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2 overflow-hidden">
+                    <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="Member" />
+                    <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="Member" />
+                    <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Member" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">5.8k+ Athletes</div>
+                    <div className="text-[10px] text-slate-500">Live workout sessions</div>
+                  </div>
+                </div>
+                <button
+                  onClick={openAuth}
+                  className="px-3.5 py-1.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 text-xs font-black transition-all flex items-center gap-1 shadow-sm"
+                >
+                  <span>Join</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </Card3D>
+          </div>
+        </div>
+      </section>
+
+      {/* ----------------- 2. HOW IT WORKS SECTION (Matching Reference) ----------------- */}
+      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200/60">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-800">
+            <Sparkles className="w-3.5 h-3.5 text-[#10B981]" />
+            <span>HOW FITFORGE WORKS</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-['Outfit'] text-slate-950">
+            Three Steps to Peak Performance
+          </h2>
+          <p className="text-slate-600 text-base leading-relaxed">
+            Empowering you with AI computer vision and bio-analytics to boost fitness output, enhance sleep balance, and protect joint longevity.
+          </p>
+        </div>
+
+        {/* 3 Steps Cards Wrapped in Card3D */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Card 1: Biomechanics & Pose Vision */}
+          <Card3D maxTilt={12}>
+            <div className="glass-panel rounded-[2.5rem] p-8 border border-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group h-full">
+              <div>
+                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100">
+                  <img
+                    src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80"
+                    alt="Athletic Pose Vision"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-1/2 left-1/3 w-3.5 h-3.5 rounded-full bg-white border-2 border-cyan-400 keypoint-dot shadow-lg" />
+                  <div className="absolute bottom-1/3 right-1/3 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#10B981] keypoint-dot shadow-lg" />
+                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-wider">
+                    Step 01
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold font-['Outfit'] text-slate-950">
+                  AI Vision Calibration
+                </h3>
+                <p className="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Position your phone or laptop camera. MediaPipe neural vision maps 33 skeletal keypoints in real time with zero wearables required.
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-900 mt-6">
+                <span>Real-time Kinematics</span>
+                <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              </div>
+            </div>
+          </Card3D>
+
+          {/* Card 2: Form Check & Rep Counting */}
+          <Card3D maxTilt={12}>
+            <div className="glass-panel rounded-[2.5rem] p-8 border border-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group h-full">
+              <div>
+                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100">
+                  <img
+                    src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80"
+                    alt="Posture Feedback"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-wider">
+                    Step 02
+                  </span>
+                  <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-[#D4F63D] text-slate-950 text-[10px] font-extrabold">
+                    96% Accuracy
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold font-['Outfit'] text-slate-950">
+                  Live Posture Feedback
+                </h3>
+                <p className="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Our audio-visual coach gives instant cues on joint angles, back alignment, and squat depth, while counting valid reps automatically.
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-900 mt-6">
+                <span>Zero Cheated Reps</span>
+                <span className="w-2 h-2 rounded-full bg-[#D4F63D]" />
+              </div>
+            </div>
+          </Card3D>
+
+          {/* Card 3: Bio-Nutrition & Recovery Sync */}
+          <Card3D maxTilt={12}>
+            <div className="glass-panel rounded-[2.5rem] p-8 border border-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group h-full">
+              <div>
+                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden mb-6 bg-slate-100">
+                  <img
+                    src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80"
+                    alt="Recovery and Nutrition"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-wider">
+                    Step 03
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold font-['Outfit'] text-slate-950">
+                  Bio-Nutrition & Recovery
+                </h3>
+                <p className="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Sync completed training volume with your daily calorie burn, hydration targets, and sleep metrics for full muscle restoration.
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-900 mt-6">
+                <span>Continuous Adaptation</span>
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              </div>
+            </div>
+          </Card3D>
+        </div>
+      </section>
+
+      {/* ----------------- 3. NUTRITION & BALANCED MEALS ----------------- */}
+      <section id="nutrition" className="py-20 bg-gradient-to-b from-[#F8FAFC] to-slate-100/60 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Visual: Balanced Meal & Calorie Rings Wrapped in Card3D */}
+            <div className="lg:col-span-6 relative flex justify-center order-2 lg:order-1">
+              <Card3D maxTilt={10} className="w-full max-w-md">
+                <div className="relative w-full aspect-square rounded-[2.5rem] overflow-hidden shadow-xl border border-white/80 bg-white p-3">
+                  <img
+                    src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
+                    alt="Balanced Meal"
+                    className="w-full h-full object-cover rounded-[2rem]"
+                  />
+
+                  {/* Floating Calorie Widget */}
+                  <div
+                    style={{ transform: 'translateZ(30px)' }}
+                    className="absolute top-6 right-6 glass-panel rounded-2xl p-3 shadow-lg border border-white/90"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[11px] font-bold text-slate-600">Daily Calories</span>
+                      <span className="text-xs font-extrabold text-slate-900">2,040 / 2,350</span>
+                    </div>
+                    <div className="w-36 h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                      <div className="h-full bg-[#10B981] rounded-full w-[86%]" />
+                    </div>
+                  </div>
+
+                  {/* Floating Macros Breakdown */}
+                  <div
+                    style={{ transform: 'translateZ(40px)' }}
+                    className="absolute bottom-6 left-6 right-6 glass-panel rounded-2xl p-3 shadow-lg border border-white/90 flex justify-between text-center"
+                  >
+                    <div>
+                      <div className="text-[10px] text-slate-500 font-semibold">Protein</div>
+                      <div className="text-sm font-extrabold text-slate-900 font-['Outfit']">164g</div>
+                    </div>
+                    <div className="w-[1px] bg-slate-200" />
+                    <div>
+                      <div className="text-[10px] text-slate-500 font-semibold">Carbs</div>
+                      <div className="text-sm font-extrabold text-slate-900 font-['Outfit']">269g</div>
+                    </div>
+                    <div className="w-[1px] bg-slate-200" />
+                    <div>
+                      <div className="text-[10px] text-slate-500 font-semibold">Healthy Fats</div>
+                      <div className="text-sm font-extrabold text-slate-900 font-['Outfit']">65g</div>
+                    </div>
+                  </div>
+                </div>
+              </Card3D>
+            </div>
+
+            {/* Right Text: Nutrition Explanation */}
+            <div className="lg:col-span-6 flex flex-col items-start space-y-5 order-1 lg:order-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Precision Nutrition Architecture</span>
+              </div>
+
+              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-['Outfit'] text-slate-950">
+                Fit your body with <br />
+                <span className="text-slate-900 underline decoration-[#D4F63D] decoration-4 underline-offset-4">
+                  balanced meals
+                </span>
+              </h2>
+
+              <p className="text-slate-600 text-base leading-relaxed">
+                With tailored options for every dietary preference — including high protein, vegan, keto, and Mediterranean — our bio-nutrition engine calculates your micro and macro targets automatically based on your daily training expenditure.
+              </p>
+
+              {/* Diet Tags */}
+              <div className="flex flex-wrap gap-2.5 pt-2">
+                {['High Protein', 'Vegan & Vegetarian', 'Keto & Low Carb', 'Mediterranean', 'Gluten Free'].map((diet) => (
+                  <span
+                    key={diet}
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200/80 shadow-sm text-slate-800"
+                  >
+                    {diet}
+                  </span>
+                ))}
+              </div>
+
+              <div className="pt-3">
+                <button
+                  onClick={openAuth}
+                  className="px-7 py-3.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 font-black text-sm transition-all shadow-[0_4px_16px_rgba(212,246,61,0.35)] hover:shadow-[0_6px_25px_rgba(212,246,61,0.5)] hover:scale-105 active:scale-95 flex items-center gap-2"
+                >
+                  <span>Build Your Meal Plan</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ----------------- 3. WORKOUT & YOGA STYLES ----------------- */}
+      <section id="workouts" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 text-xs font-bold text-slate-800">
+            <Flame className="w-3.5 h-3.5 text-amber-500" />
+            <span>Versatile Movement Library</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-['Outfit'] text-slate-950">
+            Find Your Perfect Style
+          </h2>
+          <p className="text-slate-600 text-base">
+            Explore diverse discipline modalities designed for functional strength, joint mobility, athletic recovery, and posture alignment.
+          </p>
+        </div>
+
+        {/* 6 Grid Cards Matching Reference Style Wrapped in Card3D */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {yogaStyles.map((item, idx) => (
+            <Card3D key={idx} maxTilt={10} className="h-full">
+              <div className="group relative rounded-3xl overflow-hidden glass-panel border border-white/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full justify-between">
+                {/* Image Frame */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-4 left-4 px-3 py-1 rounded-full glass-pill text-[11px] font-bold text-slate-900">
+                    {item.badge}
+                  </span>
+                  <span className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-[11px] font-medium text-white">
+                    {item.duration}
+                  </span>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.category}</div>
+                    <h3 className="text-xl font-bold font-['Outfit'] text-slate-950 mt-1">{item.title}</h3>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">{item.level}</span>
+                    <button
+                      onClick={openAuth}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900 group-hover:bg-[#D4F63D] text-white group-hover:text-slate-950 text-xs font-black transition-all shadow-sm group-hover:shadow-[0_4px_12px_rgba(212,246,61,0.35)]"
+                    >
+                      <span>Start Session</span>
+                      <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Card3D>
+          ))}
+        </div>
+      </section>
+
+      {/* ----------------- 4. WORKSHOPS & EVENT SCHEDULE ----------------- */}
+      <section className="py-20 bg-slate-100/70 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Live Schedules & Camps</span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold font-['Outfit'] text-slate-950 mt-1">
+                Upcoming Community Events
+              </h2>
+            </div>
+            <button
+              onClick={openAuth}
+              className="self-start md:self-auto text-xs font-bold px-4 py-2 rounded-full glass-pill border border-slate-300 text-slate-800 hover:bg-white transition-all"
+            >
+              View Full Calendar →
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {events.map((ev) => (
+              <div
+                key={ev.id}
+                className="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-all border border-white"
+              >
+                <div className="flex items-start sm:items-center gap-4 sm:gap-6">
+                  <span className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-300">
+                    {ev.id}
+                  </span>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-950">{ev.title}</h3>
+                    <div className="text-xs sm:text-sm text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                      <span>{ev.date}</span>
+                      <span>•</span>
+                      <span>{ev.location}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 self-end sm:self-center">
+                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                    {ev.tag}
+                  </span>
+                  <button
+                    onClick={openAuth}
+                    className="px-5 py-2.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 text-xs font-black transition-all shadow-[0_4px_14px_rgba(212,246,61,0.3)] hover:scale-105"
+                  >
+                    Reserve Your Spot
+                  </button>
+                </div>
+              </div>
             ))}
-          </Swiper>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
+      {/* ----------------- 5. PRICING SECTION ----------------- */}
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-xl mx-auto mb-14 space-y-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Flexible Memberships</span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold font-['Outfit'] text-slate-950">
+            Invest in Your Health
+          </h2>
+          <p className="text-slate-600 text-base">
+            Simple transparent pricing. Cancel or switch plans anytime.
+          </p>
 
-function HowItWorks() {
-  const ref = useRef(null);
-  const inView = useInView(ref);
-  return (
-    <section className="ff-section" id="how">
-      <div className="ff-container" ref={ref}>
-        <h2 className="ff-title">How It Works</h2>
-        <p className="ff-sub">Log Workouts → Smart Insights → Visual Progress</p>
-        <div className="ff-grid" style={{ gridTemplateColumns: '1.2fr .8fr' }}>
-          <div>
-            <div className="ff-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-              <div className="ff-card ff-in">
-                <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Log Workouts</h4>
-                <p style={{ color: 'var(--ff-muted)' }}>Record sets, reps, load and rest with clarity.</p>
-                <img src="/img/home/push%20up.png" alt="Push Up" className="ff-card-img" />
-              </div>
-              <div className="ff-arrow"></div>
-              <div className="ff-card ff-in">
-                <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Smart Insights</h4>
-                <p style={{ color: 'var(--ff-muted)' }}>Auto trends highlight intensity, volume and balance.</p>
-                <img src="/img/home/Smart%20Insights.png" alt="Smart Insights" className="ff-card-img" />
-              </div>
-              <div className="ff-arrow" style={{ gridColumn: '2 / span 1' }}></div>
-              <div className="ff-card ff-in" style={{ gridColumn: '3 / span 1' }}>
-                <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Visual Progress</h4>
-                <p style={{ color: 'var(--ff-muted)' }}>Charts and streaks keep motivation high.</p>
-                <img src="/img/home/Visual%20Progress.png" alt="Visual Progress" className="ff-card-img" />
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="ff-panel ff-float-in" style={{ padding: '24px' }}>
-              <LiveBars count={12} />
-              <div className="ff-metrics" style={{ marginTop: '16px' }}>
-                <div className="ff-metric ff-ring"><h5 style={{ color: 'var(--ff-text)' }}>Volume</h5><div style={{ color: 'var(--ff-neon)', fontSize: '24px' }}>+12%</div></div>
-                <div className="ff-metric ff-ring"><h5 style={{ color: 'var(--ff-text)' }}>Consistency</h5><div style={{ color: 'var(--ff-neon)', fontSize: '24px' }}>21 days</div></div>
-              </div>
-            </div>
+          {/* Billing Toggle */}
+          <div className="pt-4 flex items-center justify-center gap-3">
+            <span className={`text-sm font-semibold ${!annualBilling ? 'text-slate-950' : 'text-slate-400'}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setAnnualBilling(!annualBilling)}
+              className="relative w-14 h-8 rounded-full bg-slate-950 p-1 transition-colors"
+            >
+              <div
+                className={`w-6 h-6 rounded-full bg-[#D4F63D] transition-transform ${
+                  annualBilling ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-semibold flex items-center gap-1.5 ${annualBilling ? 'text-slate-950' : 'text-slate-400'}`}>
+              <span>Annual</span>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#D4F63D] text-slate-950">
+                Save 20%
+              </span>
+            </span>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
 
-function DashboardShowcase() {
-  return (
-    <section className="ff-section" id="showcase" style={{ position: 'relative', paddingTop: '60px', paddingBottom: '60px' }}>
-      <div className="ff-container">
-        <h2 className="ff-title">Dashboard Preview Showcase</h2>
-        <p className="ff-sub" style={{ marginBottom: '20px' }}>Live metrics, trends and an immersive dashboard feel.</p>
-        <div className="ff-dash-grid" style={{ gap: '20px' }}>
-          <div className="ff-dash-left">
-            <div className="ff-panel ff-neon-border" style={{ marginBottom: '16px', padding: '20px' }}>
-              <h5 className="ff-underline" style={{ color: 'var(--ff-text)', marginBottom: '12px' }}>Live Weekly Snapshot</h5>
-              <LiveBars count={16} />
-              <div style={{ marginTop:'12px', display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                <div className="ff-metric ff-magnetic" style={{ padding: '10px' }}><div style={{ color:'var(--ff-muted)', fontSize: '13px' }}>Active Sessions</div><div style={{ color:'var(--ff-neon)', fontSize:'20px' }}>+5/wk</div></div>
-                <div className="ff-metric ff-magnetic" style={{ padding: '10px' }}><div style={{ color:'var(--ff-muted)', fontSize: '13px' }}>Weekly Volume</div><div style={{ color:'var(--ff-neon)', fontSize:'20px' }}>+12%</div></div>
-                <div className="ff-metric ff-magnetic" style={{ padding: '10px' }}><div style={{ color:'var(--ff-muted)', fontSize: '13px' }}>Consistency</div><div style={{ color:'var(--ff-neon)', fontSize:'20px' }}>21 days</div></div>
-              </div>
-            </div>
-            <div className="ff-panel ff-neon-border" style={{ padding: '20px' }}>
-              <h5 className="ff-underline" style={{ color: 'var(--ff-text)', marginBottom: '12px' }}>Real-Time Stats</h5>
-              <div style={{ display: 'grid', gap: '10px' }}>
-                <div className="ff-metric ff-magnetic" style={{ background: 'rgba(20,225,255,0.08)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--ff-text)', fontSize: '13px' }}>💪 Workouts</span>
-                  <span style={{ color: 'var(--ff-neon)', fontSize: '18px', fontWeight: 'bold' }}>18</span>
+        {/* 3 Tier Cards Wrapped in Card3D */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          {/* Plan 1: Free */}
+          <Card3D maxTilt={8} className="h-full">
+            <div className="glass-panel rounded-3xl p-8 border border-white/80 shadow-sm flex flex-col justify-between h-full">
+              <div>
+                <div className="text-xs font-bold uppercase text-slate-400 tracking-wider">Starter</div>
+                <h3 className="text-2xl font-bold font-['Outfit'] text-slate-950 mt-1">Free Tier</h3>
+                <p className="text-xs text-slate-500 mt-2">Essential tools for beginners starting their journey.</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black font-['Outfit'] text-slate-950">$0</span>
+                  <span className="text-xs text-slate-500">/ forever</span>
                 </div>
-                <div className="ff-metric ff-magnetic" style={{ background: 'rgba(20,225,255,0.08)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--ff-text)', fontSize: '13px' }}>🔥 Streak</span>
-                  <span style={{ color: 'var(--ff-neon)', fontSize: '18px', fontWeight: 'bold' }}>7 days</span>
+
+                <ul className="mt-8 space-y-3 text-xs text-slate-700">
+                  {['Basic workout logging', 'Core exercise library access', 'Daily water tracker', 'Community access'].map((feat, i) => (
+                    <li key={i} className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                onClick={openAuth}
+                className="mt-8 w-full py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-sm hover:scale-[1.01]"
+              >
+                Get Started Free
+              </button>
+            </div>
+          </Card3D>
+
+          {/* Plan 2: Pro (Featured) */}
+          <Card3D maxTilt={8} className="h-full">
+            <div className="glass-panel rounded-3xl p-8 border-2 border-slate-950 shadow-xl flex flex-col justify-between relative bg-white h-full">
+              <div
+                style={{ transform: 'translateZ(30px)' }}
+                className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-slate-950 text-[#D4F63D] text-[11px] font-black uppercase tracking-wider shadow-md"
+              >
+                Most Popular
+              </div>
+
+              <div>
+                <div className="text-xs font-bold uppercase text-slate-400 tracking-wider">Pro Athlete</div>
+                <h3 className="text-2xl font-bold font-['Outfit'] text-slate-950 mt-1">Pro Plan</h3>
+                <p className="text-xs text-slate-500 mt-2">For serious fitness enthusiasts needing smart AI vision coaching.</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black font-['Outfit'] text-slate-950">
+                    {annualBilling ? '$12' : '$15'}
+                  </span>
+                  <span className="text-xs text-slate-500">/ month</span>
                 </div>
-                <div className="ff-metric ff-magnetic" style={{ background: 'rgba(20,225,255,0.08)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--ff-text)', fontSize: '13px' }}>⚡ Calories</span>
-                  <span style={{ color: 'var(--ff-neon)', fontSize: '18px', fontWeight: 'bold' }}>2.4k</span>
+
+                <ul className="mt-8 space-y-3 text-xs text-slate-700">
+                  {[
+                    'MediaPipe AI camera posture tracking',
+                    'Automatic rep counting & form score',
+                    'Personalized macro meal planner',
+                    'Google Fit & wearable biometric sync',
+                    'Priority support & smart analytics'
+                  ].map((feat, i) => (
+                    <li key={i} className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span className="font-semibold text-slate-900">{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                onClick={openAuth}
+                className="mt-8 w-full py-4 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 font-black text-xs transition-all shadow-[0_6px_25px_rgba(212,246,61,0.4)] hover:shadow-[0_8px_30px_rgba(212,246,61,0.55)] hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <span>Start 14-Day Free Trial</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </Card3D>
+
+          {/* Plan 3: Elite */}
+          <Card3D maxTilt={8} className="h-full">
+            <div className="glass-panel rounded-3xl p-8 border border-white/80 shadow-sm flex flex-col justify-between h-full">
+              <div>
+                <div className="text-xs font-bold uppercase text-slate-400 tracking-wider">Elite Unlimited</div>
+                <h3 className="text-2xl font-bold font-['Outfit'] text-slate-950 mt-1">Elite Plan</h3>
+                <p className="text-xs text-slate-500 mt-2">All-inclusive 1-on-1 coach feedback and custom nutrition design.</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black font-['Outfit'] text-slate-950">
+                    {annualBilling ? '$24' : '$29'}
+                  </span>
+                  <span className="text-xs text-slate-500">/ month</span>
                 </div>
+
+                <ul className="mt-8 space-y-3 text-xs text-slate-700">
+                  {[
+                    'Everything in Pro included',
+                    'Unlimited AI vision workouts',
+                    'Weekly coach video review',
+                    'Custom macro & micro adjustment',
+                    'VIP early feature access'
+                  ].map((feat, i) => (
+                    <li key={i} className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                onClick={openAuth}
+                className="mt-8 w-full py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-sm hover:scale-[1.01]"
+              >
+                Choose Elite
+              </button>
+            </div>
+          </Card3D>
+        </div>
+      </section>
+
+      {/* ----------------- 6. MODERN BRAND FOOTER ----------------- */}
+      <footer className="pt-20 pb-12 border-t border-slate-200 bg-white px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16 border-b border-slate-100">
+            {/* Brand Column */}
+            <div className="md:col-span-4 space-y-4">
+              <Link to="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center text-white">
+                  <Dumbbell className="w-4 h-4 text-[#D4F63D]" />
+                </div>
+                <span className="text-2xl font-black font-['Outfit'] text-slate-950">FitForge</span>
+              </Link>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
+                Next-generation fitness architecture combining real-time computer vision, adaptive programming, and bio-nutrition for high performance.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div className="md:col-span-2 space-y-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">Platform</div>
+              <ul className="space-y-2 text-xs text-slate-500">
+                <li><a href="#how-it-works" className="hover:text-slate-900 transition-colors">Vision Biomechanics</a></li>
+                <li><a href="#workouts" className="hover:text-slate-900 transition-colors">Workout Library</a></li>
+                <li><a href="#nutrition" className="hover:text-slate-900 transition-colors">Macro Engine</a></li>
+                <li><a href="#pricing" className="hover:text-slate-900 transition-colors">Memberships</a></li>
+              </ul>
+            </div>
+
+            <div className="md:col-span-2 space-y-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">Company</div>
+              <ul className="space-y-2 text-xs text-slate-500">
+                <li><Link to="/about" className="hover:text-slate-900 transition-colors">About Us</Link></li>
+                <li><Link to="/services" className="hover:text-slate-900 transition-colors">Coaching Services</Link></li>
+                <li><Link to="/contact" className="hover:text-slate-900 transition-colors">Contact</Link></li>
+                <li><a href="#privacy" className="hover:text-slate-900 transition-colors">Privacy Policy</a></li>
+              </ul>
+            </div>
+
+            {/* Newsletter */}
+            <div className="md:col-span-4 space-y-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">Stay Ahead</div>
+              <p className="text-xs text-slate-500">Receive weekly evidence-based training routines and recovery protocols.</p>
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="px-4 py-2.5 rounded-full border border-slate-200 bg-slate-50 text-xs w-full focus:outline-none focus:ring-2 focus:ring-slate-950"
+                />
+                <button
+                  onClick={openAuth}
+                  className="px-5 py-2.5 rounded-full bg-slate-950 text-white text-xs font-bold hover:bg-slate-800 transition-colors flex-shrink-0"
+                >
+                  Join
+                </button>
               </div>
             </div>
           </div>
-          <div className="ff-video-float">
-            <video autoPlay loop muted playsInline preload="metadata" className="ff-video-fit">
-              <source src="/video/Dashboard%20for%20home.mp4" type="video/mp4" />
-            </video>
-          </div>
-        </div>
-        <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
-            <div style={{ fontSize: '26px', marginBottom: '4px' }}>📊</div>
-            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Smart Analytics</h4>
-            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Track metrics</p>
-          </div>
-          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
-            <div style={{ fontSize: '26px', marginBottom: '4px' }}>🎯</div>
-            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Goal Tracking</h4>
-            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Crush targets</p>
-          </div>
-          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
-            <div style={{ fontSize: '26px', marginBottom: '4px' }}>📈</div>
-            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Progress Charts</h4>
-            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Visualize journey</p>
-          </div>
-          <div className="ff-card ff-magnetic ff-neon-border" style={{ textAlign: 'center', padding: '14px' }}>
-            <div style={{ fontSize: '26px', marginBottom: '4px' }}>⚡</div>
-            <h4 style={{ color: 'var(--ff-neon)', fontSize: '15px', marginBottom: '2px' }}>Live Updates</h4>
-            <p style={{ color: 'var(--ff-muted)', fontSize: '11px', margin: 0 }}>Real-time sync</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
-function LiveBars({ count = 14 }){
-  const ref = useRef(null)
-  useEffect(() => {
-    if (!ref.current) return
-    const stop = startBarsLoop(ref.current, 68, 1400)
-    return stop
-  }, [])
-  return (
-    <div className="ff-mini-graph" ref={ref}>
-      {Array.from({ length: count }).map((_, i) => <span key={i}></span>)}
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+            <div>&copy; {new Date().getFullYear()} FitForge Technologies Inc. All rights reserved.</div>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-slate-600 transition-colors">Terms of Service</a>
+              <a href="#" className="hover:text-slate-600 transition-colors">Privacy</a>
+              <a href="#" className="hover:text-slate-600 transition-colors">Cookies</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <PricingModal isOpen={pricingModalOpen} onClose={() => setPricingModalOpen(false)} />
     </div>
   )
 }
-
-function ProgressInsights() {
-  const ref = useRef(null);
-  const inView = useInView(ref);
-  useEffect(() => { if (inView) ref.current.querySelectorAll('.ff-card').forEach((c, i) => { c.classList.add('ff-in'); c.style.transitionDelay = `${i * 120}ms`; }); }, [inView]);
-  const items = [
-    { title: 'Weekly Summary', icon: 'fa fa-calendar-check-o' },
-    { title: 'Habit Tracking', icon: 'fa fa-check' },
-    { title: 'Active Minutes', icon: 'fa fa-bolt' },
-    { title: 'Hydration & Sleep', icon: 'fa fa-tint' }
-  ];
-  return (
-    <section className="ff-section" id="insights" style={{ position: 'relative' }}>
-      {[...Array(6)].map((_, i) => <div key={i} className="ff-particle" style={{ animationDelay: `${i * 0.8}s` }} />)}
-      <div className="ff-container" ref={ref}>
-        <h2 className="ff-title ff-glitch" data-text="Progress Insights">Progress Insights</h2>
-        <p className="ff-sub" style={{ marginBottom: '30px' }}>Track your fitness journey with powerful analytics</p>
-        <div className="ff-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-          {items.map((it, idx) => (
-            <div key={idx} className="ff-card ff-neon-border ff-magnetic">
-              <div className="ff-icon ff-pulse-container">
-                <i className={it.icon}></i>
-                <div className="ff-pulse-ring"></div>
-                <div className="ff-pulse-ring"></div>
-              </div>
-              <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>{it.title}</h4>
-              <div style={{ marginTop: '12px' }}>
-                <LiveBars count={8} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StreaksDiscipline() {
-  const ref = useRef(null);
-  return (
-    <section className="ff-section ff-particles" id="streaks">
-      <div className="ff-container" ref={ref}>
-        <div className="ff-grid" style={{ gridTemplateColumns: '1fr 1.2fr' }}>
-          <div className="ff-clock-wrap ff-float-in" style={{ width:'100%', display:'flex', justifyContent:'center' }}>
-            <div style={{ width:'min(24rem, 80vw)' }}>
-              <Clock />
-            </div>
-          </div>
-          <div className="ff-panel ff-float-in" style={{ padding: '26px' }}>
-            <h2 className="ff-title">Time Is Slipping Away</h2>
-            <p className="ff-sub">Every day you wait, you lose momentum. Start your fitness journey now — don’t let regret be your future.</p>
-            <button className="ff-btn" onClick={() => setAuthModalOpen(true)}>Register Now</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TransformationSplit() {
-  const data = [
-    {
-      description: 'ScrollX-UI has completely transformed how I build interfaces. The animations are silky smooth, and the components are modular and responsive.',
-      image: 'https://images.unsplash.com/photo-1611558709798-e009c8fd7706?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',
-      name: 'Isabelle Carlos',
-      handle: '@isabellecarlos'
-    },
-    {
-      description: 'I love how ScrollX-UI makes my projects look professional with minimal effort. The documentation is clear and the community is super helpful.',
-      image: 'https://plus.unsplash.com/premium_photo-1692340973636-6f2ff926af39?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',
-      name: 'Lana Akash',
-      handle: '@lanaakash'
-    },
-    {
-      description: 'The smooth scrolling animations and intuitive components in ScrollX-UI save me hours of development time!',
-      image: 'https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',
-      name: 'Liam O’Connor',
-      handle: '@liamoc'
-    },
-    {
-      description: 'Using ScrollX-UI feels like magic — it’s so easy to create beautiful, interactive UIs without writing complex code.',
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',
-      name: 'Isabella Mendes',
-      handle: '@isamendes'
-    },
-    {
-      description: 'ScrollX-UI’s open-source nature means I can customize components exactly how I want them — plus, the performance is outstanding.',
-      image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',
-      name: 'Meera Patel',
-      handle: '@meerapatel'
-    },
-    {
-      description: 'I recommend ScrollX-UI to everyone looking for a powerful, flexible UI library with stunning animation support.',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',
-      name: 'Emily Chen',
-      handle: '@emchen'
-    },
-  ]
-  return (
-    <section className="ff-section" id="transform">
-      <div className="ff-container">
-        <h2 className="ff-title">What People Say</h2>
-        <p className="ff-sub">Real voices, smooth motion, modern feel.</p>
-        <div className="ff-panel ff-float-in" style={{ padding: '16px' }}>
-          <AnimatedTestimonials data={data} />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function SocialProof() {
-  const ref = useRef(null);
-  const inView = useInView(ref);
-  function Typewriter({ text = '', speed = 24, className = '' }){
-    const [i, setI] = useState(0)
-    useEffect(() => { setI(0) }, [text])
-    useEffect(() => { const id = setInterval(() => setI(v => Math.min(v + 1, text.length)), 1000 / speed); return () => clearInterval(id) }, [text, speed])
-    return <div className={className}>{text.slice(0, i)}<span className="ff-caret">|</span></div>
-  }
-  const heading = 'Trust Yourself'
-  const slogan = 'Every step you take builds the future you want.'
-  const paragraph = "You don't need a perfect plan — you just need to start. Small, consistent actions shape real progress, and every workout you track becomes proof of what you're capable of. Commit today, even if it’s not easy. Your future self will be grateful."
-  return (
-    <section className="ff-section ff-particles" id="trust">
-      <div className="ff-container" ref={ref}>
-        <h2 className="ff-title" style={{ textAlign:'center' }}>{heading}</h2>
-        <p className="ff-sub" style={{ textAlign:'center' }}>{slogan}</p>
-        <div className="ff-trust-full">
-          <video autoPlay loop muted playsInline preload="metadata" className="ff-trust-video">
-            <source src="/video/I%20will%20do.mp4" type="video/mp4" />
-          </video>
-          <div className="ff-trust-overlay">
-            <Typewriter text={paragraph} speed={28} className="ff-type" />
-            <div style={{ marginTop:'18px' }}>
-              <Link to="/register" className="ff-btn" onClick={() => {
-                api('/track/click', { method: 'POST' });
-              }}>Start Now</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function PricingPlans({ setAuthModalOpen }) {
-  const [annual, setAnnual] = useState(false)
-  const [plans, setPlans] = useState([])
-  const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  
-  useEffect(() => {
-    async function fetchPlans() {
-      try {
-        const data = await api('/pricing');
-        setPlans(data.plans || []);
-      } catch (error) {
-        console.error('Failed to fetch plans:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPlans();
-  }, [])
-  
-  const handlePlanClick = (plan) => {
-    if (!user) {
-      setAuthModalOpen(true)
-      return
-    }
-    if (plan === 'free') {
-      navigate('/dashboard')
-    } else {
-      navigate(`/checkout?plan=${plan}`)
-    }
-  }
-  
-  if (loading) return null
-  
-  return (
-    <section className="ff-section" id="pricing">
-      <div className="ff-container">
-        <h2 className="ff-title" style={{ textAlign:'center' }}>Pricing Plans</h2>
-        <div style={{ display:'flex', justifyContent:'center', margin:'10px 0 24px' }}>
-          <SwitchBilling checked={annual} onChange={setAnnual} />
-        </div>
-        <div style={{ display:'flex', gap:'24px', justifyContent:'center', flexWrap:'wrap' }}>
-          {plans.filter(p => p.planId === 'free' || p.planId === 'premium' || p.planId === 'pro' || p.planId === 'basic').slice(0, 2).map((plan) => (
-            <PricingCard 
-              key={plan.planId}
-              badge={plan.badge}
-              tier={plan.name}
-              price={annual ? `$${plan.annualPrice}` : `$${plan.monthlyPrice}`}
-              unit={annual ? 'year' : 'month'}
-              description={plan.description}
-              features={plan.features}
-              cta={plan.planId === 'free' ? 'Get Started' : `Choose ${plan.name}`}
-              onClick={() => handlePlanClick(plan.planId)}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-function FinalCTA() {
-  return (
-    <section className="ff-section ff-particles" id="cta" style={{ position: 'relative' }}>
-      {[...Array(8)].map((_, i) => <div key={i} className="ff-particle" style={{ animationDelay: `${i * 0.7}s` }} />)}
-      <div className="ff-container" style={{ textAlign: 'center' }}>
-        <h2 className="ff-title ff-glitch" data-text="Ready To Train With Intelligence?">Ready To Train With Intelligence?</h2>
-        <p className="ff-sub" style={{ marginBottom: '30px' }}>Own your progress with neon-clear tracking and disciplined streaks.</p>
-        <a href="#contact" className="ff-btn ff-magnetic ff-neon-border" onClick={() => {
-          api('/track/click', { method: 'POST' });
-        }} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', fontSize: '18px', padding: '16px 32px' }}>
-          <span>Start Tracking</span>
-          <span style={{ fontSize: '24px' }}>🚀</span>
-        </a>
-      </div>
-    </section>
-  );
-}
-
-function ThanksSection(){
-  return (
-    <section className="ff-section ff-particles" id="thanks">
-      <div className="ff-container">
-        <h2 className="ff-title ff-glitch" data-text="Thanks for Visiting FitForge" style={{ textAlign:'center' }}>Thanks for Visiting FitForge</h2>
-        <div className="ff-thanks-grid">
-          <div className="ff-panel ff-float-in ff-neon-border" style={{ padding:'22px' }}>
-            <p className="ff-sub" style={{ fontSize:'16px' }}>
-              We appreciate you taking the time to explore what FitForge can offer. Every meaningful transformation begins with a single decision — the decision to learn, to understand, and to move forward. By visiting today, you’ve already taken that first step toward a stronger, more disciplined version of yourself. Whether you’re ready to start now or still figuring things out, know this: your progress matters, your effort counts, and we’re here to help you turn your goals into results whenever you’re ready.
-            </p>
-          </div>
-          <div className="ff-float-in" style={{ position: 'relative' }}>
-            <div className="ff-pulse-container" style={{ width: '100%', height: '100%' }}>
-              <div className="ff-pulse-ring" style={{ width: '110%', height: '110%' }}></div>
-              <img src="/img/home/dumbells.png" alt="Dumbells" className="ff-thanks-img ff-magnetic" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function Home() {
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-  
-  useEffect(() => {
-    const $ = window.jQuery;
-    const initializePlugins = () => {
-      if (typeof window.jQuery === 'undefined') {
-        setTimeout(initializePlugins, 100);
-        return;
-      }
-
-      const $ = window.jQuery;
-
-      // Sticky scroll removed per request; using original template behavior
-
-      // Set background images first
-      $('.set-bg').each(function() {
-        const bg = $(this).data('setbg');
-        if (bg) {
-          $(this).css('background-image', 'url(' + bg + ')');
-        }
-      });
-
-      // Initialize Owl Carousel for hero section
-      if ($('.hs-slider').length && typeof $.fn.owlCarousel !== 'undefined') {
-        $('.hs-slider').owlCarousel({
-          loop: true,
-          margin: 0,
-          items: 1,
-          dots: false,
-          animateOut: 'fadeOut',
-          animateIn: 'fadeIn',
-          active: true,
-          smartSpeed: 1000,
-          autoplay: true
-        });
-      }
-
-      // Initialize Owl Carousel for team section
-      if ($('.ts-slider').length && typeof $.fn.owlCarousel !== 'undefined') {
-        $('.ts-slider').owlCarousel({
-          loop: true,
-          margin: 30,
-          items: 3,
-          dots: true,
-          smartSpeed: 1200,
-          autoplay: true,
-          responsive: {
-            320: {
-              items: 1
-            },
-            768: {
-              items: 2
-            },
-            992: {
-              items: 3
-            }
-          }
-        });
-      }
-
-      // Initialize Masonry for gallery
-      if ($('.gallery').length && typeof $.fn.masonry !== 'undefined') {
-        $('.gallery').masonry({
-          itemSelector: '.gs-item',
-          columnWidth: '.grid-sizer'
-        });
-      }
-
-      // Initialize Magnific Popup
-      if ($('.image-popup').length && typeof $.fn.magnificPopup !== 'undefined') {
-        $('.image-popup').magnificPopup({
-          type: 'image',
-          gallery: {
-            enabled: true
-          }
-        });
-      }
-
-      // Initialize Slicknav for mobile menu
-      if ($('.mobile-menu').length && typeof $.fn.slicknav !== 'undefined') {
-        $('.mobile-menu').slicknav({
-          prependTo: '#mobile-menu-wrap',
-          closedSymbol: '<i class="fa fa-angle-right"></i>',
-          openedSymbol: '<i class="fa fa-angle-down"></i>'
-        });
-      }
-
-      // Search switch
-      $('.search-switch').off('click').on('click', function() {
-        $('.search-model').fadeIn(400);
-      });
-      $('.search-close-switch').off('click').on('click', function() {
-        $('.search-model').fadeOut(400, function() {
-          $('.search-model-form input').val('');
-        });
-      });
-
-      // Canvas menu
-      $('.canvas-open').off('click').on('click', function() {
-        $('.offcanvas-menu-wrapper').addClass('show-offcanvas-menu-wrapper');
-        $('.offcanvas-menu-overlay').addClass('active');
-      });
-
-      $('.canvas-close, .offcanvas-menu-overlay').off('click').on('click', function() {
-        $('.offcanvas-menu-wrapper').removeClass('show-offcanvas-menu-wrapper');
-        $('.offcanvas-menu-overlay').removeClass('active');
-      });
-
-      
-    };
-
-    initializePlugins();
-    return () => {
-      if ($ && typeof $.fn.owlCarousel !== 'undefined') {
-        if ($('.hs-slider').length) {
-          try { $('.hs-slider').trigger('destroy.owl.carousel'); } catch (_) {}
-          $('.hs-slider').removeClass('owl-carousel owl-loaded');
-          const outer = $('.hs-slider').find('.owl-stage-outer');
-          if (outer.length) outer.children().unwrap();
-        }
-        if ($('.ts-slider').length) {
-          try { $('.ts-slider').trigger('destroy.owl.carousel'); } catch (_) {}
-          $('.ts-slider').removeClass('owl-carousel owl-loaded');
-          const outer2 = $('.ts-slider').find('.owl-stage-outer');
-          if (outer2.length) outer2.children().unwrap();
-        }
-      }
-      if ($) {
-        $('.search-switch').off('click');
-        $('.search-close-switch').off('click');
-        $('.canvas-open').off('click');
-        $('.canvas-close, .offcanvas-menu-overlay').off('click');
-      }
-    }
-  }, []);
-
-  return (
-    <>
-      <PromoPopup />
-      <VisitorNavbar authModalOpen={authModalOpen} setAuthModalOpen={setAuthModalOpen} />
-      <ScrollToTop />
-
-      <section className="hero-section" id="home">
-        <div className="hs-item">
-          <video autoPlay loop muted playsInline preload="metadata" className="hero-video">
-            <source src="/video/hero.mp4" type="video/mp4" />
-          </video>
-          <div className="hero-overlay">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-6">
-                  <div className="hi-text" style={{ animation: 'scrollReveal 1s ease-out forwards' }}>
-                    <span style={{ display: 'inline-block', animation: 'floatIn 0.8s ease-out forwards' }}>Shape your body</span>
-                    <h1 style={{ animation: 'scrollReveal 1.2s ease-out forwards' }}>Be <strong className="ff-glitch" data-text="strong">strong</strong> traning hard</h1>
-                    <a href="#contact" className="primary-btn ff-magnetic" onClick={() => {
-                      api('/track/click', { method: 'POST' });
-                    }} style={{ animation: 'floatIn 1.4s ease-out forwards' }}>Get info</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <PurposeIntro />
-
-      <TrustCarousel />
-
-      <WhyTracking />
-      <HowItWorks />
-      <DashboardShowcase />
-
-      <ProgressInsights />
-      <StreaksDiscipline />
-
-      <TransformationSplit />
-
-      <SocialProof />
-      <PricingPlans setAuthModalOpen={setAuthModalOpen} />
-
-      <ThanksSection />
-
-      <FinalCTA />
-
-      {/* Get In Touch Section Begin */}
-      <div className="gettouch-section" id="contact">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-4">
-              <div className="gt-text">
-                <i className="fa fa-map-marker"></i>
-                <p>333 Middle Winchendon Rd, Rindge,<br/> NH 03461</p>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="gt-text">
-                <i className="fa fa-mobile"></i>
-                <ul>
-                  <li>125-711-811</li>
-                  <li>125-668-886</li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="gt-text email">
-                <i className="fa fa-envelope"></i>
-                <p>Support.gymcenter@gmail.com</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Get In Touch Section End */}
-
-      {/* Footer Section Begin */}
-      <section className="footer-section">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-4">
-              <div className="fs-about">
-                <div className="fa-logo">
-                  <a href="#home" className="logo-text">
-                    <span className="logo-icon-left flaticon-002-dumbell"></span>
-                    <span className="logo-white">Fit</span><span className="logo-orange">Forge</span>
-                    <span className="logo-icon-right flaticon-014-heart-beat"></span>
-                  </a>
-                </div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                  labore dolore magna aliqua endisse ultrices gravida lorem.</p>
-                <div className="fa-social">
-                  <a href="#"><i className="fa fa-facebook"></i></a>
-                  <a href="#"><i className="fa fa-twitter"></i></a>
-                  <a href="#"><i className="fa fa-youtube-play"></i></a>
-                  <a href="#"><i className="fa fa-instagram"></i></a>
-                  <a href="#"><i className="fa fa-envelope-o"></i></a>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-2 col-md-3 col-sm-6">
-              <div className="fs-widget">
-                <h4>Useful links</h4>
-                <ul>
-                  <li><a href="#about">About</a></li>
-                  <li><a href="#blog">Blog</a></li>
-                  <li><a href="#classes">Classes</a></li>
-                  <li><a href="#contact">Contact</a></li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-2 col-md-3 col-sm-6">
-              <div className="fs-widget">
-                <h4>Support</h4>
-                <ul>
-                  <li><a href="#login">Login</a></li>
-                  <li><a href="#account">My account</a></li>
-                  <li><a href="#subscribe">Subscribe</a></li>
-                  <li><a href="#contact">Contact</a></li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <div className="fs-widget">
-                <h4>Tips & Guides</h4>
-                <div className="fw-recent">
-                  <h6><a href="#">Physical fitness may help prevent depression, anxiety</a></h6>
-                  <ul>
-                    <li>3 min read</li>
-                    <li>20 Comment</li>
-                  </ul>
-                </div>
-                <div className="fw-recent">
-                  <h6><a href="#">Fitness: The best exercise to lose belly fat and tone up...</a></h6>
-                  <ul>
-                    <li>3 min read</li>
-                    <li>20 Comment</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-lg-12 text-center">
-              <div className="copyright-text">
-                <p>
-                  Copyright &copy; {new Date().getFullYear()} All rights reserved | This template is made with <i className="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank" rel="noreferrer">Colorlib</a>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* Footer Section End */}
-
-      {/* Search model Begin */}
-      <div className="search-model">
-        <div className="h-100 d-flex align-items-center justify-content-center">
-          <div className="search-close-switch">+</div>
-          <form className="search-model-form">
-            <input type="text" id="search-input" placeholder="Search here....." />
-          </form>
-        </div>
-      </div>
-      {/* Search model end */}
-    </>
-  );
-}
-
-export default Home;
-
-function PurposeIntro() {
-  const ref = useRef(null);
-  const inView = useInView(ref);
-  useEffect(() => { if (inView) { const el = ref.current; el.classList.add('ff-in'); } }, [inView]);
-  return (
-    <section className="ff-section" id="purpose" style={{ marginTop: '-80px', position: 'relative', zIndex: 2 }}>
-      {[...Array(4)].map((_, i) => <div key={i} className="ff-particle" style={{ animationDelay: `${i * 0.5}s` }} />)}
-      <div className="ff-container" ref={ref} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', gap: '24px' }}>
-        <div>
-          <h2 className="ff-title ff-scroll-reveal">What is Fitforge?</h2>
-          <p className="ff-sub ff-scroll-reveal" style={{ animationDelay: '0.2s' }}>Fitness tracking, planning, and insights in one place.</p>
-          <div className="ff-grid" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="ff-card ff-in ff-neon-border">
-              <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Exercise Plans</h4>
-              <p style={{ color: 'var(--ff-muted)' }}>Create custom workout plans with sets, reps, and load.</p>
-            </div>
-            <div className="ff-card ff-in ff-neon-border" style={{ animationDelay: '0.2s' }}>
-              <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>AI Generated Plans</h4>
-              <p style={{ color: 'var(--ff-muted)' }}>Get smart, goal-based plans powered by AI.</p>
-            </div>
-            <div className="ff-card ff-in ff-neon-border" style={{ animationDelay: '0.4s' }}>
-              <h4 className="ff-underline" style={{ color: 'var(--ff-text)' }}>Progress Tracking</h4>
-              <p style={{ color: 'var(--ff-muted)' }}>See intensity, volume, streaks, and trends visually.</p>
-            </div>
-          </div>
-        </div>
-        <div style={{ position: 'relative' }} className="ff-pulse-container">
-          <div className="ff-pulse-ring" style={{ width: '120%', height: '120%' }}></div>
-          <div className="ff-pulse-ring" style={{ width: '120%', height: '120%' }}></div>
-          <img src="/img/home/fitness%20tracking.png" alt="Fitness tracking" style={{ width: '100%', borderRadius: '16px', boxShadow: '0 12px 40px rgba(0,0,0,.35)', transform: 'translateY(-40px)' }} className="ff-magnetic" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const StyledRing = styled.div`
-  @keyframes autoRun3d { from { transform: perspective(1200px) rotateY(-360deg);} to { transform: perspective(1200px) rotateY(0deg);} }
-  @keyframes animateBrightness { 10%{ filter: brightness(1);} 50%{ filter: brightness(.35);} 90%{ filter: brightness(1);} }
-  .card-3d { position: relative; width: min(94vw, 1100px); height: clamp(320px, 44vw, 460px); transform-style: preserve-3d; transform: perspective(1400px); animation: autoRun3d 48s linear infinite; will-change: transform; margin: 0 auto; --ring-depth: clamp(320px, 38vw, 520px); --card-w: clamp(200px, 20vw, 280px); --card-min-h: clamp(140px, 18vw, 220px); }
-  .card-3d:hover { animation-play-state: paused !important; }
-  .card-3d > div { position:absolute; width: var(--card-w); min-height: var(--card-min-h); height: auto; top:50%; left:50%; transform-origin:center; display:flex; flex-direction:column; gap:10px; padding:20px; border-radius:18px; background: linear-gradient(180deg, rgba(20,225,255,.16), rgba(125,234,255,.08)); border:1px solid rgba(91,225,255,.45); box-shadow: 0 30px 70px rgba(0,200,255,.14), inset 0 0 18px rgba(0,200,255,.12); backdrop-filter: blur(12px); color: var(--ff-text); animation: animateBrightness 48s linear infinite; will-change: transform, filter; overflow:hidden; }
-  .card-3d > div:hover { animation-play-state: paused !important; }
-  .card-3d > div h4 { font-family:'Oswald', sans-serif; letter-spacing:.5px; text-transform:uppercase; font-size: clamp(13px, 2vw, 16px); color: var(--ff-neon); }
-  .card-3d > div p { color: var(--ff-muted); font-size: clamp(12px, 1.6vw, 14px); line-height: 1.5; word-break: break-word; hyphens: auto; }
-  .card-3d > div:nth-child(1){ transform: translate(-50%,-50%) rotateY(0deg) translateZ(var(--ring-depth)); animation-delay:-0s; }
-  .card-3d > div:nth-child(2){ transform: translate(-50%,-50%) rotateY(36deg) translateZ(var(--ring-depth)); animation-delay:-4.8s; }
-  .card-3d > div:nth-child(3){ transform: translate(-50%,-50%) rotateY(72deg) translateZ(var(--ring-depth)); animation-delay:-9.6s; }
-  .card-3d > div:nth-child(4){ transform: translate(-50%,-50%) rotateY(108deg) translateZ(var(--ring-depth)); animation-delay:-14.4s; }
-  .card-3d > div:nth-child(5){ transform: translate(-50%,-50%) rotateY(144deg) translateZ(var(--ring-depth)); animation-delay:-19.2s; }
-  .card-3d > div:nth-child(6){ transform: translate(-50%,-50%) rotateY(180deg) translateZ(var(--ring-depth)); animation-delay:-24s; }
-  .card-3d > div:nth-child(7){ transform: translate(-50%,-50%) rotateY(216deg) translateZ(var(--ring-depth)); animation-delay:-28.8s; }
-  .card-3d > div:nth-child(8){ transform: translate(-50%,-50%) rotateY(252deg) translateZ(var(--ring-depth)); animation-delay:-33.6s; }
-  .card-3d > div:nth-child(9){ transform: translate(-50%,-50%) rotateY(288deg) translateZ(var(--ring-depth)); animation-delay:-38.4s; }
-  .card-3d > div:nth-child(10){ transform: translate(-50%,-50%) rotateY(324deg) translateZ(var(--ring-depth)); animation-delay:-43.2s; }
-  @media (max-width: 991px){ .card-3d { --ring-depth: clamp(220px, 36vw, 380px); --card-w: clamp(180px, 36vw, 240px); } }
-  @media (max-width: 640px){
-    .card-3d { animation: none; transform: none; height: auto; display: flex; gap: 16px; padding: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-    .card-3d > div { position: relative; transform: none !important; flex: 0 0 85vw; min-width: 85vw; height: auto; margin: 8px 0; scroll-snap-align: center; }
-  }
-`
-
-function TrustCarousel(){
-  const points = [
-    { t: 'Data You Can Rely On', d: 'FitForge doesn’t guess — it measures. Your workouts, calories, habits, and trends are tracked with accuracy so you always know exactly where you stand and what’s improving.' },
-    { t: 'Insights That Improve Results', d: 'Most apps show pretty graphs. FitForge shows patterns that matter — performance drops, peak energy times, strongest exercises, and weak habits — so every decision pushes progress forward.' },
-    { t: 'Built for Consistency, Not Excuses', d: 'Real results come from showing up. Streaks, reminders, micro-goals, and a discipline system keep you moving even on low-motivation days.' },
-    { t: 'Personalized to Your Reality', d: 'No generic plans. FitForge adapts to your body type, routine, lifestyle, and goals — beginner or advanced.' },
-    { t: 'Transparent Progress, Not Illusion', d: 'Photo comparisons, weekly analytics, and performance stats make improvements visible — so you never question whether your effort is paying off.' },
-    { t: 'Designed for Real People, Not Fitness Models', d: 'Busy schedule? Starting from zero? Recovering from burnout? Built for everyday people who want real, sustainable progress.' },
-    { t: 'One Smart Place For All Your Fitness Data', d: 'Workouts, nutrition, steps, habits, mood — everything lives in one clean dashboard.' },
-    { t: 'Science, Discipline, Real-World Logic', d: 'Inspired by proven training principles, behavioral psychology, and habit-building frameworks — not gimmicks.' },
-    { t: 'Your Data, Your Control', d: 'No hidden agenda. Your fitness data stays private and fully in your control for long-term trust.' },
-    { t: 'Accountability Without Pressure', d: 'Gentle reminders, clear milestones, and realistic goals help you progress steadily without burnout.' }
-  ]
-  return (
-    <section className="ff-section ff-particles" id="trust">
-      <div className="ff-container">
-        <h2 className="ff-title">Why Trust FitForge?</h2>
-        <p className="ff-sub">Real results, not noise.</p>
-        <StyledRing>
-          <div className="card-3d">
-            {points.map((p, i) => (
-              <div key={i}>
-                <h4 className="ff-underline">{p.t}</h4>
-                <p>{p.d}</p>
-              </div>
-            ))}
-          </div>
-        </StyledRing>
-      </div>
-    </section>
-  )
-}
-
