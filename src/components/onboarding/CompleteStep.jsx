@@ -172,17 +172,17 @@ export default function CompleteStep({ data }) {
           type="button"
           onClick={handleLaunchDashboard}
           disabled={saving}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full text-base font-black bg-slate-950 hover:bg-slate-800 text-white shadow-xl shadow-slate-950/20 hover:shadow-2xl transition-all cursor-pointer group active:scale-[0.99]"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full text-base font-black bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 shadow-[0_8px_25px_rgba(212,246,61,0.4)] hover:shadow-[0_10px_30px_rgba(212,246,61,0.55)] hover:scale-102 transition-all cursor-pointer group active:scale-[0.99] disabled:opacity-50"
         >
           {saving ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin text-[#D4F63D]" />
+              <Loader2 className="w-5 h-5 animate-spin text-slate-950" />
               <span>Saving Profile...</span>
             </>
           ) : (
             <>
               <span>Go to Dashboard</span>
-              <ArrowRight className="w-5 h-5 text-[#D4F63D] transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="w-5 h-5 text-slate-950 transition-transform group-hover:translate-x-1" />
             </>
           )}
         </button>

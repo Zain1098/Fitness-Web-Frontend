@@ -119,7 +119,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
                 type="button"
                 onClick={() => toggleHeightUnit('cm')}
                 className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  heightUnit === 'cm' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+                  heightUnit === 'cm' ? 'bg-slate-950 text-[#D4F63D] font-extrabold shadow-xs' : 'text-slate-600 hover:text-slate-950 font-semibold'
                 }`}
               >
                 cm
@@ -128,7 +128,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
                 type="button"
                 onClick={() => toggleHeightUnit('ft')}
                 className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  heightUnit === 'ft' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+                  heightUnit === 'ft' ? 'bg-slate-950 text-[#D4F63D] font-extrabold shadow-xs' : 'text-slate-600 hover:text-slate-950 font-semibold'
                 }`}
               >
                 ft / in
@@ -191,7 +191,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
                 type="button"
                 onClick={() => toggleWeightUnit('kg')}
                 className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  weightUnit === 'kg' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+                  weightUnit === 'kg' ? 'bg-slate-950 text-[#D4F63D] font-extrabold shadow-xs' : 'text-slate-600 hover:text-slate-950 font-semibold'
                 }`}
               >
                 kg
@@ -200,7 +200,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
                 type="button"
                 onClick={() => toggleWeightUnit('lbs')}
                 className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  weightUnit === 'lbs' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+                  weightUnit === 'lbs' ? 'bg-slate-950 text-[#D4F63D] font-extrabold shadow-xs' : 'text-slate-600 hover:text-slate-950 font-semibold'
                 }`}
               >
                 lbs
@@ -228,7 +228,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
         <button
           type="button"
           onClick={prevStep}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-all cursor-pointer active:scale-[0.98]"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back</span>
@@ -238,7 +238,7 @@ export default function PhysicalInfoStep({ data, updateData, nextStep, prevStep 
           type="button"
           onClick={handleNext}
           disabled={!isFormValid}
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all cursor-pointer group"
+          className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-black bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shadow-[0_6px_20px_rgba(212,246,61,0.35)] hover:shadow-[0_8px_25px_rgba(212,246,61,0.5)] hover:scale-102 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span>Continue</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />

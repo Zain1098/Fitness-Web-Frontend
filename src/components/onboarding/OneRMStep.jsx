@@ -66,7 +66,7 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
             type="button"
             onClick={() => toggleUnit('kg')}
             className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-              unit === 'kg' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+              unit === 'kg' ? 'bg-slate-950 text-[#D4F63D] font-extrabold shadow-xs' : 'text-slate-600 hover:text-slate-950 font-semibold'
             }`}
           >
             kg
@@ -75,7 +75,7 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
             type="button"
             onClick={() => toggleUnit('lbs')}
             className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-              unit === 'lbs' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+              unit === 'lbs' ? 'bg-slate-950 text-[#D4F63D] font-extrabold shadow-xs' : 'text-slate-600 hover:text-slate-950 font-semibold'
             }`}
           >
             lbs
@@ -151,7 +151,7 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
         <button
           type="button"
           onClick={prevStep}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-all cursor-pointer active:scale-[0.98]"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back</span>
@@ -161,14 +161,14 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
           <button
             type="button"
             onClick={handleSkip}
-            className="px-4 py-3 rounded-full text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-4 py-3 rounded-full text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Skip for now
           </button>
           <button
             type="button"
             onClick={handleNext}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all cursor-pointer group"
+            className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-sm font-black bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 shadow-[0_6px_20px_rgba(212,246,61,0.35)] hover:shadow-[0_8px_25px_rgba(212,246,61,0.5)] hover:scale-102 active:scale-[0.98] transition-all cursor-pointer"
           >
             <span>Continue</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
