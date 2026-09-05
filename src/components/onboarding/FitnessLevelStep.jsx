@@ -1,267 +1,141 @@
-import styled, { keyframes, css } from 'styled-components'
+import { ArrowLeft, ArrowRight, Check, TrendingUp, ShieldCheck, Award, Flame, Zap } from 'lucide-react'
 
 export default function FitnessLevelStep({ data, updateData, nextStep, prevStep }) {
   const levels = [
-    { value: 'beginner', label: 'Beginner', desc: 'New to fitness', icon: '🌱', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
-    { value: 'intermediate', label: 'Intermediate', desc: '6-12 months experience', icon: '💪', gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)' },
-    { value: 'advanced', label: 'Advanced', desc: '1+ years experience', icon: '🔥', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
-    { value: 'expert', label: 'Expert', desc: 'Professional level', icon: '⚡', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }
+    {
+      value: 'beginner',
+      label: 'Beginner',
+      desc: 'New to exercise or returning after a lengthy hiatus. Focused on learning movement patterns and building neuromuscular foundations.',
+      icon: <ShieldCheck className="w-5 h-5 text-[#10B981]" />,
+      badge: 'Foundation'
+    },
+    {
+      value: 'intermediate',
+      label: 'Intermediate',
+      desc: 'Consistent routine for 6-12 months. Familiar with core compound exercises, recovery protocols, and progressive overload.',
+      icon: <TrendingUp className="w-5 h-5 text-indigo-500" />,
+      badge: 'Progressive'
+    },
+    {
+      value: 'advanced',
+      label: 'Advanced',
+      desc: 'Consistent training for 1-3+ years. High technique proficiency, understands fatigue management, and targets specific adaptations.',
+      icon: <Flame className="w-5 h-5 text-amber-500" />,
+      badge: 'High Intensity'
+    },
+    {
+      value: 'expert',
+      label: 'Expert / Athlete',
+      desc: 'Competitive athlete or multi-year veteran. Requires periodized programming, high workload capacity, and precise biomechanical feedback.',
+      icon: <Zap className="w-5 h-5 text-rose-500" />,
+      badge: 'Elite'
+    }
   ]
 
-  const handleSelect = (value) => {
-    updateData('fitnessLevel', value)
+  const handleSelect = (val) => {
+    updateData('fitnessLevel', val)
+  }
+
+  const handleNext = () => {
+    if (data.fitnessLevel) {
+      nextStep()
+    }
   }
 
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper>
-          <AnimatedIcon>📈</AnimatedIcon>
-        </IconWrapper>
-        <Title>What's your fitness level?</Title>
-        <Subtitle>Help us match you with the right intensity</Subtitle>
-        
-        <OptionsGrid>
-          {levels.map((level) => (
-            <LevelCard
-              key={level.value}
-              $gradient={level.gradient}
-              $selected={data.fitnessLevel === level.value}
-              onClick={() => handleSelect(level.value)}
-            >
-              <CardIcon>{level.icon}</CardIcon>
-              <CardLabel>{level.label}</CardLabel>
-              <CardDesc>{level.desc}</CardDesc>
-              {data.fitnessLevel === level.value && <CheckMark>✓</CheckMark>}
-            </LevelCard>
-          ))}
-        </OptionsGrid>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <Award className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Experience Level</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          What is your <span className="relative inline-block">
+            fitness level?
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          We match your program's intensity, volume, and complex movements to your current experience.
+        </p>
+      </div>
 
-        <ButtonGroup>
-          <BackButton onClick={prevStep}>
-            <span>←</span> Back
-          </BackButton>
-          <NextButton onClick={nextStep} disabled={!data.fitnessLevel}>
-            Next <span>→</span>
-          </NextButton>
-        </ButtonGroup>
-      </Content>
-    </StepWrapper>
+      {/* Options List */}
+      <div className="space-y-3">
+        {levels.map((lvl) => {
+          const isSelected = data.fitnessLevel === lvl.value
+          return (
+            <div
+              key={lvl.value}
+              onClick={() => handleSelect(lvl.value)}
+              className={`flex items-start gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                isSelected
+                  ? 'bg-slate-950 text-white border-slate-950 shadow-lg shadow-slate-900/15 scale-[1.01]'
+                  : 'bg-slate-50/70 hover:bg-slate-100/90 text-slate-800 border-slate-200/80 hover:border-slate-300'
+              }`}
+            >
+              <div
+                className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                  isSelected ? 'bg-white/10 text-white' : 'bg-white shadow-xs border border-slate-200'
+                }`}
+              >
+                {lvl.icon}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className={`font-bold text-base sm:text-lg ${isSelected ? 'text-white' : 'text-slate-950'}`}>
+                    {lvl.label}
+                  </h3>
+                  <span
+                    className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                      isSelected
+                        ? 'bg-[#D4F63D] text-slate-950'
+                        : 'bg-slate-200/70 text-slate-700'
+                    }`}
+                  >
+                    {lvl.badge}
+                  </span>
+                </div>
+                <p className={`text-xs sm:text-sm leading-relaxed ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {lvl.desc}
+                </p>
+              </div>
+
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 mt-1 transition-colors ${
+                  isSelected ? 'bg-[#D4F63D] border-[#D4F63D] text-slate-950' : 'border-slate-300 bg-white'
+                }`}
+              >
+                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={!data.fitnessLevel}
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all cursor-pointer group"
+        >
+          <span>Continue</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-`
-
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-`
-
-const StepWrapper = styled.div`
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  animation: ${fadeIn} 0.6s ease;
-  @media (max-width: 768px) {
-    padding: 15px;
-  }
-`
-
-const Content = styled.div`
-  text-align: center;
-`
-
-const IconWrapper = styled.div`
-  margin-bottom: 30px;
-`
-
-const AnimatedIcon = styled.div`
-  font-size: 80px;
-  animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(168,237,234,0.4));
-`
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #a8edea, #fed6e3, #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 15px;
-`
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 50px;
-`
-
-const OptionsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 25px;
-  margin-bottom: 30px;
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-`
-
-const LevelCard = styled.div`
-  position: relative;
-  background: ${p => p.$selected ? p.$gradient : 'rgba(255,255,255,0.03)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,255,255,0.1)'};
-  border-radius: 20px;
-  padding: 35px 20px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: ${p => p.$gradient};
-    opacity: ${p => p.$selected ? 1 : 0};
-    transition: opacity 0.4s ease;
-  }
-  
-  &:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 60px rgba(168,237,234,0.3);
-    border-color: rgba(168,237,234,0.5);
-    
-    &::before {
-      opacity: 0.3;
-    }
-  }
-  
-  ${p => p.$selected && css`
-    animation: ${pulse} 0.6s ease;
-    box-shadow: 0 20px 60px rgba(168,237,234,0.5);
-  `}
-`
-
-const CardIcon = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 50px;
-  margin-bottom: 15px;
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
-`
-
-const CardLabel = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  margin-bottom: 8px;
-`
-
-const CardDesc = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-`
-
-const CheckMark = styled.div`
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 35px;
-  height: 35px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #fff;
-  font-weight: bold;
-  z-index: 2;
-  animation: ${pulse} 0.4s ease;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 40px;
-  flex-wrap: wrap;
-  @media (max-width: 768px) {
-    gap: 15px;
-    margin-top: 30px;
-  }
-`
-
-const Button = styled.button`
-  padding: 18px 40px;
-  border-radius: 15px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  span {
-    font-size: 1.3rem;
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 15px 30px;
-    font-size: 1rem;
-  }
-`
-
-const BackButton = styled(Button)`
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.2);
-  
-  &:hover {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.4);
-  }
-`
-
-const NextButton = styled(Button)`
-  background: linear-gradient(135deg, #a8edea, #fed6e3);
-  color: #0a0e27;
-  box-shadow: 0 10px 40px rgba(168,237,234,0.4);
-  
-  &:hover {
-    box-shadow: 0 15px 50px rgba(168,237,234,0.6);
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-`

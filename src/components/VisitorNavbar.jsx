@@ -28,15 +28,8 @@ function VisitorNavbar({ authModalOpen, setAuthModalOpen }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    if (user) {
-      if (user.onboarding_completed) {
-        nav('/dashboard')
-      } else {
-        nav('/onboarding')
-      }
-    }
-  }, [user, nav])
+  // Note: Do not forcefully trap user with nav('/onboarding') here
+  // so visitors/users can navigate freely without being locked out.
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -126,19 +119,33 @@ function VisitorNavbar({ authModalOpen, setAuthModalOpen }) {
 
           {/* Action CTAs */}
           <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={() => setAuthOpen(true)}
-              className="text-sm font-bold text-slate-700 hover:text-slate-950 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setAuthOpen(true)}
-              className="group inline-flex items-center gap-1.5 text-sm font-black bg-[#D4F63D] hover:bg-[#c4e626] text-slate-950 px-5 py-2.5 rounded-full shadow-[0_4px_16px_rgba(212,246,61,0.35)] hover:shadow-[0_6px_25px_rgba(212,246,61,0.5)] hover:scale-105 transition-all"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-            </button>
+            {user ? (
+              <>
+                <Link
+                  to={user.onboarding_completed ? "/dashboard" : "/onboarding"}
+                  className="group inline-flex items-center gap-1.5 text-sm font-black bg-[#D4F63D] hover:bg-[#c4e626] text-slate-950 px-5 py-2.5 rounded-full shadow-[0_4px_16px_rgba(212,246,61,0.35)] hover:shadow-[0_6px_25px_rgba(212,246,61,0.5)] hover:scale-105 transition-all"
+                >
+                  <span>{user.onboarding_completed ? 'Dashboard' : 'Continue Profile'}</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setAuthOpen(true)}
+                  className="text-sm font-bold text-slate-700 hover:text-slate-950 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => setAuthOpen(true)}
+                  className="group inline-flex items-center gap-1.5 text-sm font-black bg-[#D4F63D] hover:bg-[#c4e626] text-slate-950 px-5 py-2.5 rounded-full shadow-[0_4px_16px_rgba(212,246,61,0.35)] hover:shadow-[0_6px_25px_rgba(212,246,61,0.5)] hover:scale-105 transition-all"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -200,25 +207,38 @@ function VisitorNavbar({ authModalOpen, setAuthModalOpen }) {
             </nav>
 
             <div className="pt-3 border-t border-slate-200/80 flex flex-col gap-2.5">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  setAuthOpen(true)
-                }}
-                className="w-full py-2.5 text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  setAuthOpen(true)
-                }}
-                className="w-full py-2.5 text-sm font-black bg-[#D4F63D] hover:bg-[#c4e626] text-slate-950 rounded-full transition-all shadow-sm flex items-center justify-center gap-1.5"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {user ? (
+                <Link
+                  to={user.onboarding_completed ? "/dashboard" : "/onboarding"}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 text-sm font-black bg-[#D4F63D] hover:bg-[#c4e626] text-slate-950 rounded-full transition-all shadow-sm flex items-center justify-center gap-1.5"
+                >
+                  <span>{user.onboarding_completed ? 'Dashboard' : 'Continue Profile'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setAuthOpen(true)
+                    }}
+                    className="w-full py-2.5 text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setAuthOpen(true)
+                    }}
+                    className="w-full py-2.5 text-sm font-black bg-[#D4F63D] hover:bg-[#c4e626] text-slate-950 rounded-full transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  >
+                    <span>Get Started</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

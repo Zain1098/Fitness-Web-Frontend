@@ -1,219 +1,128 @@
-import styled, { keyframes, css } from 'styled-components'
+import { ArrowLeft, ArrowRight, Check, MapPin } from 'lucide-react'
 
 export default function LocationStep({ data, updateData, nextStep, prevStep }) {
   const locations = [
-    { value: 'gym', label: 'Gym', desc: 'Full equipment access', icon: '🏋️', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    { value: 'home', label: 'Home', desc: 'Workout at home', icon: '🏠', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-    { value: 'outdoor', label: 'Outdoor', desc: 'Parks & open spaces', icon: '🌳', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
-    { value: 'hybrid', label: 'Hybrid', desc: 'Mix of locations', icon: '🔄', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }
+    {
+      value: 'gym',
+      label: 'Commercial Gym',
+      desc: 'Access to full racks, barbells, cable stations, and weight stacks',
+      icon: '🏋️'
+    },
+    {
+      value: 'home',
+      label: 'Home Gym / Living Room',
+      desc: 'Convenient setup using dumbbells, resistance bands, or floor space',
+      icon: '🏠'
+    },
+    {
+      value: 'outdoor',
+      label: 'Outdoor & Parks',
+      desc: 'Calisthenics bars, running tracks, and open-air functional circuits',
+      icon: '🌳'
+    },
+    {
+      value: 'hybrid',
+      label: 'Hybrid / Flexible',
+      desc: 'Mix of commercial gym on weekends and home workouts during work days',
+      icon: '🔄'
+    }
   ]
 
-  const handleSelect = (value) => {
-    updateData('location', value)
-    setTimeout(() => nextStep(), 400)
+  const handleSelect = (val) => {
+    updateData('location', val)
+  }
+
+  const handleNext = () => {
+    if (data.location) {
+      nextStep()
+    }
   }
 
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper>
-          <AnimatedIcon>📍</AnimatedIcon>
-        </IconWrapper>
-        <Title>Where do you prefer to exercise?</Title>
-        <Subtitle>Choose your workout environment</Subtitle>
-        
-        <OptionsGrid>
-          {locations.map((loc) => (
-            <LocationCard
-              key={loc.value}
-              $gradient={loc.gradient}
-              $selected={data.location === loc.value}
-              onClick={() => handleSelect(loc.value)}
-            >
-              <CardIcon>{loc.icon}</CardIcon>
-              <CardLabel>{loc.label}</CardLabel>
-              <CardDesc>{loc.desc}</CardDesc>
-              {data.location === loc.value && <CheckMark>✓</CheckMark>}
-            </LocationCard>
-          ))}
-        </OptionsGrid>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <MapPin className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Environment</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          Where will you <span className="relative inline-block">
+            train most often?
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          We optimize exercise selections to fit your physical workout space.
+        </p>
+      </div>
 
-        <BackButton onClick={prevStep}>
-          <span>←</span> Back
-        </BackButton>
-      </Content>
-    </StepWrapper>
+      {/* Location Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        {locations.map((loc) => {
+          const isSelected = data.location === loc.value
+          return (
+            <div
+              key={loc.value}
+              onClick={() => handleSelect(loc.value)}
+              className={`flex flex-col justify-between p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                isSelected
+                  ? 'bg-slate-950 text-white border-slate-950 shadow-lg shadow-slate-900/15 scale-[1.01]'
+                  : 'bg-slate-50/70 hover:bg-slate-100/90 text-slate-800 border-slate-200/80 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-colors ${
+                    isSelected ? 'bg-white/10 text-white' : 'bg-white shadow-xs border border-slate-200'
+                  }`}
+                >
+                  {loc.icon}
+                </div>
+
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
+                    isSelected ? 'bg-[#D4F63D] border-[#D4F63D] text-slate-950' : 'border-slate-300 bg-white'
+                  }`}
+                >
+                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                </div>
+              </div>
+
+              <div>
+                <h3 className={`font-bold text-base ${isSelected ? 'text-white' : 'text-slate-950'}`}>
+                  {loc.label}
+                </h3>
+                <p className={`text-xs mt-1 leading-relaxed ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {loc.desc}
+                </p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={!data.location}
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all cursor-pointer group"
+        >
+          <span>Continue</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-`
-
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-`
-
-const StepWrapper = styled.div`
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  animation: ${fadeIn} 0.6s ease;
-`
-
-const Content = styled.div`
-  text-align: center;
-`
-
-const IconWrapper = styled.div`
-  margin-bottom: 30px;
-`
-
-const AnimatedIcon = styled.div`
-  font-size: 80px;
-  animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(79,172,254,0.4));
-`
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #4facfe, #00f2fe, #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 15px;
-`
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 50px;
-`
-
-const OptionsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 25px;
-  margin-bottom: 50px;
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`
-
-const LocationCard = styled.div`
-  position: relative;
-  background: ${p => p.$selected ? p.$gradient : 'rgba(255,255,255,0.03)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,255,255,0.1)'};
-  border-radius: 20px;
-  padding: 35px 20px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: ${p => p.$gradient};
-    opacity: ${p => p.$selected ? 1 : 0};
-    transition: opacity 0.4s ease;
-  }
-  
-  &:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 60px rgba(79,172,254,0.3);
-    border-color: rgba(79,172,254,0.5);
-    
-    &::before {
-      opacity: 0.3;
-    }
-  }
-  
-  ${p => p.$selected && css`
-    animation: ${pulse} 0.6s ease;
-    box-shadow: 0 20px 60px rgba(79,172,254,0.5);
-  `}
-`
-
-const CardIcon = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 50px;
-  margin-bottom: 15px;
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
-`
-
-const CardLabel = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  margin-bottom: 8px;
-`
-
-const CardDesc = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-`
-
-const CheckMark = styled.div`
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 35px;
-  height: 35px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #fff;
-  font-weight: bold;
-  z-index: 2;
-  animation: ${pulse} 0.4s ease;
-`
-
-const BackButton = styled.button`
-  padding: 18px 40px;
-  border-radius: 15px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.2);
-  
-  span {
-    font-size: 1.3rem;
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.4);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-`

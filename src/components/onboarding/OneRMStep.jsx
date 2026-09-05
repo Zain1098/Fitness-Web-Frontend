@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import styled, { keyframes } from 'styled-components'
+import { ArrowLeft, ArrowRight, Dumbbell, Info, Scale } from 'lucide-react'
 
 export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
   const [bench, setBench] = useState(data.oneRM?.bench || '')
@@ -7,11 +7,21 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
   const [deadlift, setDeadlift] = useState(data.oneRM?.deadlift || '')
   const [unit, setUnit] = useState('kg')
 
+  const toggleUnit = (newUnit) => {
+    if (newUnit === unit) return
+    const multiplier = newUnit === 'lbs' ? 2.20462 : 0.453592
+    if (bench) setBench((parseFloat(bench) * multiplier).toFixed(1))
+    if (squat) setSquat((parseFloat(squat) * multiplier).toFixed(1))
+    if (deadlift) setDeadlift((parseFloat(deadlift) * multiplier).toFixed(1))
+    setUnit(newUnit)
+  }
+
   const handleNext = () => {
+    const multiplier = unit === 'kg' ? 1 : 0.453592
     const convertedData = {
-      bench: bench ? (unit === 'kg' ? bench : (bench * 0.453592).toFixed(1)) : '',
-      squat: squat ? (unit === 'kg' ? squat : (squat * 0.453592).toFixed(1)) : '',
-      deadlift: deadlift ? (unit === 'kg' ? deadlift : (deadlift * 0.453592).toFixed(1)) : ''
+      bench: bench ? (parseFloat(bench) * multiplier).toFixed(1) : '',
+      squat: squat ? (parseFloat(squat) * multiplier).toFixed(1) : '',
+      deadlift: deadlift ? (parseFloat(deadlift) * multiplier).toFixed(1) : ''
     }
     updateData('oneRM', convertedData)
     nextStep()
@@ -22,379 +32,149 @@ export default function OneRMStep({ data, updateData, nextStep, prevStep }) {
     nextStep()
   }
 
-  const toggleUnit = () => {
-    const newUnit = unit === 'kg' ? 'lbs' : 'kg'
-    if (bench) setBench(unit === 'kg' ? (bench * 2.20462).toFixed(1) : (bench * 0.453592).toFixed(1))
-    if (squat) setSquat(unit === 'kg' ? (squat * 2.20462).toFixed(1) : (squat * 0.453592).toFixed(1))
-    if (deadlift) setDeadlift(unit === 'kg' ? (deadlift * 2.20462).toFixed(1) : (deadlift * 0.453592).toFixed(1))
-    setUnit(newUnit)
-  }
-
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper>
-          <AnimatedIcon>🏋️</AnimatedIcon>
-        </IconWrapper>
-        <Title>Your Maximum Strength</Title>
-        <Subtitle>Maximum weight you can lift ONCE with proper form (Optional - Skip if unsure)</Subtitle>
-        
-        <InfoBox>
-          <InfoIcon>💡</InfoIcon>
-          <InfoText>
-            <strong>What does this mean?</strong> Enter the heaviest weight you can lift for just ONE repetition. Not how many times you can lift it - just the maximum weight for a single lift.
-          </InfoText>
-        </InfoBox>
-        
-        <UnitToggleWrapper>
-          <UnitToggle onClick={toggleUnit}>
-            Switch to {unit === 'kg' ? 'lbs' : 'kg'} ⚖️
-          </UnitToggle>
-        </UnitToggleWrapper>
-        
-        <FormGrid>
-          <InputGroup>
-            <LabelRow>
-              <Label>Bench Press (Chest)</Label>
-              <Example>Max weight: {unit === 'kg' ? '60-80 kg' : '130-175 lbs'}</Example>
-            </LabelRow>
-            <HelpText>Heaviest weight you can push up ONCE while lying on bench</HelpText>
-            <InputWrapper>
-              <Icon>💪</Icon>
-              <Input
-                type="number"
-                value={bench}
-                onChange={(e) => setBench(e.target.value)}
-                placeholder={unit === 'kg' ? '60' : '130'}
-                min="0"
-              />
-              <Unit>{unit}</Unit>
-            </InputWrapper>
-          </InputGroup>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <Dumbbell className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Strength Baseline</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          Your estimated <span className="relative inline-block">
+            1-Rep Max
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          The maximum weight you can lift for 1 repetition in key compounds. Optional — skip if you don't know yet!
+        </p>
+      </div>
 
-          <InputGroup>
-            <LabelRow>
-              <Label>Squat (Legs)</Label>
-              <Example>Max weight: {unit === 'kg' ? '80-100 kg' : '175-220 lbs'}</Example>
-            </LabelRow>
-            <HelpText>Heaviest weight you can squat down and stand up ONCE</HelpText>
-            <InputWrapper>
-              <Icon>🦵</Icon>
-              <Input
-                type="number"
-                value={squat}
-                onChange={(e) => setSquat(e.target.value)}
-                placeholder={unit === 'kg' ? '80' : '175'}
-                min="0"
-              />
-              <Unit>{unit}</Unit>
-            </InputWrapper>
-          </InputGroup>
+      {/* Info Tip */}
+      <div className="flex items-start gap-3 p-4 rounded-2xl bg-cyan-50/70 border border-cyan-200/70 text-cyan-950 text-xs sm:text-sm">
+        <Info className="w-4 h-4 text-cyan-600 shrink-0 mt-0.5" />
+        <p>
+          <strong>What is a 1RM?</strong> It's your maximum single-rep load. We use this to prescribe percentage-based working sets (e.g. 75% for 4 sets of 8).
+        </p>
+      </div>
 
-          <InputGroup>
-            <LabelRow>
-              <Label>Deadlift (Back & Legs)</Label>
-              <Example>Max weight: {unit === 'kg' ? '100-120 kg' : '220-265 lbs'}</Example>
-            </LabelRow>
-            <HelpText>Heaviest weight you can lift from ground to standing ONCE</HelpText>
-            <InputWrapper>
-              <Icon>🏋️</Icon>
-              <Input
-                type="number"
-                value={deadlift}
-                onChange={(e) => setDeadlift(e.target.value)}
-                placeholder={unit === 'kg' ? '100' : '220'}
-                min="0"
-              />
-              <Unit>{unit}</Unit>
-            </InputWrapper>
-          </InputGroup>
-        </FormGrid>
+      {/* Unit Selector */}
+      <div className="flex justify-end">
+        <div className="inline-flex p-0.5 bg-slate-200/70 rounded-lg text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => toggleUnit('kg')}
+            className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+              unit === 'kg' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            kg
+          </button>
+          <button
+            type="button"
+            onClick={() => toggleUnit('lbs')}
+            className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+              unit === 'lbs' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+            }`}
+          >
+            lbs
+          </button>
+        </div>
+      </div>
 
-        <Hint>💡 Not sure? We'll help you discover your strength during workouts!</Hint>
+      {/* Inputs Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        {/* Bench */}
+        <div className="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4 focus-within:border-slate-950 focus-within:bg-white focus-within:shadow-sm transition-all">
+          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+            Bench Press
+          </label>
+          <div className="flex items-center">
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="500"
+              value={bench}
+              onChange={(e) => setBench(e.target.value)}
+              placeholder="e.g. 80"
+              className="w-full text-xl font-bold text-slate-950 bg-transparent outline-none placeholder:text-slate-300"
+            />
+            <span className="text-xs font-bold text-slate-400">{unit}</span>
+          </div>
+        </div>
 
-        <ButtonGroup>
-          <BackButton onClick={prevStep}>
-            <span>←</span> Back
-          </BackButton>
-          <SkipButton onClick={handleSkip}>
+        {/* Squat */}
+        <div className="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4 focus-within:border-slate-950 focus-within:bg-white focus-within:shadow-sm transition-all">
+          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+            Back Squat
+          </label>
+          <div className="flex items-center">
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="500"
+              value={squat}
+              onChange={(e) => setSquat(e.target.value)}
+              placeholder="e.g. 100"
+              className="w-full text-xl font-bold text-slate-950 bg-transparent outline-none placeholder:text-slate-300"
+            />
+            <span className="text-xs font-bold text-slate-400">{unit}</span>
+          </div>
+        </div>
+
+        {/* Deadlift */}
+        <div className="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4 focus-within:border-slate-950 focus-within:bg-white focus-within:shadow-sm transition-all">
+          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+            Deadlift
+          </label>
+          <div className="flex items-center">
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="500"
+              value={deadlift}
+              onChange={(e) => setDeadlift(e.target.value)}
+              placeholder="e.g. 130"
+              className="w-full text-xl font-bold text-slate-950 bg-transparent outline-none placeholder:text-slate-300"
+            />
+            <span className="text-xs font-bold text-slate-400">{unit}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="px-4 py-3 rounded-full text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
             Skip for now
-          </SkipButton>
-          <NextButton onClick={handleNext}>
-            Next <span>→</span>
-          </NextButton>
-        </ButtonGroup>
-      </Content>
-    </StepWrapper>
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all cursor-pointer group"
+          >
+            <span>Continue</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(5deg); }
-`
-
-const glow = keyframes`
-  0%, 100% { box-shadow: 0 0 20px rgba(255,159,64,0.3); }
-  50% { box-shadow: 0 0 40px rgba(255,159,64,0.6); }
-`
-
-const StepWrapper = styled.div`
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-  animation: ${fadeIn} 0.6s ease;
-`
-
-const Content = styled.div`
-  text-align: center;
-`
-
-const IconWrapper = styled.div`
-  margin-bottom: 30px;
-`
-
-const AnimatedIcon = styled.div`
-  font-size: 80px;
-  animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(255,159,64,0.4));
-`
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #ff9f40, #ffcd56, #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 15px;
-`
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 50px;
-`
-
-const FormGrid = styled.div`
-  display: grid;
-  gap: 30px;
-  margin-bottom: 30px;
-`
-
-const InputGroup = styled.div`
-  text-align: left;
-`
-
-const LabelRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-`
-
-const Example = styled.span`
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.5);
-  font-style: italic;
-`
-
-const InfoBox = styled.div`
-  display: flex;
-  gap: 15px;
-  align-items: flex-start;
-  background: rgba(20,225,255,0.1);
-  border: 2px solid rgba(20,225,255,0.3);
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 30px;
-  text-align: left;
-`
-
-const InfoIcon = styled.div`
-  font-size: 2rem;
-  flex-shrink: 0;
-`
-
-const InfoText = styled.p`
-  font-size: 1rem;
-  color: rgba(255,255,255,0.8);
-  line-height: 1.6;
-  margin: 0;
-  
-  strong {
-    color: #14e1ff;
-  }
-`
-
-const UnitToggleWrapper = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-`
-
-const UnitToggle = styled.button`
-  background: rgba(255,107,53,0.1);
-  border: 2px solid rgba(255,107,53,0.3);
-  color: #ff6b35;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: rgba(255,107,53,0.2);
-    border-color: #ff6b35;
-    transform: translateY(-2px);
-  }
-`
-
-const HelpText = styled.p`
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.6);
-  margin: 5px 0 10px 0;
-  font-style: italic;
-`
-
-const Label = styled.label`
-  display: block;
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`
-
-const InputWrapper = styled.div`
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: rgba(255,255,255,0.05);
-  border: 2px solid rgba(255,159,64,0.3);
-  border-radius: 15px;
-  padding: 5px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  
-  &:focus-within {
-    border-color: #ff9f40;
-    animation: ${glow} 2s infinite;
-  }
-`
-
-const Icon = styled.div`
-  font-size: 28px;
-  padding: 0 15px;
-  filter: drop-shadow(0 2px 8px rgba(255,159,64,0.3));
-`
-
-const Input = styled.input`
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #fff;
-  font-size: 1.5rem;
-  font-weight: 700;
-  padding: 15px 10px;
-  
-  &::placeholder {
-    color: rgba(255,255,255,0.3);
-  }
-  
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`
-
-const Unit = styled.span`
-  font-size: 1rem;
-  color: rgba(255,255,255,0.6);
-  padding: 0 20px;
-  font-weight: 600;
-`
-
-const Hint = styled.p`
-  font-size: 1rem;
-  color: rgba(255,255,255,0.6);
-  margin-bottom: 40px;
-  padding: 15px;
-  background: rgba(255,159,64,0.1);
-  border-radius: 12px;
-  border: 1px solid rgba(255,159,64,0.2);
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 40px;
-`
-
-const Button = styled.button`
-  padding: 18px 40px;
-  border-radius: 15px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  span {
-    font-size: 1.3rem;
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-`
-
-const BackButton = styled(Button)`
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.2);
-  
-  &:hover {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.4);
-  }
-`
-
-const SkipButton = styled(Button)`
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.7);
-  border: 2px solid rgba(255,255,255,0.1);
-  
-  &:hover {
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.3);
-    color: #fff;
-  }
-`
-
-const NextButton = styled(Button)`
-  background: linear-gradient(135deg, #ff9f40, #ffcd56);
-  color: #0a0e27;
-  box-shadow: 0 10px 40px rgba(255,159,64,0.4);
-  
-  &:hover {
-    box-shadow: 0 15px 50px rgba(255,159,64,0.6);
-  }
-`

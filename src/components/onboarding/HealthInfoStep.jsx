@@ -1,19 +1,27 @@
 import { useState } from 'react'
-import styled, { keyframes } from 'styled-components'
+import { ArrowLeft, ArrowRight, HeartPulse, Clock, Check, Sparkles } from 'lucide-react'
 
 export default function HealthInfoStep({ data, updateData, nextStep, prevStep }) {
   const [conditions, setConditions] = useState(data.medicalConditions || [])
   const [injuries, setInjuries] = useState(data.injuries || '')
-  const [workoutTime, setWorkoutTime] = useState(data.workoutTimePreference || '')
+  const [workoutTime, setWorkoutTime] = useState(data.workoutTimePreference || 'morning')
   const [motivation, setMotivation] = useState(data.motivation || '')
 
-  const commonConditions = ['None', 'Diabetes', 'High Blood Pressure', 'Asthma', 'Heart Condition', 'Joint Issues', 'Back Pain']
+  const commonConditions = [
+    'None',
+    'Asthma',
+    'High Blood Pressure',
+    'Lower Back Issues',
+    'Knee / Joint Pain',
+    'Diabetes',
+    'Shoulder Impingement'
+  ]
+
   const timePreferences = [
-    { value: 'morning', label: '🌅 Morning (5-9 AM)', icon: '🌅' },
-    { value: 'afternoon', label: '☀️ Afternoon (12-4 PM)', icon: '☀️' },
-    { value: 'evening', label: '🌆 Evening (5-8 PM)', icon: '🌆' },
-    { value: 'night', label: '🌙 Night (8-11 PM)', icon: '🌙' },
-    { value: 'flexible', label: '🔄 Flexible', icon: '🔄' }
+    { value: 'morning', label: 'Morning', time: '6 AM – 10 AM', icon: '🌅' },
+    { value: 'afternoon', label: 'Afternoon', time: '12 PM – 4 PM', icon: '☀️' },
+    { value: 'evening', label: 'Evening', time: '5 PM – 9 PM', icon: '🌆' },
+    { value: 'flexible', label: 'Flexible', time: 'Anytime', icon: '🔄' }
   ]
 
   const toggleCondition = (condition) => {
@@ -21,7 +29,11 @@ export default function HealthInfoStep({ data, updateData, nextStep, prevStep })
       setConditions(['None'])
     } else {
       const filtered = conditions.filter(c => c !== 'None')
-      setConditions(filtered.includes(condition) ? filtered.filter(c => c !== condition) : [...filtered, condition])
+      if (filtered.includes(condition)) {
+        setConditions(filtered.filter(c => c !== condition))
+      } else {
+        setConditions([...filtered, condition])
+      }
     }
   }
 
@@ -34,73 +46,114 @@ export default function HealthInfoStep({ data, updateData, nextStep, prevStep })
   }
 
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper><AnimatedIcon>🏥</AnimatedIcon></IconWrapper>
-        <Title>Health & Preferences</Title>
-        <Subtitle>Help us personalize your fitness journey safely</Subtitle>
-        
-        <Section>
-          <SectionTitle>Medical Conditions</SectionTitle>
-          <ConditionsGrid>
-            {commonConditions.map(condition => (
-              <ConditionCard key={condition} $active={conditions.includes(condition)} onClick={() => toggleCondition(condition)}>
-                {condition}
-              </ConditionCard>
-            ))}
-          </ConditionsGrid>
-        </Section>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <HeartPulse className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Safety & Lifestyle</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          Health & <span className="relative inline-block">
+            preferences
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          Tell us about any joint conditions or timing preferences so workouts remain safe and injury-free.
+        </p>
+      </div>
 
-        <Section>
-          <SectionTitle>Injuries or Limitations (Optional)</SectionTitle>
-          <TextArea value={injuries} onChange={(e) => setInjuries(e.target.value)} placeholder="E.g., Previous knee injury, lower back pain..." />
-        </Section>
+      {/* Conditions Selection */}
+      <div className="space-y-3">
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Known Medical Conditions or Joint Sensitivity
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {commonConditions.map((cond) => {
+            const isSelected = conditions.includes(cond)
+            return (
+              <button
+                key={cond}
+                type="button"
+                onClick={() => toggleCondition(cond)}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border-2 transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-slate-950 text-white border-slate-950 shadow-xs'
+                    : 'bg-slate-50/70 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+              >
+                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3] text-[#D4F63D]" />}
+                <span>{cond}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
 
-        <Section>
-          <SectionTitle>Preferred Workout Time</SectionTitle>
-          <TimeGrid>
-            {timePreferences.map(time => (
-              <TimeCard key={time.value} $active={workoutTime === time.value} onClick={() => setWorkoutTime(time.value)}>
-                <TimeIcon>{time.icon}</TimeIcon>
-                <TimeLabel>{time.label.split(' ')[1]}</TimeLabel>
-              </TimeCard>
-            ))}
-          </TimeGrid>
-        </Section>
+      {/* Injuries Notes */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Injuries or Limitations (Optional)
+        </label>
+        <textarea
+          rows={2}
+          value={injuries}
+          onChange={(e) => setInjuries(e.target.value)}
+          placeholder="e.g. Previous rotator cuff strain, avoid heavy overhead presses..."
+          className="w-full p-4 bg-slate-50/70 border border-slate-200/90 rounded-2xl text-sm font-medium text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-slate-950 focus:bg-white focus:shadow-xs transition-all"
+        />
+      </div>
 
-        <Section>
-          <SectionTitle>What motivates you? (Optional)</SectionTitle>
-          <TextArea value={motivation} onChange={(e) => setMotivation(e.target.value)} placeholder="E.g., Want to feel confident, improve health, compete in sports..." rows="3" />
-        </Section>
+      {/* Preferred Workout Time */}
+      <div className="space-y-3">
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Preferred Training Window
+        </label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {timePreferences.map((t) => {
+            const isSelected = workoutTime === t.value
+            return (
+              <div
+                key={t.value}
+                onClick={() => setWorkoutTime(t.value)}
+                className={`p-3 rounded-2xl border-2 cursor-pointer text-center transition-all ${
+                  isSelected
+                    ? 'bg-slate-950 text-white border-slate-950 shadow-md'
+                    : 'bg-slate-50/70 hover:bg-slate-100 text-slate-800 border-slate-200'
+                }`}
+              >
+                <div className="text-xl mb-1">{t.icon}</div>
+                <div className="font-bold text-xs sm:text-sm">{t.label}</div>
+                <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {t.time}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
-        <ButtonGroup>
-          <BackButton onClick={prevStep}><span>←</span> Back</BackButton>
-          <NextButton onClick={handleNext}>Next <span>→</span></NextButton>
-        </ButtonGroup>
-      </Content>
-    </StepWrapper>
+      {/* Navigation Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleNext}
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all cursor-pointer group"
+        >
+          <span>Continue</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); }`
-const float = keyframes`0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); }`
-
-const StepWrapper = styled.div`width: 100%; max-width: 900px; margin: 0 auto; animation: ${fadeIn} 0.6s ease;`
-const Content = styled.div`text-align: center;`
-const IconWrapper = styled.div`margin-bottom: 30px;`
-const AnimatedIcon = styled.div`font-size: 80px; animation: ${float} 3s ease-in-out infinite; filter: drop-shadow(0 10px 30px rgba(255,99,71,0.4));`
-const Title = styled.h1`font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; background: linear-gradient(135deg, #ff6347, #ff8c69, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px;`
-const Subtitle = styled.p`font-size: 1.1rem; color: rgba(255,255,255,0.7); margin-bottom: 40px;`
-const Section = styled.div`margin-bottom: 40px; text-align: left;`
-const SectionTitle = styled.h3`font-size: 1.2rem; color: rgba(255,255,255,0.9); margin-bottom: 20px; font-weight: 700;`
-const ConditionsGrid = styled.div`display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;`
-const ConditionCard = styled.div`background: ${p => p.$active ? 'rgba(255,99,71,0.2)' : 'rgba(255,255,255,0.05)'}; border: 2px solid ${p => p.$active ? '#ff6347' : 'rgba(255,255,255,0.1)'}; padding: 15px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: ${p => p.$active ? '#ff6347' : 'rgba(255,255,255,0.8)'}; &:hover { background: rgba(255,99,71,0.15); border-color: #ff6347; }`
-const TextArea = styled.textarea`width: 100%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,99,71,0.3); border-radius: 12px; padding: 15px; color: #fff; font-size: 1rem; resize: vertical; min-height: 80px; &:focus { outline: none; border-color: #ff6347; } &::placeholder { color: rgba(255,255,255,0.4); }`
-const TimeGrid = styled.div`display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;`
-const TimeCard = styled.div`background: ${p => p.$active ? 'rgba(255,99,71,0.2)' : 'rgba(255,255,255,0.05)'}; border: 2px solid ${p => p.$active ? '#ff6347' : 'rgba(255,255,255,0.1)'}; padding: 20px 15px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; &:hover { background: rgba(255,99,71,0.15); border-color: #ff6347; }`
-const TimeIcon = styled.div`font-size: 32px; margin-bottom: 8px;`
-const TimeLabel = styled.div`font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.8);`
-const ButtonGroup = styled.div`display: flex; gap: 20px; justify-content: center; margin-top: 50px;`
-const Button = styled.button`padding: 18px 40px; border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; border: none; display: flex; align-items: center; gap: 10px; span { font-size: 1.3rem; } &:hover { transform: translateY(-3px); }`
-const BackButton = styled(Button)`background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.2); &:hover { background: rgba(255,255,255,0.15); }`
-const NextButton = styled(Button)`background: linear-gradient(135deg, #ff6347, #ff8c69); color: #fff; box-shadow: 0 10px 40px rgba(255,99,71,0.4); &:hover { box-shadow: 0 15px 50px rgba(255,99,71,0.6); }`

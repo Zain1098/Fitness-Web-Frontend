@@ -2,12 +2,12 @@
 
 /* Onboarding Global Styles */
 :root {
-  --ff-bg: #0a0e27;
-  --ff-surface: #1a1f3a;
-  --ff-text: #e6f0ff;
-  --ff-muted: #9fb3c8;
-  --ff-neon: #14e1ff;
-  --ff-glow: rgba(20, 225, 255, 0.5);
+  --ff-bg: #F8FAFC;
+  --ff-surface: #ffffff;
+  --ff-text: #0f172a;
+  --ff-muted: #64748b;
+  --ff-neon: #D4F63D;
+  --ff-glow: rgba(212, 246, 61, 0.4);
 }
 
 /* Smooth scrolling */
@@ -15,22 +15,22 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar for onboarding */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #14e1ff, #7deaff);
-  border-radius: 10px;
+  background: #cbd5e1;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #7deaff, #14e1ff);
+  background: #94a3b8;
 }
 
 /* Remove number input arrows */

@@ -1,17 +1,15 @@
-import styled, { keyframes, css } from 'styled-components'
+import { ArrowLeft, ArrowRight, Check, Crosshair } from 'lucide-react'
 
 export default function FocusAreaStep({ data, updateData, nextStep, prevStep }) {
   const areas = [
-    { value: 'chest', label: 'Chest', icon: '💪', desc: 'Build upper body strength' },
-    { value: 'back', label: 'Back', icon: '🦸', desc: 'Improve posture & strength' },
-    { value: 'arms', label: 'Arms', icon: '💪', desc: 'Biceps & Triceps' },
-    { value: 'shoulders', label: 'Shoulders', icon: '🏋️', desc: 'Broader shoulders' },
-    { value: 'legs', label: 'Legs', icon: '🦵', desc: 'Quads, Hamstrings, Calves' },
-    { value: 'abs', label: 'Abs', icon: '🔥', desc: 'Core strength & definition' },
-    { value: 'glutes', label: 'Glutes', icon: '🍑', desc: 'Build lower body power' },
-    { value: 'cardio', label: 'Cardio', icon: '❤️', desc: 'Heart health & endurance' },
-    { value: 'flexibility', label: 'Flexibility', icon: '🧘', desc: 'Mobility & stretching' },
-    { value: 'full_body', label: 'Full Body', icon: '🤸', desc: 'Overall fitness' }
+    { value: 'chest', label: 'Chest', desc: 'Pectoral development & pushing power', icon: '💥' },
+    { value: 'back', label: 'Back', desc: 'Lats, upper back & postural support', icon: '🦅' },
+    { value: 'arms', label: 'Arms', desc: 'Biceps, triceps & forearms', icon: '💪' },
+    { value: 'shoulders', label: 'Shoulders', desc: 'Deltoid width & overhead strength', icon: '🛡️' },
+    { value: 'legs', label: 'Legs & Quads', desc: 'Quadriceps, hamstrings & calves', icon: '🦵' },
+    { value: 'abs', label: 'Core & Abs', desc: 'Abdominals, obliques & stability', icon: '🔥' },
+    { value: 'glutes', label: 'Glutes', desc: 'Posterior chain & hip power', icon: '⚡' },
+    { value: 'full_body', label: 'Full Body', desc: 'Holistic compound conditioning', icon: '✨' }
   ]
 
   const toggleArea = (value) => {
@@ -32,310 +30,119 @@ export default function FocusAreaStep({ data, updateData, nextStep, prevStep }) 
   }
 
   const handleNext = () => {
-    if (data.focusAreas && data.focusAreas.length > 0) nextStep()
+    if (data.focusAreas && data.focusAreas.length > 0) {
+      nextStep()
+    }
   }
+
+  const selectedCount = data.focusAreas?.length || 0
 
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper>
-          <AnimatedIcon>🎯</AnimatedIcon>
-        </IconWrapper>
-        <Title>Select focus areas</Title>
-        <Subtitle>Choose body parts you want to work on (select multiple)</Subtitle>
-        
-        <QuickActions>
-          <QuickButton onClick={selectAll}>✅ Select All</QuickButton>
-          <QuickButton onClick={clearAll}>❌ Clear All</QuickButton>
-        </QuickActions>
-        
-        <OptionsGrid>
-          {areas.map((area) => (
-            <AreaCard
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <Crosshair className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Target Muscle Groups</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          Select your <span className="relative inline-block">
+            focus areas
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          Choose which muscle groups you want to prioritize in your splits. Select multiple options.
+        </p>
+      </div>
+
+      {/* Quick Actions Bar */}
+      <div className="flex items-center justify-between px-1">
+        <span className="text-xs font-bold text-slate-500">
+          Selected: <span className="text-slate-900">{selectedCount}</span> / {areas.length}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={selectAll}
+            className="text-xs font-bold text-slate-600 hover:text-slate-950 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+          >
+            Select All
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="text-xs font-bold text-slate-500 hover:text-rose-600 px-2.5 py-1 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      {/* Grid of Areas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {areas.map((area) => {
+          const isSelected = data.focusAreas?.includes(area.value)
+          return (
+            <div
               key={area.value}
-              $selected={data.focusAreas?.includes(area.value)}
               onClick={() => toggleArea(area.value)}
+              className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl border-2 cursor-pointer transition-all duration-150 ${
+                isSelected
+                  ? 'bg-slate-950 text-white border-slate-950 shadow-md scale-[1.01]'
+                  : 'bg-slate-50/70 hover:bg-slate-100/90 text-slate-800 border-slate-200/80 hover:border-slate-300'
+              }`}
             >
-              <CardIcon>{area.icon}</CardIcon>
-              <CardLabel>{area.label}</CardLabel>
-              <CardDesc>{area.desc}</CardDesc>
-              {data.focusAreas?.includes(area.value) && <CheckMark>✓</CheckMark>}
-              <Ripple />
-            </AreaCard>
-          ))}
-        </OptionsGrid>
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors ${
+                  isSelected ? 'bg-white/10 text-white' : 'bg-white shadow-xs border border-slate-200'
+                }`}
+              >
+                {area.icon}
+              </div>
 
-        <SelectedCount>
-          {data.focusAreas?.length || 0} area{data.focusAreas?.length !== 1 ? 's' : ''} selected
-        </SelectedCount>
+              <div className="flex-1 min-w-0">
+                <h3 className={`font-bold text-sm sm:text-base ${isSelected ? 'text-white' : 'text-slate-950'}`}>
+                  {area.label}
+                </h3>
+                <p className={`text-xs truncate ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {area.desc}
+                </p>
+              </div>
 
-        <ButtonGroup>
-          <BackButton onClick={prevStep}>
-            <span>←</span> Back
-          </BackButton>
-          <NextButton onClick={handleNext} disabled={!data.focusAreas || data.focusAreas.length === 0}>
-            Next <span>→</span>
-          </NextButton>
-        </ButtonGroup>
-      </Content>
-    </StepWrapper>
+              <div
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border-2 transition-colors ${
+                  isSelected ? 'bg-[#D4F63D] border-[#D4F63D] text-slate-950' : 'border-slate-300 bg-white'
+                }`}
+              >
+                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={selectedCount === 0}
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all cursor-pointer group"
+        >
+          <span>Continue</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-`
-
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-`
-
-const ripple = keyframes`
-  0% { transform: scale(0); opacity: 1; }
-  100% { transform: scale(4); opacity: 0; }
-`
-
-const StepWrapper = styled.div`
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  animation: ${fadeIn} 0.6s ease;
-  @media (max-width: 768px) {
-    padding: 15px;
-  }
-`
-
-const Content = styled.div`
-  text-align: center;
-`
-
-const IconWrapper = styled.div`
-  margin-bottom: 30px;
-`
-
-const AnimatedIcon = styled.div`
-  font-size: 80px;
-  animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(255,107,53,0.4));
-`
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #14e1ff, #7deaff, #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 15px;
-`
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 30px;
-`
-
-const QuickActions = styled.div`
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-`
-
-const QuickButton = styled.button`
-  padding: 10px 20px;
-  background: rgba(255,107,53,0.2);
-  border: 2px solid rgba(255,107,53,0.4);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: rgba(255,107,53,0.3);
-    border-color: #ff6b35;
-    transform: translateY(-2px);
-  }
-`
-
-const OptionsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-`
-
-const AreaCard = styled.div`
-  position: relative;
-  background: ${p => p.$selected ? 'linear-gradient(135deg, #ff6b35, #ff8c42)' : 'rgba(255,255,255,0.05)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,107,53,0.3)'};
-  border-radius: 20px;
-  padding: 25px 15px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  
-  &:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(255,107,53,0.3);
-    border-color: rgba(255,107,53,0.5);
-  }
-  
-  ${p => p.$selected && css`
-    animation: ${pulse} 0.5s ease;
-    box-shadow: 0 15px 40px rgba(255,107,53,0.5);
-  `}
-`
-
-const Ripple = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.5);
-  transform: translate(-50%, -50%) scale(0);
-  
-  ${AreaCard}:active & {
-    animation: ${ripple} 0.6s ease-out;
-  }
-`
-
-const CardIcon = styled.div`
-  font-size: 45px;
-  margin-bottom: 10px;
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
-`
-
-const CardLabel = styled.div`
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  margin-bottom: 5px;
-`
-
-const CardDesc = styled.div`
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.8);
-  line-height: 1.3;
-`
-
-const CheckMark = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: #fff;
-  font-weight: bold;
-  animation: ${pulse} 0.4s ease;
-`
-
-const SelectedCount = styled.div`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 30px;
-  font-weight: 600;
-  padding: 12px 24px;
-  background: rgba(255,107,53,0.1);
-  border-radius: 30px;
-  display: inline-block;
-  border: 2px solid rgba(255,107,53,0.3);
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 40px;
-  flex-wrap: wrap;
-  @media (max-width: 768px) {
-    gap: 15px;
-    margin-top: 30px;
-  }
-`
-
-const Button = styled.button`
-  padding: 18px 40px;
-  border-radius: 15px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  span {
-    font-size: 1.3rem;
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 15px 30px;
-    font-size: 1rem;
-  }
-`
-
-const BackButton = styled(Button)`
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.2);
-  
-  &:hover {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.4);
-  }
-`
-
-const NextButton = styled(Button)`
-  background: linear-gradient(135deg, #ff6b35, #ff8c42);
-  color: #fff;
-  box-shadow: 0 10px 40px rgba(255,107,53,0.4);
-  
-  &:hover {
-    box-shadow: 0 15px 50px rgba(255,107,53,0.6);
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-`

@@ -1,189 +1,124 @@
-import styled, { keyframes, css } from 'styled-components'
+import { ArrowLeft, ArrowRight, Check, User, Sparkles } from 'lucide-react'
 
-export default function GenderStep({ data, updateData, nextStep }) {
+export default function GenderStep({ data, updateData, nextStep, prevStep }) {
   const genders = [
-    { value: 'male', label: 'Male', icon: '♂', gradient: 'linear-gradient(135deg, #14e1ff 0%, #7deaff 100%)' },
-    { value: 'female', label: 'Female', icon: '♀', gradient: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)' },
-    { value: 'other', label: 'Other', icon: '⚧', gradient: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)' }
+    {
+      value: 'male',
+      label: 'Male',
+      desc: 'Calibrated for male metabolic baseline and body composition',
+      icon: '👨'
+    },
+    {
+      value: 'female',
+      label: 'Female',
+      desc: 'Calibrated for female metabolic baseline and body composition',
+      icon: '👩'
+    },
+    {
+      value: 'other',
+      label: 'Other / Prefer not to say',
+      desc: 'Neutral metabolic estimation and custom baseline',
+      icon: '✨'
+    }
   ]
 
   const handleSelect = (value) => {
     updateData('gender', value)
-    setTimeout(() => nextStep(), 400)
+  }
+
+  const handleNext = () => {
+    if (data.gender) {
+      nextStep()
+    }
   }
 
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper>
-          <AnimatedIcon>👤</AnimatedIcon>
-        </IconWrapper>
-        <Title>What's your gender?</Title>
-        <Subtitle>Help us personalize your fitness journey</Subtitle>
-        
-        <OptionsGrid>
-          {genders.map((g) => (
-            <GenderCard
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Step Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <Sparkles className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Personal Profile</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          What is your <span className="relative inline-block">
+            gender?
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          Help our AI calibrate your metabolic metrics, energy expenditure, and tailored workout volumes.
+        </p>
+      </div>
+
+      {/* Options List */}
+      <div className="grid grid-cols-1 gap-3.5 sm:gap-4">
+        {genders.map((g) => {
+          const isSelected = data.gender === g.value
+          return (
+            <div
               key={g.value}
-              $gradient={g.gradient}
-              $selected={data.gender === g.value}
               onClick={() => handleSelect(g.value)}
+              className={`relative flex items-center gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                isSelected
+                  ? 'bg-slate-950 text-white border-slate-950 shadow-lg shadow-slate-900/15 scale-[1.01]'
+                  : 'bg-slate-50/70 hover:bg-slate-100/90 text-slate-800 border-slate-200/80 hover:border-slate-300'
+              }`}
             >
-              <CardIcon>{g.icon}</CardIcon>
-              <CardLabel>{g.label}</CardLabel>
-              {data.gender === g.value && <CheckMark>✓</CheckMark>}
-            </GenderCard>
-          ))}
-        </OptionsGrid>
-      </Content>
-    </StepWrapper>
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 transition-colors ${
+                  isSelected ? 'bg-white/10 text-white' : 'bg-white shadow-xs border border-slate-200 text-slate-900'
+                }`}
+              >
+                {g.icon}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className={`font-bold text-base sm:text-lg ${isSelected ? 'text-white' : 'text-slate-950'}`}>
+                    {g.label}
+                  </h3>
+                </div>
+                <p className={`text-xs sm:text-sm mt-0.5 line-clamp-2 ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {g.desc}
+                </p>
+              </div>
+
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
+                  isSelected
+                    ? 'bg-[#D4F63D] border-[#D4F63D] text-slate-950'
+                    : 'border-slate-300 bg-white'
+                }`}
+              >
+                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={!data.gender}
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all cursor-pointer group"
+        >
+          <span>Continue</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-`
-
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-`
-
-const StepWrapper = styled.div`
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  animation: ${fadeIn} 0.6s ease;
-  @media (max-width: 768px) {
-    padding: 15px;
-  }
-`
-
-const Content = styled.div`
-  text-align: center;
-`
-
-const IconWrapper = styled.div`
-  margin-bottom: 30px;
-`
-
-const AnimatedIcon = styled.div`
-  font-size: 80px;
-  animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(20,225,255,0.3));
-`
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #14e1ff, #7deaff, #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 15px;
-  text-shadow: 0 0 40px rgba(20,225,255,0.5);
-`
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 50px;
-`
-
-const OptionsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 25px;
-  margin-top: 40px;
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-`
-
-const GenderCard = styled.div`
-  position: relative;
-  background: ${p => p.$selected ? p.$gradient : 'rgba(255,255,255,0.05)'};
-  border: 2px solid ${p => p.$selected ? 'transparent' : 'rgba(255,107,53,0.3)'};
-  border-radius: 20px;
-  padding: 40px 20px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: ${p => p.$gradient};
-    opacity: ${p => p.$selected ? 1 : 0};
-    transition: opacity 0.4s ease;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  &:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 60px rgba(255,107,53,0.3);
-    border-color: rgba(255,107,53,0.5);
-    
-    &::after {
-      opacity: 1;
-    }
-  }
-  
-  ${p => p.$selected && css`
-    animation: ${pulse} 0.6s ease;
-    box-shadow: 0 20px 60px rgba(255,107,53,0.5);
-  `}
-`
-
-const CardIcon = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 60px;
-  margin-bottom: 15px;
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
-`
-
-const CardLabel = styled.div`
-  position: relative;
-  z-index: 1;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-`
-
-const CheckMark = styled.div`
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 35px;
-  height: 35px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #fff;
-  font-weight: bold;
-  z-index: 2;
-  animation: ${pulse} 0.4s ease;
-`

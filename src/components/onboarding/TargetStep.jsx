@@ -1,348 +1,136 @@
 import { useState } from 'react'
-import styled, { keyframes } from 'styled-components'
+import { ArrowLeft, ArrowRight, Target, Scale, HelpCircle } from 'lucide-react'
 
 export default function TargetStep({ data, updateData, nextStep, prevStep }) {
   const [targetWeight, setTargetWeight] = useState(data.targetWeight || '')
-  const [targetHeight, setTargetHeight] = useState(data.targetHeight || '')
   const [weightUnit, setWeightUnit] = useState('kg')
-  const [heightUnit, setHeightUnit] = useState('cm')
-  const [heightFeet, setHeightFeet] = useState('')
-  const [heightInches, setHeightInches] = useState('')
+
+  const toggleWeightUnit = (unit) => {
+    if (unit === weightUnit) return
+    if (targetWeight) {
+      if (unit === 'lbs') {
+        setTargetWeight((parseFloat(targetWeight) * 2.20462).toFixed(1))
+      } else {
+        setTargetWeight((parseFloat(targetWeight) * 0.453592).toFixed(1))
+      }
+    }
+    setWeightUnit(unit)
+  }
 
   const handleNext = () => {
-    updateData('targetWeight', weightUnit === 'kg' ? targetWeight : (parseFloat(targetWeight) * 0.453592).toFixed(1))
-    updateData('targetHeight', heightUnit === 'cm' ? targetHeight : (parseFloat(heightFeet || 0) * 30.48 + parseFloat(heightInches || 0) * 2.54).toFixed(1))
+    const computedWeight = targetWeight
+      ? (weightUnit === 'kg' ? targetWeight : (parseFloat(targetWeight) * 0.453592).toFixed(1))
+      : ''
+    updateData('targetWeight', computedWeight)
     nextStep()
   }
 
-  const toggleWeightUnit = () => {
-    if (targetWeight) {
-      setTargetWeight(weightUnit === 'kg' ? (targetWeight * 2.20462).toFixed(1) : (targetWeight * 0.453592).toFixed(1))
-    }
-    setWeightUnit(weightUnit === 'kg' ? 'lbs' : 'kg')
+  const handleSkip = () => {
+    updateData('targetWeight', '')
+    nextStep()
   }
-
-  const toggleHeightUnit = () => {
-    if (heightUnit === 'cm' && targetHeight) {
-      const totalInches = targetHeight / 2.54
-      setHeightFeet(Math.floor(totalInches / 12))
-      setHeightInches((totalInches % 12).toFixed(0))
-      setTargetHeight('')
-    } else if (heightUnit === 'ft' && (heightFeet || heightInches)) {
-      const cm = (parseFloat(heightFeet || 0) * 30.48 + parseFloat(heightInches || 0) * 2.54).toFixed(0)
-      setTargetHeight(cm)
-      setHeightFeet('')
-      setHeightInches('')
-    }
-    setHeightUnit(heightUnit === 'cm' ? 'ft' : 'cm')
-  }
-
-  const isValid = targetWeight || targetHeight
 
   return (
-    <StepWrapper>
-      <Content>
-        <IconWrapper>
-          <AnimatedIcon>🎯</AnimatedIcon>
-        </IconWrapper>
-        <Title>What's your target?</Title>
-        <Subtitle>Set your fitness goals (optional)</Subtitle>
-        
-        <FormGrid>
-          <InputGroup>
-            <LabelRow>
-              <Label>Target Weight</Label>
-              <UnitToggle onClick={toggleWeightUnit}>
-                {weightUnit === 'kg' ? 'Switch to lbs' : 'Switch to kg'}
-              </UnitToggle>
-            </LabelRow>
-            <InputWrapper>
-              <Icon>🎯</Icon>
-              <Input
-                type="number"
-                value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value)}
-                placeholder={data.weight || (weightUnit === 'kg' ? '65' : '143')}
-                min="1"
-                max={weightUnit === 'kg' ? '500' : '1100'}
-              />
-              <Unit>{weightUnit}</Unit>
-            </InputWrapper>
-            <Hint>Leave empty if you don't have a specific target</Hint>
-          </InputGroup>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <Target className="w-3.5 h-3.5 text-[#10B981]" />
+          <span>Goal Calibration</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          What is your <span className="relative inline-block">
+            target weight?
+            <span className="absolute left-0 -bottom-1 w-full h-2 bg-[#D4F63D]/60 -z-10 rounded-full" />
+          </span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+          Setting a target weight helps calculate your required caloric surplus or deficit and projected timeline.
+        </p>
+      </div>
 
-          <InputGroup>
-            <LabelRow>
-              <Label>Target Height (Optional)</Label>
-              <UnitToggle onClick={toggleHeightUnit}>
-                {heightUnit === 'cm' ? 'Switch to ft' : 'Switch to cm'}
-              </UnitToggle>
-            </LabelRow>
-            {heightUnit === 'cm' ? (
-              <InputWrapper>
-                <Icon>📐</Icon>
-                <Input
-                  type="number"
-                  value={targetHeight}
-                  onChange={(e) => setTargetHeight(e.target.value)}
-                  placeholder={data.height || "175"}
-                  min="1"
-                  max="300"
-                />
-                <Unit>cm</Unit>
-              </InputWrapper>
-            ) : (
-              <FeetInputWrapper>
-                <InputWrapper style={{flex: 1}}>
-                  <Icon>📐</Icon>
-                  <Input
-                    type="number"
-                    value={heightFeet}
-                    onChange={(e) => setHeightFeet(e.target.value)}
-                    placeholder="5"
-                    min="0"
-                    max="8"
-                  />
-                  <Unit>ft</Unit>
-                </InputWrapper>
-                <InputWrapper style={{flex: 1}}>
-                  <Input
-                    type="number"
-                    value={heightInches}
-                    onChange={(e) => setHeightInches(e.target.value)}
-                    placeholder="9"
-                    min="0"
-                    max="11"
-                  />
-                  <Unit>in</Unit>
-                </InputWrapper>
-              </FeetInputWrapper>
-            )}
-            <Hint>Most people focus on weight goals</Hint>
-          </InputGroup>
-        </FormGrid>
+      {/* Input Form */}
+      <div className="space-y-4">
+        <div className="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-5 focus-within:border-slate-950 focus-within:bg-white focus-within:shadow-sm transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">
+              <Scale className="w-4 h-4 text-slate-500" />
+              Target Bodyweight
+            </label>
+            <div className="inline-flex p-0.5 bg-slate-200/70 rounded-lg text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => toggleWeightUnit('kg')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  weightUnit === 'kg' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+                }`}
+              >
+                kg
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleWeightUnit('lbs')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  weightUnit === 'lbs' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'
+                }`}
+              >
+                lbs
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="number"
+              step="0.1"
+              min="20"
+              max="300"
+              value={targetWeight}
+              onChange={(e) => setTargetWeight(e.target.value)}
+              placeholder={weightUnit === 'kg' ? 'e.g. 70' : 'e.g. 155'}
+              className="w-full text-2xl sm:text-3xl font-bold text-slate-950 bg-transparent outline-none placeholder:text-slate-300"
+            />
+            <span className="text-base font-bold text-slate-400">{weightUnit}</span>
+          </div>
+        </div>
 
-        <ButtonGroup>
-          <BackButton onClick={prevStep}>
-            <span>←</span> Back
-          </BackButton>
-          <NextButton onClick={handleNext}>
-            Next <span>→</span>
-          </NextButton>
-        </ButtonGroup>
-      </Content>
-    </StepWrapper>
+        {/* Informative Tip */}
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-200/60 text-amber-900 text-xs sm:text-sm">
+          <HelpCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <p>
+            You can modify this anytime from your dashboard. If you're maintaining your current weight, you can simply re-enter your current weight or skip.
+          </p>
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="px-4 py-3 rounded-full text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Skip for now
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-black bg-slate-950 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all cursor-pointer group"
+          >
+            <span>Continue</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-`
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(-5deg); }
-`
-
-const glow = keyframes`
-  0%, 100% { box-shadow: 0 0 20px rgba(20,225,255,0.3); }
-  50% { box-shadow: 0 0 40px rgba(20,225,255,0.6); }
-`
-
-const StepWrapper = styled.div`
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-  animation: ${fadeIn} 0.6s ease;
-`
-
-const Content = styled.div`
-  text-align: center;
-`
-
-const IconWrapper = styled.div`
-  margin-bottom: 30px;
-`
-
-const AnimatedIcon = styled.div`
-  font-size: 80px;
-  animation: ${float} 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(255,193,7,0.4));
-`
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  background: linear-gradient(135deg, #ffd700, #ffed4e, #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 15px;
-`
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 50px;
-`
-
-const FormGrid = styled.div`
-  display: grid;
-  gap: 30px;
-  margin-bottom: 50px;
-`
-
-const InputGroup = styled.div`
-  text-align: left;
-`
-
-const LabelRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-`
-
-const UnitToggle = styled.button`
-  background: rgba(255,215,0,0.1);
-  border: 1px solid rgba(255,215,0,0.3);
-  color: #ffd700;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: rgba(255,215,0,0.2);
-    border-color: #ffd700;
-  }
-`
-
-const FeetInputWrapper = styled.div`
-  display: flex;
-  gap: 15px;
-`
-
-const Label = styled.label`
-  display: block;
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`
-
-const InputWrapper = styled.div`
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: rgba(255,255,255,0.05);
-  border: 2px solid rgba(255,215,0,0.3);
-  border-radius: 15px;
-  padding: 5px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  
-  &:focus-within {
-    border-color: #ffd700;
-    animation: ${glow} 2s infinite;
-  }
-`
-
-const Icon = styled.div`
-  font-size: 28px;
-  padding: 0 15px;
-  filter: drop-shadow(0 2px 8px rgba(255,215,0,0.3));
-`
-
-const Input = styled.input`
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #fff;
-  font-size: 1.5rem;
-  font-weight: 700;
-  padding: 15px 10px;
-  
-  &::placeholder {
-    color: rgba(255,255,255,0.3);
-  }
-  
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`
-
-const Unit = styled.span`
-  font-size: 1rem;
-  color: rgba(255,255,255,0.6);
-  padding: 0 20px;
-  font-weight: 600;
-`
-
-const Hint = styled.p`
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.5);
-  margin-top: 8px;
-  font-style: italic;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 40px;
-`
-
-const Button = styled.button`
-  padding: 18px 40px;
-  border-radius: 15px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  span {
-    font-size: 1.3rem;
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-`
-
-const BackButton = styled(Button)`
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.2);
-  
-  &:hover {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.4);
-  }
-`
-
-const NextButton = styled(Button)`
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #0a0e27;
-  box-shadow: 0 10px 40px rgba(255,215,0,0.4);
-  
-  &:hover {
-    box-shadow: 0 15px 50px rgba(255,215,0,0.6);
-  }
-`

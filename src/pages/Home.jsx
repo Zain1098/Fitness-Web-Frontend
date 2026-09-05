@@ -60,12 +60,8 @@ export default function Home() {
   }, [location.pathname, location.hash])
 
   useEffect(() => {
-    if (user) {
-      if (user.onboarding_completed) {
-        navigate('/dashboard')
-      } else {
-        navigate('/onboarding')
-      }
+    if (user && user.onboarding_completed) {
+      navigate('/dashboard')
     }
   }, [user, navigate])
 

@@ -116,7 +116,15 @@ export function AuthProvider({ children }){
     verifyOtpReset: async (email, code)=>{ return api('/auth/verify-otp', { method:'POST', body:{ email, code, purpose:'reset' } }) },
     resetPassword: async (email, code, newPassword)=>{ return api('/auth/reset-password', { method:'POST', body:{ email, code, newPassword } }) },
     googleInit: async ()=>{ const r = await api('/auth/google/init'); window.location.href = r.url },
-    checkAvailability: async (email, username)=>{ const params = new URLSearchParams(); if(email) params.set('email', email); if(username) params.set('username', username); return api('/auth/check?'+params.toString()) }
+    checkAvailability: async (email, username)=>{ const params = new URLSearchParams(); if(email) params.set('email', email); if(username) params.set('username', username); return api('/auth/check?'+params.toString()) },
+    setUser,
+    updateUser: (fields) => {
+      setUser(prev => {
+        const updated = { ...(prev || {}), ...fields }
+        localStorage.setItem('ff_user', JSON.stringify(updated))
+        return updated
+      })
+    }
   }), [token, user])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
