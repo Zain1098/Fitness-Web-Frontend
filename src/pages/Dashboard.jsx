@@ -475,7 +475,7 @@ export default function Dashboard() {
       {/* Fitness AI Chatbot and Modals */}
       <FitnessChatbot />
       <PricingModal isOpen={pricingModalOpen} onClose={() => setPricingModalOpen(false)} />
-      <Tutorial />
+      <Tutorial page="dashboard" />
       <SmartPromoPopup />
     </div>
   )

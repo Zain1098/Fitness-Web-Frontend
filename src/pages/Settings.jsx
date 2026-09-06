@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
+import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
+import { API_BASE_URL } from '../config/api.js'
 import { showToast } from '../components/Toast.jsx'
 import './Settings.css'
 
@@ -365,7 +367,7 @@ export default function Settings() {
 
   const exportData = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user/export-data?format=${exportFormat}`, {
+      const response = await fetch(`${API_BASE_URL}/user/export-data?format=${exportFormat}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       
@@ -450,6 +452,7 @@ export default function Settings() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
+      <Tutorial page="settings" />
       <div className="settings-page-pro min-h-screen bg-[#F8FAFC] text-slate-900 pb-24 lg:pl-32 pt-8 px-4 lg:px-8">
         <div className="settings-container-pro">
           <div className="settings-header-pro">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 import FitnessChatbot from '../components/FitnessChatbot.jsx'
+import Tutorial from '../components/Tutorial.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import './TrackerAnalytics.css'
@@ -125,7 +126,8 @@ export default function TrackerAnalytics() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
-      <div className="tracker-analytics-page">
+      <Tutorial page="dailyTracker" />
+      <div className="tracker-analytics-page lg:pl-32">
         <div className="analytics-container">
           <div className="analytics-header">
             <div>

@@ -1,56 +1,66 @@
+/* ==========================================================================
+   Tracker Analytics - Modern SaaS Light Theme
+   Background: #F8FAFC, Cards: #FFFFFF, Slate-900 typography, Lime accents
+   ========================================================================== */
+
 .tracker-analytics-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
-  padding-top: 80px;
-  color: #fff;
+  background: #F8FAFC;
+  padding-top: 32px;
+  padding-bottom: 96px;
+  color: #0F172A;
 }
 
 .analytics-container {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 15px;
+  padding: 0 24px;
 }
 
 .analytics-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
 }
 
 .analytics-header h1 {
   font-size: 2rem;
-  background: linear-gradient(45deg, #14e1ff, #7deaff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 5px;
+  font-weight: 900;
+  color: #0F172A;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
 .analytics-header p {
-  color: #ccc;
+  color: #64748B;
   font-size: 0.95rem;
+  font-weight: 500;
 }
 
-.back-btn {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #fff;
+.back-btn, .btn-secondary {
+  padding: 10px 18px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  color: #0F172A;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(-3px);
+.back-btn:hover, .btn-secondary:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
 }
 
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 @media (max-width: 900px) {
@@ -60,56 +70,62 @@
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  padding: 12px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 14px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 8px;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .stat-card:hover {
-  background: rgba(255, 255, 255, 0.09);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .stat-card.highlight {
-  background: rgba(20, 225, 255, 0.15);
-  border-color: rgba(20, 225, 255, 0.4);
+  background: #FFFBEB;
+  border-color: #FDE68A;
 }
 
 .stat-icon {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
 }
 
 .stat-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .stat-value {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #fff;
-  line-height: 1;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.1;
 }
 
 .stat-label {
   font-size: 0.75rem;
-  color: #ccc;
-  line-height: 1.2;
+  color: #64748B;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .calendar-section {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  padding: 25px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .calendar-header {
@@ -120,60 +136,64 @@
 }
 
 .calendar-header h2 {
-  font-size: 1.5rem;
-  color: #fff;
+  font-size: 1.3rem;
+  color: #0F172A;
+  font-weight: 800;
   margin: 0;
 }
 
 .month-selector {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 
 .month-selector button {
-  padding: 8px 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
-  color: #fff;
+  color: #0F172A;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
 .month-selector button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: #E2E8F0;
 }
 
 .month-selector button:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .month-selector span {
-  font-weight: 600;
-  min-width: 150px;
+  font-weight: 700;
+  color: #0F172A;
+  min-width: 140px;
   text-align: center;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .calendar-day-header {
   text-align: center;
-  font-size: 0.85rem;
-  color: #ccc;
-  padding: 8px;
-  font-weight: 600;
+  font-size: 0.8rem;
+  color: #64748B;
+  padding: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .calendar-day {
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -181,78 +201,98 @@
   position: relative;
   cursor: pointer;
   transition: all 0.2s;
+  border: 1px solid #E2E8F0;
 }
 
 .calendar-day.empty {
-  background: rgba(255, 255, 255, 0.02);
+  background: #F8FAFC;
+  border-color: transparent;
 }
 
 .calendar-day.minimal {
-  background: rgba(76, 175, 80, 0.15);
+  background: #DCFCE7;
+  border-color: #BBF7D0;
+  color: #15803D;
 }
 
 .calendar-day.low {
-  background: rgba(76, 175, 80, 0.3);
+  background: #86EFAC;
+  border-color: #4ADE80;
+  color: #166534;
 }
 
 .calendar-day.medium {
-  background: rgba(76, 175, 80, 0.5);
+  background: #4ADE80;
+  border-color: #22C55E;
+  color: #14532D;
 }
 
 .calendar-day.high {
-  background: rgba(76, 175, 80, 0.7);
+  background: #16A34A;
+  border-color: #15803D;
+  color: #FFFFFF;
 }
 
 .calendar-day:hover:not(.empty) {
-  transform: scale(1.1);
+  transform: scale(1.08);
   z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .day-number {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .workout-badge {
   position: absolute;
   top: 2px;
   right: 2px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
 }
 
 .calendar-legend {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  font-size: 0.85rem;
-  color: #ccc;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #64748B;
+  font-weight: 600;
 }
 
 .legend-box {
-  width: 15px;
-  height: 15px;
-  border-radius: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
 }
 
+.legend-box.empty { background: #F1F5F9; border: 1px solid #E2E8F0; }
+.legend-box.minimal { background: #DCFCE7; }
+.legend-box.low { background: #86EFAC; }
+.legend-box.medium { background: #4ADE80; }
+.legend-box.high { background: #16A34A; }
+
 .charts-section {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  padding: 25px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .charts-section h2 {
-  font-size: 1.5rem;
-  color: #fff;
+  font-size: 1.3rem;
+  color: #0F172A;
+  font-weight: 800;
   margin: 0 0 20px 0;
 }
 
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 @media (max-width: 900px) {
@@ -262,28 +302,28 @@
 }
 
 .chart-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  border-radius: 10px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: #F8FAFC;
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid #E2E8F0;
 }
 
 .chart-card h3 {
-  font-size: 0.9rem;
-  margin: 0 0 10px 0;
-  color: #fff;
-  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0 0 12px 0;
+  color: #0F172A;
+  font-weight: 700;
 }
 
 .bar-chart {
   display: flex;
   align-items: flex-end;
-  gap: 1px;
+  gap: 2px;
   height: 100px;
-  margin-bottom: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  margin-bottom: 8px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
   padding: 8px 4px;
 }
 
@@ -297,47 +337,47 @@
 .bar {
   width: 100%;
   min-height: 3px;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .bar.water {
-  background: linear-gradient(180deg, #42a5f5 0%, #1e88e5 100%);
-  box-shadow: 0 0 4px rgba(33, 150, 243, 0.5);
+  background: #0284C7;
 }
 
 .bar.sleep {
-  background: linear-gradient(180deg, #ab47bc 0%, #8e24aa 100%);
-  box-shadow: 0 0 4px rgba(156, 39, 176, 0.5);
+  background: #8B5CF6;
 }
 
 .bar.steps {
-  background: linear-gradient(180deg, #66bb6a 0%, #43a047 100%);
-  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+  background: #16A34A;
 }
 
 .bar:hover {
-  filter: brightness(1.2);
-  transform: scaleY(1.08);
+  filter: brightness(1.15);
+  transform: scaleY(1.06);
 }
 
 .chart-label {
   text-align: center;
-  font-size: 0.85rem;
-  color: #ccc;
+  font-size: 0.8rem;
+  color: #64748B;
+  font-weight: 600;
 }
 
 .history-section {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  padding: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .history-section h2 {
-  font-size: 1.5rem;
-  color: #fff;
+  font-size: 1.3rem;
+  color: #0F172A;
+  font-weight: 800;
   margin: 0 0 20px 0;
 }
 
@@ -347,44 +387,28 @@
   gap: 10px;
   max-height: 500px;
   overflow-y: auto;
-  padding-right: 5px;
-}
-
-.history-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.history-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-}
-
-.history-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 107, 53, 0.5);
-  border-radius: 3px;
-}
-
-.history-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 107, 53, 0.7);
+  padding-right: 6px;
 }
 
 .history-item {
   display: flex;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #E2E8F0;
   transition: all 0.2s;
 }
 
 .history-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateX(5px);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .history-badge {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   flex-shrink: 0;
 }
 
@@ -393,9 +417,10 @@
 }
 
 .history-date {
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #14e1ff;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #0F172A;
+  font-size: 0.95rem;
 }
 
 .history-stats {
@@ -403,15 +428,16 @@
   flex-wrap: wrap;
   gap: 12px;
   font-size: 0.85rem;
-  color: #ccc;
+  color: #475569;
+  font-weight: 500;
   margin-bottom: 6px;
 }
 
 .history-notes {
-  font-size: 0.9rem;
-  color: #aaa;
+  font-size: 0.85rem;
+  color: #64748B;
   font-style: italic;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .empty-state {
@@ -421,102 +447,67 @@
 
 .empty-icon {
   font-size: 4rem;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .empty-state h3 {
-  font-size: 1.5rem;
-  margin-bottom: 10px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
 }
 
 .empty-state p {
-  color: #ccc;
+  color: #64748B;
   margin-bottom: 20px;
 }
 
 .action-btn {
   padding: 12px 24px;
-  background: linear-gradient(45deg, #ff6b35, #ff8c42);
+  background: #0F172A;
   border: none;
-  border-radius: 8px;
-  color: #fff;
-  font-weight: 600;
+  border-radius: 12px;
+  color: #D4F63D;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
 
 .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+  background: #1E293B;
+  transform: translateY(-1px);
 }
 
 .loading-state {
   text-align: center;
   padding: 40px;
-  color: #ccc;
+  color: #64748B;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
   .analytics-container {
-    padding: 15px;
+    padding: 0 16px;
   }
 
   .analytics-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
+    gap: 14px;
   }
 
   .analytics-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 
   .stats-overview {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .stat-card {
-    padding: 12px;
-    gap: 10px;
-  }
-
-  .stat-icon {
-    font-size: 1.5rem;
-  }
-
-  .stat-value {
-    font-size: 1.3rem;
   }
 
   .calendar-section,
   .charts-section,
   .history-section {
-    padding: 15px;
-  }
-
-  .calendar-grid {
-    gap: 4px;
-  }
-
-  .day-number {
-    font-size: 0.75rem;
-  }
-
-  .workout-badge {
-    font-size: 0.6rem;
-  }
-
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .bar-chart {
-    height: 100px;
-  }
-
-  .history-stats {
-    font-size: 0.8rem;
-    gap: 8px;
+    padding: 16px;
   }
 }

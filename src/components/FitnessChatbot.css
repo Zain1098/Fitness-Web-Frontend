@@ -462,11 +462,11 @@
   }
 
   .chatbot-toggle {
-    right: 20px;
-    bottom: 20px;
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
+    right: 20px !important;
+    bottom: 84px !important;
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
   }
   
   .chatbot-messages {

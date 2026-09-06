@@ -4,83 +4,65 @@ import './Tutorial.css';
 const tutorialSteps = {
   dashboard: [
     {
-      target: '[data-tutorial="focus-section"]',
-      title: 'Today\'s Focus',
-      description: 'Track your daily calories, workouts, weight, and water intake all in one place. Click any card to view detailed information.',
+      target: 'header h1',
+      title: 'Welcome to FitForge! 👋',
+      description: 'This is your centralized command center. Monitor daily readiness, active routines, and bio-metrics at a glance.',
       position: 'bottom'
     },
     {
-      target: '[data-tutorial="quick-actions"]',
-      title: 'Quick Actions',
-      description: 'Start a workout, log meals, track progress, or browse exercises with just one click. These are your main action buttons.',
+      target: 'button:has(svg.lucide-crown)',
+      title: 'FitForge Pro & Upgrade',
+      description: 'Access custom macronutrient plans, advanced analytics, and prioritized 24/7 AI coach guidance.',
       position: 'bottom'
     },
     {
-      target: '.notification-btn',
-      title: 'Notifications',
-      description: 'Stay updated with workout reminders, achievement alerts, and fitness milestones. Click to view all your notifications.',
+      target: 'button:has(svg.lucide-arrow-right)',
+      title: 'Start Today\'s Routine',
+      description: 'Jump straight into your personalized workout session calibrated for your fitness level and available gym/home equipment.',
+      position: 'top'
+    },
+    {
+      target: 'div:has(> div > h3:contains("Hydration"))',
+      title: 'Interactive Hydration Tracker',
+      description: 'Tap on any water cup to log +250ml instantly. Stay consistently hydrated to optimize muscle recovery.',
       position: 'bottom'
     },
     {
-      target: '[data-tutorial="chatbot-btn"]',
-      title: 'AI Fitness Coach',
-      description: 'Get personalized workout plans, nutrition advice, and motivation from your AI coach. Available 24/7 to help you reach your goals.',
-      position: 'left'
-    },
-    {
-      target: '[data-tutorial="streak-section"]',
-      title: 'Streak & Goals',
-      description: 'Track your workout streak and monitor progress towards your weight goal. Stay motivated by building consistent habits.',
-      position: 'left'
-    },
-    {
-      target: '[data-tutorial="upgrade-btn"]',
-      title: 'Upgrade to Premium',
-      description: 'Unlock advanced features like personalized meal plans, detailed analytics, and priority AI coach support.',
-      position: 'bottom'
+      target: 'div.grid.grid-cols-1.md\\:grid-cols-3',
+      title: 'Daily Habits & Vitals',
+      description: 'Review your deep sleep quality, calorie targets, and body weight progression curve.',
+      position: 'top'
     }
   ],
   dailyTracker: [
     {
-      target: '.googlefit-connect-btn',
-      title: '📱 Connect Google Fit',
-      description: 'Install Google Fit app on your phone, track steps/weight/calories there, then connect here to auto-sync data to FitForge. No manual entry needed!',
+      target: 'header h1',
+      title: 'Daily Activity & Habits',
+      description: 'Record your daily health inputs: hydration, sleep hours, step volume, and subjective mood readiness.',
       position: 'bottom'
     },
     {
-      target: '[data-tutorial="view-analytics"]',
-      title: 'View Full Analytics',
-      description: 'Click here to see detailed insights, trends, and comprehensive analysis of your daily habits and fitness records.',
+      target: 'input[type="date"]',
+      title: 'Historical Date Browser',
+      description: 'Jump to any past date to inspect your historical tracking logs or add missed data.',
       position: 'bottom'
     },
     {
-      target: '[data-tutorial="water-intake"]',
-      title: 'Water Intake Tracker',
-      description: 'Click the glasses to track your daily water consumption. Goal is 8 glasses per day to stay hydrated.',
+      target: 'button:has(svg.lucide-smartphone)',
+      title: 'Google Fit Auto-Sync',
+      description: 'Connect Google Fit to automatically synchronize your real-time steps, sleep duration, and active calories.',
       position: 'bottom'
     },
     {
-      target: '.tracker-card:nth-child(2)',
-      title: 'Steps Counter',
-      description: 'Log your daily steps here. Aim for 10,000 steps per day for optimal health and fitness.',
+      target: 'div.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4',
+      title: 'Interactive Habit Cards',
+      description: 'Quickly adjust water glasses, enter steps, log sleep, and pick your mood for the day.',
       position: 'bottom'
     },
     {
-      target: '.tracker-card:nth-child(3)',
-      title: 'Sleep Hours',
-      description: 'Track your sleep duration. Optimal sleep is 7-9 hours per night for recovery and performance.',
-      position: 'bottom'
-    },
-    {
-      target: '.tracker-card:nth-child(4)',
-      title: 'Daily Mood',
-      description: 'Record how you feel each day. Tracking mood helps identify patterns and maintain mental wellness.',
-      position: 'bottom'
-    },
-    {
-      target: '.save-btn',
-      title: 'Save Your Progress',
-      description: 'Click here to save all your daily tracking data. Your progress will be stored and reflected in analytics.',
+      target: 'button:has(svg.lucide-save)',
+      title: 'Save Daily Record',
+      description: 'Click here to save your daily logs. Your consistency streak and analytics will automatically update.',
       position: 'top'
     }
   ],
@@ -88,190 +70,143 @@ const tutorialSteps = {
     {
       target: '.exercise-tabs',
       title: 'Exercise Hub Navigation',
-      description: 'Access exercise library, favorites, workout builder, smart planner, saved workouts, and your complete workout history all in one place.',
+      description: 'Access the complete movement library, saved routines, workout builder, smart AI weekly planner, and workout logs.',
       position: 'bottom'
     },
     {
-      target: '.filters-section',
-      title: 'Filter & Search',
-      description: 'Filter exercises by muscle group, equipment type, and difficulty level. Use search to find specific exercises quickly.',
+      target: '.filters-container, .exercise-filters',
+      title: 'Filter & Search Engine',
+      description: 'Filter over 60+ exercises by muscle group (chest, back, legs), equipment (barbell, dumbbells, cables), and difficulty.',
       position: 'bottom'
     },
     {
-      target: '.exercises-grid .exercise-card:first-child',
-      title: 'Exercise Cards',
-      description: 'Each card shows exercise details, target muscles, and equipment needed. Click View for full instructions, Star to favorite, or Add to build workouts.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(3)',
-      title: 'Workout Builder',
-      description: 'Create custom workout routines by selecting exercises, setting reps and sets, and saving them for future use.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(4)',
-      title: 'Smart Planner',
-      description: 'Generate AI-powered weekly workout plans based on your goals, experience level, available equipment, and schedule.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(6)',
-      title: 'History & Analytics',
-      description: 'Track your workout history, view detailed statistics, monitor streaks, and analyze your fitness progress over time.',
-      position: 'bottom'
+      target: '.exercises-grid',
+      title: 'Movement Cards & Form Guides',
+      description: 'Click any exercise card to inspect detailed technique breakdowns, targeted muscle anatomy, and video instructions.',
+      position: 'top'
     }
   ],
   nutrition: [
     {
-      target: '.nutrition-tabs',
-      title: 'Nutrition Hub Navigation',
-      description: 'Access nutrition tracker, set goals, plan meals, browse food database, build recipes, and view detailed analytics all in one place.',
+      target: 'div.flex.items-center.gap-2.overflow-x-auto',
+      title: 'Nutrition Hub Tabs',
+      description: 'Switch between your Daily Tracker, Personalized Goals, Weekly Meal Planner, Food Database, and Recipe Builder.',
       position: 'bottom'
     },
     {
-      target: '.daily-stats',
-      title: 'Daily Nutrition Overview',
-      description: 'Monitor your daily calorie intake, protein, carbs, and fats with real-time progress bars showing percentage of your daily goals.',
+      target: 'div.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4',
+      title: 'Daily Calorie & Macro Target',
+      description: 'Real-time calculation of your remaining calories, protein, carbohydrates, and fats based on your body composition goal.',
       position: 'bottom'
     },
     {
-      target: '.add-meal-section',
-      title: 'Add Meals',
-      description: 'Log your meals with auto-fill nutrition data, browse food database, or use quick meal shortcuts. Supports local Pakistani foods.',
-      position: 'bottom'
-    },
-    {
-      target: '.quick-actions',
-      title: 'Quick Actions',
-      description: 'Browse curated food database, plan weekly meals, build custom recipes, and view detailed nutrition analytics.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(2)',
-      title: 'Goals & Targets',
-      description: 'Set personalized nutrition goals based on your fitness objectives, activity level, and body composition targets.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(3)',
-      title: 'Meal Planner',
-      description: 'Plan your weekly meals in advance with smart suggestions and nutritional balance to stay on track with your goals.',
+      target: 'button:has(svg.lucide-plus)',
+      title: 'Log Meals & Quick Calories',
+      description: 'Search foods from our database or use Quick Add to log snack calories in seconds.',
       position: 'bottom'
     }
   ],
   progress: [
     {
       target: '.progress-tabs',
-      title: 'Progress Tracking Tabs',
-      description: 'Record new progress entries, view your timeline, analyze charts, upload progress photos, and track body measurements all in one place.',
+      title: 'Progress Navigation',
+      description: 'Switch between recording body measurements, viewing your visual timeline, inspecting body composition charts, and progress photos.',
       position: 'bottom'
     },
     {
-      target: '.quick-stats-grid',
-      title: 'Quick Stats Overview',
-      description: 'View your current weight, target weight, and total progress records at a glance. Track your journey towards your fitness goals.',
+      target: '.progress-form-container, .record-section',
+      title: 'Body Metrics & Weight Log',
+      description: 'Enter your weight, body fat %, muscle mass, and tape measurements to track body recomposition over time.',
       position: 'bottom'
     },
     {
-      target: '.record-form',
-      title: 'Record Progress',
-      description: 'Log your weight, body fat percentage, muscle mass, and body measurements. Use built-in calculators for accurate body composition tracking.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(2)',
-      title: 'Progress Timeline',
-      description: 'View your complete progress history in chronological order. Edit or delete entries, and track your transformation over time.',
-      position: 'bottom'
-    },
-    {
-      target: '.tab-btn:nth-child(3)',
-      title: 'Charts & Analytics',
-      description: 'Visualize your progress with interactive charts showing weight trends, body fat changes, and muscle mass growth over time.',
-      position: 'bottom'
-    },
-    {
-      target: '.unit-toggle-btn:first-child',
-      title: 'Unit Conversion',
-      description: 'Switch between metric (kg/cm) and imperial (lbs/inches) units for weight and measurements based on your preference.',
-      position: 'bottom'
+      target: 'button[id="photo-upload-record"], button:contains("Choose Photos")',
+      title: 'Visual Photo Progress',
+      description: 'Upload before & after progress photos. All images are automatically compressed for high-speed cloud sync.',
+      position: 'top'
     }
   ],
   settings: [
     {
-      target: '[data-tutorial="profile-settings"]',
-      title: 'Profile Settings',
-      description: 'Update your personal information and customize your profile preferences.',
-      position: 'bottom'
+      target: '.settings-sidebar',
+      title: 'Settings Navigation',
+      description: 'Easily jump between your Profile, Fitness Goals, Body Measurements, WhatsApp Reminders, and Security.',
+      position: 'right'
     },
     {
-      target: '[data-tutorial="notification-settings"]',
-      title: 'Notifications',
-      description: 'Manage your notification preferences to stay updated on your fitness activities.',
-      position: 'bottom'
+      target: '.btn-save-pro',
+      title: 'Save Profile Preferences',
+      description: 'Whenever you change your metrics or reminder times, click Save Changes to persist your updates.',
+      position: 'top'
     }
   ]
 };
 
-const Tutorial = ({ page, onComplete }) => {
+const Tutorial = ({ page = 'dashboard', onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [targetElement, setTargetElement] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 100, left: window.innerWidth / 2 });
   const [showButton, setShowButton] = useState(false);
 
-  const steps = tutorialSteps[page] || [];
+  const steps = tutorialSteps[page] || tutorialSteps.dashboard || [];
 
   useEffect(() => {
+    if (!page || steps.length === 0) return;
     const hasSeenTutorial = localStorage.getItem(`tutorial_${page}_completed`);
-    if (!hasSeenTutorial && steps.length > 0) {
-      setTimeout(() => setIsVisible(true), 500);
-    }
-    if (hasSeenTutorial && steps.length > 0) {
+    if (!hasSeenTutorial) {
+      const timer = setTimeout(() => setIsVisible(true), 700);
+      return () => clearTimeout(timer);
+    } else {
       setShowButton(true);
     }
   }, [page, steps.length]);
 
   useEffect(() => {
-    if (isVisible && steps[currentStep]) {
-      const element = document.querySelector(steps[currentStep].target);
-      if (element) {
-        setTargetElement(element);
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        setTimeout(() => {
-          const rect = element.getBoundingClientRect();
-          const position = steps[currentStep].position || 'bottom';
-          
-          const tooltipHeight = 280;
-          const tooltipWidth = Math.min(380, window.innerWidth - 40);
-          const spaceBelow = window.innerHeight - rect.bottom;
-          const spaceAbove = rect.top;
-          
-          let top, left;
-          
-          // Always center horizontally
-          left = window.innerWidth / 2;
-          
-          // Determine vertical position
-          if (position === 'top' || (position === 'bottom' && spaceBelow < tooltipHeight + 40)) {
-            // Show above if not enough space below
-            top = Math.max(20, rect.top - tooltipHeight - 30);
-          } else if (position === 'left' || position === 'right') {
-            // Center vertically for left/right
-            top = Math.max(20, Math.min(window.innerHeight - tooltipHeight - 20, rect.top + rect.height / 2 - tooltipHeight / 2));
-          } else {
-            // Show below by default
-            top = Math.min(window.innerHeight - tooltipHeight - 20, rect.bottom + 30);
-          }
-          
-          // Ensure tooltip stays within viewport
-          top = Math.max(20, Math.min(top, window.innerHeight - tooltipHeight - 20));
-          
-          setTooltipPosition({ top, left });
-        }, 100);
-      }
+    if (!isVisible || !steps[currentStep]) return;
+
+    let el = null;
+    try {
+      el = document.querySelector(steps[currentStep].target);
+    } catch (_) {
+      el = null;
+    }
+
+    const tooltipHeight = 240;
+    const tooltipWidth = Math.min(380, window.innerWidth - 32);
+
+    if (el) {
+      setTargetElement(el);
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const timer = setTimeout(() => {
+        const rect = el.getBoundingClientRect();
+        const position = steps[currentStep].position || 'bottom';
+        const spaceBelow = window.innerHeight - rect.bottom;
+
+        let top;
+        let left = window.innerWidth / 2;
+
+        if (position === 'top' || (position === 'bottom' && spaceBelow < tooltipHeight + 30)) {
+          top = Math.max(30, rect.top - tooltipHeight - 20);
+        } else if (position === 'right' || position === 'left') {
+          top = Math.max(30, Math.min(window.innerHeight - tooltipHeight - 30, rect.top + rect.height / 2 - tooltipHeight / 2));
+        } else {
+          top = Math.min(window.innerHeight - tooltipHeight - 30, rect.bottom + 20);
+        }
+
+        top = Math.max(30, Math.min(top, window.innerHeight - tooltipHeight - 30));
+        setTooltipPosition({ top, left });
+      }, 150);
+
+      return () => clearTimeout(timer);
+    } else {
+      // Element not found - safely center modal in viewport without breaking overlay
+      setTargetElement(null);
+      setTooltipPosition({
+        top: Math.max(40, (window.innerHeight - tooltipHeight) / 2),
+        left: window.innerWidth / 2
+      });
     }
   }, [isVisible, currentStep, steps]);
 

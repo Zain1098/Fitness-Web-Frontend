@@ -972,6 +972,10 @@ export default function Nutrition() {
             {activeTab === 'analytics' && <NutritionAnalytics />}
           </div>
         )}
+
+        {/* Fitness Chatbot and Tutorial */}
+        <FitnessChatbot />
+        <Tutorial page="nutrition" />
       </main>
     </div>
   )
