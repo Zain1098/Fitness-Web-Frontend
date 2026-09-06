@@ -29,16 +29,31 @@ export function AuthProvider({ children }){
       }catch(_){ /* ignore */ }
     }
   },[])
+
+  useEffect(()=>{
+    const handleUnauthorized = () => {
+      localStorage.removeItem('ff_token')
+      localStorage.removeItem('ff_user')
+      setToken('')
+      setUser(null)
+      navigate('/')
+    }
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized)
+  }, [navigate])
+
   useEffect(()=>{
     if(!token) return
     if(!user){
       const u = localStorage.getItem('ff_user')
-      if(u){ setUser(JSON.parse(u)); return }
+      if(u){ 
+        try { setUser(JSON.parse(u)) } catch(_) {}
+      }
     }
     api('/auth/me', { token })
       .then((u)=>{ setUser(u); localStorage.setItem('ff_user', JSON.stringify(u)) })
       .catch((err)=>{
-        if(err.message === 'invalid_token' || err.message === 'unauthorized') {
+        if(err.message === 'invalid_token' || err.message === 'unauthorized' || err.message?.includes('401') || err.message?.includes('token') || err.message?.includes('Session expired')) {
           localStorage.removeItem('ff_token')
           localStorage.removeItem('ff_user')
           setToken('')

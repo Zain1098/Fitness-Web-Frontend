@@ -66,6 +66,9 @@ export async function api(path, { method = 'GET', body, token } = {}) {
       // Log security events for specific error codes
       if (res.status === 401) {
         logSecurityEvent('unauthorized_access', 'medium', '0.0.0.0');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+        }
       } else if (res.status === 403) {
         logSecurityEvent('forbidden_access', 'high', '0.0.0.0');
       } else if (res.status === 429) {
