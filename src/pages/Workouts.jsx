@@ -18,7 +18,10 @@ import {
   Sparkles,
   X,
   Clock,
-  Compass
+  Compass,
+  Play,
+  RotateCcw,
+  Timer
 } from 'lucide-react'
 
 export default function Workouts() {
@@ -48,6 +51,105 @@ export default function Workouts() {
   // Stats
   const [stats, setStats] = useState({ total: 0, thisWeek: 0, totalExercises: 0 })
   const [userProfile, setUserProfile] = useState({ goal: 'stay_fit', level: 'intermediate', location: 'gym', frequency: '3-4' })
+
+  // Active Workout Player & Rest Timer
+  const [activeSession, setActiveSession] = useState(null)
+  const [completedSets, setCompletedSets] = useState({})
+  const [restSeconds, setRestSeconds] = useState(0)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+
+  // Pre-built Starter Plans
+  const STARTER_PLANS = [
+    {
+      id: 'ppl_push',
+      name: 'Push Hypertrophy (Chest, Shoulders & Triceps)',
+      category: 'strength',
+      level: 'Intermediate',
+      environment: 'Gym',
+      exercises: [
+        { name: 'Barbell Bench Press', sets: 4, reps: 8, weight: 60, duration: 0 },
+        { name: 'Incline Dumbbell Press', sets: 3, reps: 10, weight: 22, duration: 0 },
+        { name: 'Overhead Dumbbell Shoulder Press', sets: 3, reps: 10, weight: 16, duration: 0 },
+        { name: 'Cable Lateral Raise', sets: 4, reps: 12, weight: 8, duration: 0 },
+        { name: 'Rope Tricep Pushdown', sets: 3, reps: 12, weight: 25, duration: 0 }
+      ]
+    },
+    {
+      id: 'ppl_pull',
+      name: 'Pull Strength (Back, Lats & Biceps)',
+      category: 'strength',
+      level: 'Intermediate',
+      environment: 'Gym',
+      exercises: [
+        { name: 'Barbell Deadlift', sets: 3, reps: 6, weight: 80, duration: 0 },
+        { name: 'Lat Pulldown / Pull-ups', sets: 4, reps: 8, weight: 55, duration: 0 },
+        { name: 'Seated Cable Row', sets: 3, reps: 10, weight: 50, duration: 0 },
+        { name: 'Face Pulls', sets: 4, reps: 15, weight: 20, duration: 0 },
+        { name: 'Barbell Bicep Curl', sets: 3, reps: 10, weight: 25, duration: 0 }
+      ]
+    },
+    {
+      id: 'home_fullbody',
+      name: 'Home Athletic Mobility & Conditioning',
+      category: 'mobility',
+      level: 'All Levels',
+      environment: 'Home',
+      exercises: [
+        { name: 'Bodyweight Push-ups', sets: 4, reps: 15, weight: 0, duration: 0 },
+        { name: 'Walking Lunges', sets: 3, reps: 12, weight: 0, duration: 0 },
+        { name: 'Plank Hold', sets: 3, reps: 1, weight: 0, duration: 60 },
+        { name: 'Burpees / Mountain Climbers', sets: 3, reps: 20, weight: 0, duration: 0 }
+      ]
+    }
+  ]
+
+  // Rest Timer Interval
+  useEffect(() => {
+    let interval = null
+    if (isTimerRunning && restSeconds > 0) {
+      interval = setInterval(() => {
+        setRestSeconds(sec => sec - 1)
+      }, 1000)
+    } else if (restSeconds === 0 && isTimerRunning) {
+      setIsTimerRunning(false)
+    }
+    return () => clearInterval(interval)
+  }, [isTimerRunning, restSeconds])
+
+  const startRestTimer = (seconds) => {
+    setRestSeconds(seconds)
+    setIsTimerRunning(true)
+  }
+
+  const toggleSetComplete = (exerciseIdx, setIdx) => {
+    const key = `${exerciseIdx}_${setIdx}`
+    setCompletedSets(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }))
+    if (!completedSets[key]) {
+      startRestTimer(60)
+    }
+  }
+
+  const loadStarterTemplate = async (template) => {
+    try {
+      const payload = {
+        name: template.name,
+        category: template.category,
+        exercises: template.exercises,
+        date: new Date().toISOString()
+      }
+      await api('/workouts', { method: 'POST', body: payload, token })
+      setSuccess(`Added "${template.name}" to your workouts!`)
+      setTimeout(() => setSuccess(''), 3000)
+      logActivity('workout_created', `Added starter template: ${template.name}`, 'fitness', user)
+      loadWorkouts()
+    } catch (err) {
+      setError('Failed to load starter template')
+      setTimeout(() => setError(''), 3000)
+    }
+  }
 
   const loadWorkouts = async () => {
     if (!token) return
@@ -543,22 +645,54 @@ export default function Workouts() {
               <p className="text-xs font-semibold">Loading your training sessions...</p>
             </div>
           ) : filteredWorkouts.length === 0 ? (
-            <div className="py-16 px-4 bg-white border border-dashed border-slate-300 rounded-[2.5rem] text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                <Dumbbell className="w-8 h-8 text-slate-400" />
+            <div className="space-y-6">
+              <div className="py-12 px-6 bg-white border border-slate-200 rounded-[2.5rem] text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-[#D4F63D]/20 text-slate-950 flex items-center justify-center mx-auto">
+                  <Dumbbell className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold font-['Outfit'] text-slate-950">Pick a Pre-Built Starter Plan</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1">
+                    Don't want to build from scratch? Click any curated routine below to automatically load it into your profile.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold font-['Outfit'] text-slate-950">No workouts logged yet</h3>
-                <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1">
-                  Start logging your exercises or build a custom routine to track your strength baseline over time.
-                </p>
+
+              {/* Starter Plans Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {STARTER_PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-slate-400 transition-all group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="px-2.5 py-1 rounded-full bg-slate-950 text-[#D4F63D] text-[10px] font-black uppercase tracking-wider">
+                          {plan.environment} • {plan.level}
+                        </span>
+                        <span className="text-xs font-semibold text-slate-400 capitalize">{plan.category}</span>
+                      </div>
+                      <h4 className="text-base font-bold font-['Outfit'] text-slate-950 mb-3">{plan.name}</h4>
+                      <div className="space-y-1.5 mb-6">
+                        {plan.exercises.map((ex, i) => (
+                          <div key={i} className="text-xs text-slate-600 flex items-center justify-between py-1 border-b border-slate-50">
+                            <span className="truncate max-w-[180px] font-medium">• {ex.name}</span>
+                            <span className="text-[11px] font-bold text-slate-400">{ex.sets} × {ex.reps}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => loadStarterTemplate(plan)}
+                      className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-[#D4F63D] font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
+                    >
+                      <Plus className="w-4 h-4 stroke-[3]" />
+                      <span>Use This Routine</span>
+                    </button>
+                  </div>
+                ))}
               </div>
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="px-6 py-2.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 text-xs font-black transition-all shadow-sm hover:scale-105"
-              >
-                + Create Your First Workout
-              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -625,13 +759,21 @@ export default function Workouts() {
                       </div>
                     </div>
 
-                    {/* Bottom stats pill */}
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
-                      <span>{(workout.exercises || []).length} Movements</span>
-                      <span className="inline-flex items-center gap-1 text-slate-900 font-bold group-hover:text-slate-950">
-                        <span>Completed</span>
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      </span>
+                    {/* Bottom actions */}
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-500">{(workout.exercises || []).length} Movements</span>
+                      <button
+                        onClick={() => {
+                          setActiveSession(workout)
+                          setCompletedSets({})
+                          setRestSeconds(0)
+                          setIsTimerRunning(false)
+                        }}
+                        className="px-4 py-2 rounded-full bg-slate-950 hover:bg-slate-800 text-[#D4F63D] font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-[#D4F63D]" />
+                        <span>Start Session</span>
+                      </button>
                     </div>
                   </div>
                 )
@@ -639,6 +781,121 @@ export default function Workouts() {
             </div>
           )}
         </section>
+
+        {/* ----------------- ACTIVE WORKOUT PLAYER & REST TIMER MODAL ----------------- */}
+        {activeSession && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in-95">
+              {/* Header */}
+              <div className="flex items-start justify-between pb-4 border-b border-slate-100 mb-6">
+                <div>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D4F63D] text-slate-950 font-black text-[10px] uppercase tracking-wider mb-1">
+                    Live Session
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-950">
+                    {activeSession.name}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setActiveSession(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Live Rest Timer Box */}
+              <div className="p-4 rounded-2xl bg-slate-950 text-white mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-[#D4F63D]">
+                    <Timer className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rest Interval</div>
+                    <div className="text-2xl font-black font-mono text-[#D4F63D]">
+                      {Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, '0')}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => startRestTimer(60)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-colors"
+                  >
+                    +60s Rest
+                  </button>
+                  <button
+                    onClick={() => startRestTimer(90)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-colors"
+                  >
+                    +90s Rest
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsTimerRunning(false)
+                      setRestSeconds(0)
+                    }}
+                    className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-900/50 hover:text-rose-400 text-slate-400 flex items-center justify-center transition-colors"
+                    title="Reset Timer"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Movements Checklist with Tickable Sets */}
+              <div className="space-y-4 mb-6">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Workout Checklist (Tick completed sets)</div>
+                {(activeSession.exercises || []).map((ex, exIdx) => (
+                  <div key={exIdx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-bold text-slate-900 text-sm">{exIdx + 1}. {ex.name}</div>
+                      <span className="text-xs font-semibold text-slate-500">{ex.weight > 0 ? `${ex.weight} kg` : 'Bodyweight'}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from({ length: ex.sets || 3 }).map((_, setIdx) => {
+                        const isDone = completedSets[`${exIdx}_${setIdx}`]
+                        return (
+                          <button
+                            key={setIdx}
+                            type="button"
+                            onClick={() => toggleSetComplete(exIdx, setIdx)}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                              isDone
+                                ? 'bg-slate-900 text-[#D4F63D] border-slate-900 shadow-sm'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                            }`}
+                          >
+                            <span>Set {setIdx + 1} ({ex.reps} reps)</span>
+                            {isDone && <Check className="w-3.5 h-3.5 text-[#D4F63D] stroke-[3]" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Finish Workout Action */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => {
+                    setActiveSession(null)
+                    setSuccess('Session complete! Great effort today.')
+                    setTimeout(() => setSuccess(''), 4000)
+                    logActivity('workout_completed', `Completed session: ${activeSession.name}`, 'fitness', user)
+                  }}
+                  className="px-6 py-3 rounded-xl bg-[#D4F63D] hover:bg-[#c3e626] text-slate-950 font-black text-xs transition-all shadow-md active:scale-95 flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Finish & Log Workout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

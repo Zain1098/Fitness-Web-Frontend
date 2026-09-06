@@ -42,6 +42,10 @@ export default function Nutrition() {
   const [foodSuggestions, setFoodSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [showAddMealForm, setShowAddMealForm] = useState(false)
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
+  const [quickCalAmount, setQuickCalAmount] = useState('')
+  const [quickMealType, setQuickMealType] = useState('snacks')
+  const [quickLogging, setQuickLogging] = useState(false)
 
   // Form states
   const [mealType, setMealType] = useState('breakfast')
@@ -223,6 +227,46 @@ export default function Nutrition() {
     }
   }
 
+  const handleQuickAddCalories = async () => {
+    const cal = parseInt(quickCalAmount)
+    if (!cal || cal <= 0) {
+      setError('Please enter a valid calorie amount')
+      clearMessages()
+      return
+    }
+
+    try {
+      setQuickLogging(true)
+      await api('/nutrition', {
+        method: 'POST',
+        body: {
+          mealType: quickMealType,
+          items: [{
+            name: `Quick Calorie Log (${cal} kcal)`,
+            quantity: 1,
+            calories: cal,
+            protein: 0,
+            carbs: 0,
+            fats: 0
+          }]
+        },
+        token
+      })
+
+      setSuccess(`Added +${cal} kcal to ${quickMealType}!`)
+      clearMessages()
+      logActivity('quick_calories_added', `Logged +${cal} kcal`, 'nutrition', user)
+      setQuickCalAmount('')
+      setShowQuickAdd(false)
+      loadEntries()
+    } catch (err) {
+      setError('Failed to log quick calories')
+      clearMessages()
+    } finally {
+      setQuickLogging(false)
+    }
+  }
+
   const handleQuantityChange = (newQuantity) => {
     setQuantity(newQuantity)
     if (baseCalories && baseQuantity) {
@@ -385,6 +429,13 @@ export default function Nutrition() {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowQuickAdd(true)}
+              className="px-4 sm:px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-[#D4F63D] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+            >
+              <Flame className="w-3.5 h-3.5 fill-[#D4F63D]" />
+              <span>Quick +Cal</span>
+            </button>
+            <button
               onClick={() => {
                 setActiveTab('database')
                 setShowFoodDatabase(true)
@@ -403,6 +454,86 @@ export default function Nutrition() {
             </button>
           </div>
         </header>
+
+        {/* Quick Add Calories Modal */}
+        {showQuickAdd && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-slate-950 text-[#D4F63D] flex items-center justify-center">
+                    <Flame className="w-4 h-4 fill-[#D4F63D]" />
+                  </div>
+                  <h3 className="text-lg font-bold font-['Outfit'] text-slate-950">Quick Add Calories</h3>
+                </div>
+                <button
+                  onClick={() => setShowQuickAdd(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Calories Amount (kcal)</label>
+                  <input
+                    type="number"
+                    value={quickCalAmount}
+                    onChange={(e) => setQuickCalAmount(e.target.value)}
+                    placeholder="e.g. 350"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-950"
+                  />
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex gap-2">
+                  {[150, 250, 400, 500].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setQuickCalAmount(val.toString())}
+                      className="flex-1 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 transition-colors"
+                    >
+                      +{val}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Meal Period</label>
+                  <select
+                    value={quickMealType}
+                    onChange={(e) => setQuickMealType(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-950"
+                  >
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snacks">Snack / Coffee</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowQuickAdd(false)}
+                    className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleQuickAddCalories}
+                    disabled={quickLogging || !quickCalAmount}
+                    className="px-6 py-2.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] disabled:opacity-50 text-slate-950 font-black text-xs transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>{quickLogging ? 'Adding...' : 'Log Calories'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Feedback alerts */}
         {error && (

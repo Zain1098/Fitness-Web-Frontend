@@ -205,6 +205,22 @@ export default function DashboardNavbar() {
                     <span>My Profile</span>
                   </Link>
                   <Link
+                    to="/analytics"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Analytics</span>
+                  </Link>
+                  <Link
+                    to="/reports"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                  >
+                    <CheckCheck className="w-4 h-4" />
+                    <span>Reports & Exports</span>
+                  </Link>
+                  <Link
                     to="/settings"
                     onClick={() => setShowProfileMenu(false)}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"

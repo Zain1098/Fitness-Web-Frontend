@@ -68,12 +68,22 @@ export default function FitnessChatbot() {
       const apiUrl = `${API_BASE_URL}/chat`
       console.log('Sending to:', apiUrl)
       
+      const onb = user?.onboarding_data || {}
+      const prefs = user?.preferences || {}
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: messageToSend,
-          history: messages.slice(-6)
+          history: messages.slice(-6),
+          userContext: {
+            username: user?.username || 'Athlete',
+            goal: prefs.goal || onb.goal || 'stay_fit',
+            fitnessLevel: onb.fitness_level || prefs.experienceLevel || 'intermediate',
+            weight: prefs.weight || onb.weight || 'unknown',
+            height: prefs.height || onb.height || 'unknown'
+          }
         })
       })
 
