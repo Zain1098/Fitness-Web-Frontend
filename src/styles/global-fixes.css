@@ -1,41 +1,50 @@
-/* Global Text Visibility Fixes for Legacy Dark Pages */
+/* Global Text & Input Visibility Styles */
 
-/* Fix select/dropdown text visibility in legacy dark pages */
-.dark-page select,
-.dark-page select option,
-.setting-input,
-.filter-select,
-.meal-select {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+/* ------------------------------------------------------------- */
+/* 1. Global Forms & Inputs (High Contrast, Crystal Clear Text) */
+/* ------------------------------------------------------------- */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
 }
 
-/* Dropdown options - dark background with white text */
-select option {
-  background: #1a1a1a !important;
-  color: #fff !important;
-  padding: 8px !important;
-}
-
-/* Legacy Dark Pages Focus and Autofill */
-.dark-page select:focus,
-.dark-page input:focus,
-.dark-page textarea:focus {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.15) !important;
-  outline: 2px solid #ff6b35 !important;
-}
-
-.dark-page select:disabled,
-.dark-page input:disabled,
-.dark-page textarea:disabled {
-  color: rgba(255, 255, 255, 0.4) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  cursor: not-allowed !important;
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1 !important;
 }
 
 /* ------------------------------------------------------------- */
-/* Auth Modal & Login/Signup Forms (Clean, High-Contrast Inputs) */
+/* 2. Onboarding Forms & Steps High-Contrast Overrides          */
+/* ------------------------------------------------------------- */
+.onboarding-card input,
+.onboarding-card textarea,
+.onboarding-card select,
+[class*="onboarding"] input,
+[class*="onboarding"] textarea,
+[class*="onboarding"] select {
+  color: #020617 !important;
+  -webkit-text-fill-color: #020617 !important;
+  caret-color: #020617 !important;
+  font-weight: 700;
+}
+
+.onboarding-card input::placeholder,
+.onboarding-card textarea::placeholder,
+[class*="onboarding"] input::placeholder,
+[class*="onboarding"] textarea::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  font-weight: 500;
+  opacity: 1 !important;
+}
+
+/* ------------------------------------------------------------- */
+/* 3. Auth Modal & Login/Signup Forms                           */
 /* ------------------------------------------------------------- */
 .auth-modal,
 .auth-modal form {
@@ -82,157 +91,69 @@ select option {
   caret-color: #0f172a !important;
 }
 
-/* Button text */
-button {
-  color: inherit;
+/* ------------------------------------------------------------- */
+/* 4. Scoped Legacy Dark Pages (ONLY active in .dark-page)      */
+/* ------------------------------------------------------------- */
+.dark-page {
+  color: #ffffff !important;
 }
 
-/* Table text */
-table,
-th,
-td {
-  color: #fff !important;
-}
-
-/* Card text */
-.card,
-.panel,
-.section {
-  color: #fff;
-}
-
-/* List items */
-li {
-  color: inherit;
-}
-
-/* Links */
-a {
-  color: inherit;
-}
-
-a:hover {
-  color: #ff6b35;
-}
-
-/* Specific page fixes */
-
-/* Settings page */
-.settings-page select,
-.settings-page input,
-.settings-page textarea {
-  color: #fff !important;
+.dark-page select,
+.dark-page select option,
+.dark-page .setting-input,
+.dark-page .filter-select,
+.dark-page .meal-select {
+  color: #ffffff !important;
   background: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Nutrition page */
-.nutrition-page select,
-.nutrition-page input {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Exercises page */
-.exercises-page select,
-.exercises-page input {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Workouts page */
-.workouts-page select,
-.workouts-page input {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Progress page */
-.progress-page select,
-.progress-page input {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Dashboard page */
-.dashboard-page select,
-.dashboard-page input {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Contact page */
-.ff-form-grid input,
-.ff-form-grid textarea,
-.ff-form-grid select {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Ensure all text is visible on dark backgrounds */
-body,
-html {
-  color: #fff;
-}
-
-/* Fix for any remaining invisible text */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Ensure proper contrast */
-.text-dark {
-  color: #fff !important;
-}
-
-.bg-dark {
+.dark-page select option {
   background: #1a1a1a !important;
+  color: #ffffff !important;
+  padding: 8px !important;
 }
 
-/* Fix for React Select / Custom Dropdowns */
-.react-select__control,
-.react-select__menu,
-.react-select__option {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
+.dark-page select:focus,
+.dark-page input:focus,
+.dark-page textarea:focus {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  outline: 2px solid #ff6b35 !important;
 }
 
-.react-select__single-value,
-.react-select__placeholder {
-  color: #fff !important;
+.dark-page select:disabled,
+.dark-page input:disabled,
+.dark-page textarea:disabled {
+  color: rgba(255, 255, 255, 0.4) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  cursor: not-allowed !important;
 }
 
-.react-select__option--is-focused {
-  background: rgba(255, 107, 53, 0.2) !important;
+.dark-page table,
+.dark-page th,
+.dark-page td {
+  color: #ffffff !important;
 }
 
-.react-select__option--is-selected {
-  background: rgba(255, 107, 53, 0.4) !important;
-}
-
-/* Fix for any custom styled inputs */
-[class*="input"],
-[class*="Input"],
-[class*="select"],
-[class*="Select"],
-[class*="dropdown"],
-[class*="Dropdown"] {
-  color: #fff !important;
-}
-
-/* Ensure visibility in all states */
-input:not([type="checkbox"]):not([type="radio"]),
-select,
-textarea {
-  color: #fff !important;
+.dark-page input:not([type="checkbox"]):not([type="radio"]),
+.dark-page textarea {
+  color: #ffffff !important;
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Hover states */
-input:not([type="checkbox"]):not([type="radio"]):hover,
-select:hover,
-textarea:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
+/* ------------------------------------------------------------- */
+/* 5. Generic Utility Adjustments                               */
+/* ------------------------------------------------------------- */
+button {
+  color: inherit;
+}
+
+li, a {
+  color: inherit;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

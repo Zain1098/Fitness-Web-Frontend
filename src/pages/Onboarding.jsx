@@ -225,7 +225,7 @@ export default function Onboarding() {
       {/* Main Step Container */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8">
         <div className="w-full max-w-2xl mx-auto">
-          <div className="bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-10 transition-all">
+          <div className="onboarding-card bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-10 transition-all">
             {renderStep()}
           </div>
         </div>
