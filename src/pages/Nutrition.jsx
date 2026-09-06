@@ -57,17 +57,61 @@ export default function Nutrition() {
   const [baseCarbs, setBaseCarbs] = useState('')
   const [baseFats, setBaseFats] = useState('')
 
-  // Stats
+  // Stats & Personalized Targets
   const [dailyStats, setDailyStats] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 })
+  const [targets, setTargets] = useState({ calories: 2200, protein: 160, carbs: 240, fats: 65, goal: 'get_fit' })
 
   const loadEntries = async () => {
     if (!token) return
     try {
       setLoading(true)
-      const response = await api('/nutrition', { token })
+      const [response, onboardingRes, goalsRes] = await Promise.all([
+        api('/nutrition', { token }).catch(() => []),
+        api('/user/onboarding', { token }).catch(() => null),
+        api('/settings/nutrition-goals', { token }).catch(() => null)
+      ])
       const data = response?.items || response || []
       setEntries(Array.isArray(data) ? data : [])
       calculateDailyStats(Array.isArray(data) ? data : [])
+
+      // Calculate targets from user profile/onboarding
+      const onb = onboardingRes?.data || user?.onboarding_data || {}
+      const prefs = user?.preferences || {}
+      const uWeight = prefs.weight || onb.weight || 75
+      const uHeight = prefs.height || onb.height || 175
+      const uAge = prefs.age || onb.age || 25
+      const uGender = prefs.gender || onb.gender || 'male'
+      const uGoal = prefs.goal || onb.goal || 'get_fit'
+
+      if (goalsRes?.dailyCalories) {
+        setTargets({
+          calories: goalsRes.dailyCalories,
+          protein: goalsRes.protein || Math.round(uWeight * 2),
+          carbs: goalsRes.carbs || 240,
+          fats: goalsRes.fats || 65,
+          goal: uGoal
+        })
+      } else {
+        // Compute BMR & TDEE
+        let bmr = (10 * uWeight) + (6.25 * uHeight) - (5 * uAge) + (uGender === 'female' ? -161 : 5)
+        let tdee = bmr * 1.4
+        let cal = Math.round(tdee)
+        if (uGoal === 'lose_weight') cal = Math.round(tdee - 450)
+        else if (uGoal === 'build_muscle') cal = Math.round(tdee + 350)
+
+        // Personalized macros: 2g protein per kg weight, 25% fats, remainder carbs
+        const prot = Math.round(uWeight * 2.0)
+        const fat = Math.round((cal * 0.25) / 9)
+        const carb = Math.round((cal - (prot * 4) - (fat * 9)) / 4)
+
+        setTargets({
+          calories: cal || 2200,
+          protein: prot || 160,
+          carbs: Math.max(50, carb) || 240,
+          fats: fat || 65,
+          goal: uGoal
+        })
+      }
     } catch (err) {
       setError(err.message || 'Failed to load nutrition entries')
     } finally {
@@ -426,12 +470,12 @@ export default function Nutrition() {
                 <div>
                   <div className="text-3xl font-black font-['Outfit'] text-slate-950">
                     {Math.round(dailyStats.calories)}
-                    <span className="text-xs font-semibold text-slate-400 ml-1">/ 2,200 kcal</span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">/ {targets.calories.toLocaleString()} kcal</span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
                     <div
                       className="bg-slate-950 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (dailyStats.calories / 2200) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (dailyStats.calories / targets.calories) * 100)}%` }}
                     />
                   </div>
                 </div>
@@ -448,12 +492,12 @@ export default function Nutrition() {
                 <div>
                   <div className="text-3xl font-black font-['Outfit'] text-slate-950">
                     {Math.round(dailyStats.protein)}g
-                    <span className="text-xs font-semibold text-slate-400 ml-1">/ 160g</span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">/ {targets.protein}g</span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
                     <div
                       className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (dailyStats.protein / 160) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (dailyStats.protein / targets.protein) * 100)}%` }}
                     />
                   </div>
                 </div>
@@ -470,12 +514,12 @@ export default function Nutrition() {
                 <div>
                   <div className="text-3xl font-black font-['Outfit'] text-slate-950">
                     {Math.round(dailyStats.carbs)}g
-                    <span className="text-xs font-semibold text-slate-400 ml-1">/ 240g</span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">/ {targets.carbs}g</span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
                     <div
                       className="bg-amber-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (dailyStats.carbs / 240) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (dailyStats.carbs / targets.carbs) * 100)}%` }}
                     />
                   </div>
                 </div>
@@ -492,12 +536,12 @@ export default function Nutrition() {
                 <div>
                   <div className="text-3xl font-black font-['Outfit'] text-slate-950">
                     {Math.round(dailyStats.fats)}g
-                    <span className="text-xs font-semibold text-slate-400 ml-1">/ 65g</span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">/ {targets.fats}g</span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
                     <div
                       className="bg-sky-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (dailyStats.fats / 65) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (dailyStats.fats / targets.fats) * 100)}%` }}
                     />
                   </div>
                 </div>

@@ -47,15 +47,28 @@ export default function Workouts() {
 
   // Stats
   const [stats, setStats] = useState({ total: 0, thisWeek: 0, totalExercises: 0 })
+  const [userProfile, setUserProfile] = useState({ goal: 'stay_fit', level: 'intermediate', location: 'gym', frequency: '3-4' })
 
   const loadWorkouts = async () => {
     if (!token) return
     try {
       setLoading(true)
-      const data = await api('/workouts', { token })
+      const [data, onboardingRes] = await Promise.all([
+        api('/workouts', { token }).catch(() => []),
+        api('/user/onboarding', { token }).catch(() => null)
+      ])
       const list = Array.isArray(data) ? data : data?.workouts || []
       setWorkouts(list)
       calculateStats(list)
+
+      const onb = onboardingRes?.data || user?.onboarding_data || {}
+      const prefs = user?.preferences || {}
+      setUserProfile({
+        goal: prefs.goal || onb.goal || 'stay_fit',
+        level: onb.fitness_level || prefs.experienceLevel || 'intermediate',
+        location: onb.location || 'gym',
+        frequency: onb.workout_frequency || prefs.workoutFrequency || '3-4'
+      })
     } catch (err) {
       setError('Failed to load workouts')
       setTimeout(() => setError(''), 3000)
@@ -201,9 +214,20 @@ export default function Workouts() {
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight font-['Outfit'] text-slate-950">
               Workouts & Routines
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-              Plan compound cycles, log performance sets, and advance progressive overload.
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-900 text-[#D4F63D] text-[11px] font-bold capitalize">
+                Level: {userProfile.level}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold capitalize">
+                Focus: {userProfile.goal.replace('_', ' ')}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold capitalize">
+                Environment: {userProfile.location}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold">
+                Target: {userProfile.frequency} sessions/wk
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

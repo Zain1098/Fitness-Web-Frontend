@@ -120,8 +120,21 @@ export default function Progress() {
         api('/user/onboarding', { token }).catch(() => ({ data: null }))
       ])
       setEntries(progressData || [])
-      setOnboardingData(onboarding?.data)
+      const onbData = onboarding?.data || user?.onboarding_data || {}
+      setOnboardingData(onbData)
       calculateStats(progressData || [])
+
+      // Auto-prefill calculator with onboarding metrics
+      if (onbData) {
+        if (onbData.gender) setGender(onbData.gender)
+        if (onbData.age && !age) setAge(onbData.age.toString())
+        if (onbData.height && !height) setHeight(onbData.height.toString())
+        if (onbData.body_measurements?.waist && !waistCalc) setWaistCalc(onbData.body_measurements.waist.toString())
+        if (onbData.body_measurements?.hips && !hipCalc) setHipCalc(onbData.body_measurements.hips.toString())
+        if (onbData.weight && !weight && (!progressData || progressData.length === 0)) {
+          setWeight(onbData.weight.toString())
+        }
+      }
     } catch (err) {
       setError('Failed to load progress data')
       setTimeout(() => setError(''), 3000)

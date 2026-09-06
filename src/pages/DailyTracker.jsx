@@ -48,6 +48,7 @@ export default function DailyTracker() {
   const [error, setError] = useState('')
   const [weeklyStats, setWeeklyStats] = useState(null)
   const [streak, setStreak] = useState(0)
+  const [targetWater, setTargetWater] = useState(3.0)
   const [googleFitStatus, setGoogleFitStatus] = useState({ connected: false, lastSynced: null })
   const [syncing, setSyncing] = useState(false)
   const [showGoogleFitModal, setShowGoogleFitModal] = useState(false)
@@ -56,7 +57,17 @@ export default function DailyTracker() {
     if (!token) return
     try {
       setLoading(true)
-      const data = await api(`/tracker?date=${selectedDate}`, { token })
+      const [data, onboardingRes] = await Promise.all([
+        api(`/tracker?date=${selectedDate}`, { token }),
+        api('/user/onboarding', { token }).catch(() => null)
+      ])
+
+      const onb = onboardingRes?.data || user?.onboarding_data || {}
+      const prefs = user?.preferences || {}
+      const glasses = prefs.waterIntakeGoal || onb.water_intake_goal || 8
+      const calculatedWater = Number((glasses * 0.25).toFixed(1))
+      setTargetWater(calculatedWater >= 1.5 ? calculatedWater : 2.5)
+
       if (data && !data.error) {
         setTracker(prev => ({
           ...prev,
@@ -439,10 +450,10 @@ export default function DailyTracker() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-black font-['Outfit'] text-slate-950">Hydration Status</h3>
-                  <p className="text-xs text-slate-800/80 mt-0.5">Target: 3.0 Liters (8 Glasses)</p>
+                  <p className="text-xs text-slate-800/80 mt-0.5">Target: {targetWater} Liters (Personalized Goal)</p>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-[#FEF08A] text-slate-950 font-black text-[11px] shadow-xs">
-                  {tracker.water >= 2.5 ? 'Optimal 👍' : `${tracker.water}L Logged`}
+                  {tracker.water >= targetWater ? 'Goal Reached 👍' : `${tracker.water}L / ${targetWater}L`}
                 </span>
               </div>
 
@@ -450,13 +461,13 @@ export default function DailyTracker() {
               <div className="my-5 p-4 rounded-2xl bg-white/35 backdrop-blur-sm border border-white/40">
                 <div className="grid grid-cols-8 gap-2">
                   {Array.from({ length: 24 }).map((_, i) => {
-                    const filled = i < Math.round((Number(tracker.water) / 3.0) * 24)
+                    const filled = i < Math.round((Number(tracker.water) / targetWater) * 24)
                     return (
                       <button
                         key={i}
                         type="button"
                         onClick={() => {
-                          const newWater = Number(((i + 1) * (3.0 / 24)).toFixed(2))
+                          const newWater = Number(((i + 1) * (targetWater / 24)).toFixed(2))
                           setTracker(prev => ({ ...prev, water: newWater }))
                         }}
                         className={`h-7 rounded-lg transition-all flex items-center justify-center text-[11px] font-bold cursor-pointer ${
@@ -464,7 +475,7 @@ export default function DailyTracker() {
                             ? 'bg-slate-950 text-[#D4F63D] shadow-xs scale-105'
                             : 'bg-white/40 text-slate-700/50 hover:bg-white/60'
                         }`}
-                        title={`Click to set hydration to ${(((i + 1) * 3.0) / 24).toFixed(2)}L`}
+                        title={`Click to set hydration to ${(((i + 1) * targetWater) / 24).toFixed(2)}L`}
                       >
                         {filled ? '💧' : ''}
                       </button>

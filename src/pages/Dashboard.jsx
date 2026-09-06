@@ -37,6 +37,8 @@ export default function Dashboard() {
   const [summary, setSummary] = useState({ workouts: 0, meals: 0, progress: 0, exercises: 0 })
   const [todayStats, setTodayStats] = useState({ calories: 0, workouts: 0, weight: 0, carbs: 0, protein: 0, fats: 0 })
   const [calorieGoal, setCalorieGoal] = useState(2350)
+  const [targetWater, setTargetWater] = useState(3.0)
+  const [userMetrics, setUserMetrics] = useState({ height: 175, weight: 75, goal: 'get_fit', fitnessLevel: 'intermediate', location: 'gym' })
   const [todayTracker, setTodayTracker] = useState({ water: 2.15, steps: 8420, sleep: 7.5, mood: 'Energized' })
   const [waterPeriod, setWaterPeriod] = useState('D')
   const [pricingModalOpen, setPricingModalOpen] = useState(false)
@@ -48,17 +50,53 @@ export default function Dashboard() {
       setLoading(true)
 
       // Fetch summary and recent data in parallel
-      const [summaryData, workouts, nutrition, progress, trackerData, goalsData] = await Promise.all([
+      const [summaryData, workouts, nutrition, progress, trackerData, goalsData, onboardingRes] = await Promise.all([
         api('/reports/summary', { token }).catch(() => null),
         api('/workouts', { token }).catch(() => []),
         api('/nutrition', { token }).catch(() => []),
         api('/progress', { token }).catch(() => []),
         api('/tracker/today', { token }).catch(() => null),
-        api('/settings/nutrition-goals', { token }).catch(() => null)
+        api('/settings/nutrition-goals', { token }).catch(() => null),
+        api('/user/onboarding', { token }).catch(() => null)
       ])
 
       if (summaryData) setSummary(summaryData)
-      if (goalsData?.dailyCalories) setCalorieGoal(goalsData.dailyCalories)
+
+      // Merge user preferences from token user and onboarding endpoint
+      const onb = onboardingRes?.data || user?.onboarding_data || {}
+      const prefs = user?.preferences || {}
+      const uWeight = prefs.weight || onb.weight || 75
+      const uHeight = prefs.height || onb.height || 175
+      const uAge = prefs.age || onb.age || 25
+      const uGender = prefs.gender || onb.gender || 'male'
+      const uGoal = prefs.goal || onb.goal || 'get_fit'
+      const uFitnessLevel = onb.fitness_level || prefs.experienceLevel || 'intermediate'
+      const uLocation = onb.location || 'gym'
+      const uWaterGlasses = prefs.waterIntakeGoal || onb.water_intake_goal || 8
+
+      setUserMetrics({
+        height: uHeight,
+        weight: uWeight,
+        goal: uGoal,
+        fitnessLevel: uFitnessLevel,
+        location: uLocation
+      })
+
+      // Calculate Personalized BMR & TDEE if goalsData is not explicitly set
+      let customCalories = goalsData?.dailyCalories
+      if (!customCalories) {
+        // Mifflin-St Jeor Equation
+        let bmr = (10 * uWeight) + (6.25 * uHeight) - (5 * uAge) + (uGender === 'female' ? -161 : 5)
+        let tdee = bmr * 1.4 // moderate multiplier
+        if (uGoal === 'lose_weight') customCalories = Math.round(tdee - 450)
+        else if (uGoal === 'build_muscle') customCalories = Math.round(tdee + 350)
+        else customCalories = Math.round(tdee)
+      }
+      setCalorieGoal(customCalories || 2250)
+
+      // Water target: (glasses * 250ml) or minimum 2.5L
+      const calcWater = uWaterGlasses ? Number((uWaterGlasses * 0.25).toFixed(1)) : 2.5
+      setTargetWater(calcWater >= 1.5 ? calcWater : 2.5)
 
       // Compute today's stats
       const today = new Date().toDateString()
@@ -87,19 +125,19 @@ export default function Dashboard() {
       }, 0)
 
       setTodayStats({
-        calories: nutritionCalories || 2040,
-        workouts: todayWorkoutsList.length || 1,
-        weight: latestProgress?.weight || user?.preferences?.weight || 82,
-        carbs: nutritionCarbs || 269,
-        protein: nutritionProtein || 164,
-        fats: nutritionFats || 65
+        calories: nutritionCalories || 0,
+        workouts: todayWorkoutsList.length,
+        weight: latestProgress?.weight || uWeight,
+        carbs: nutritionCarbs || 0,
+        protein: nutritionProtein || 0,
+        fats: nutritionFats || 0
       })
 
       if (trackerData) {
         setTodayTracker({
-          water: trackerData.water || 2.15,
-          steps: trackerData.steps || 8420,
-          sleep: trackerData.sleep || 7.5,
+          water: trackerData.water || 0,
+          steps: trackerData.steps || 0,
+          sleep: trackerData.sleep || (prefs.sleepGoal || onb.sleep_goal || 7.5),
           mood: trackerData.mood || 'Active'
         })
       }
@@ -188,15 +226,15 @@ export default function Dashboard() {
             <div className="relative z-10 max-w-md space-y-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4F63D] text-slate-950 text-[11px] font-extrabold uppercase tracking-wider">
                 <Flame className="w-3.5 h-3.5 fill-slate-950" />
-                <span>Today's Recommendation</span>
+                <span>Personalized Routine</span>
               </span>
 
               <h2 className="text-2xl sm:text-4xl font-black font-['Outfit'] text-slate-950 leading-tight">
-                Your Home Workout <br /> Starts Here!
+                Your {userMetrics.location === 'home' ? 'Home' : 'Gym'} Workout <br /> Starts Here!
               </h2>
 
               <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
-                Full-body mobility & compound strength session designed for your athletic focus. Real-time posture tracking enabled.
+                Tailored for {userMetrics.fitnessLevel} level with {userMetrics.goal.replace('_', ' ')} focus. Real-time posture tracking & progressive overload enabled.
               </p>
             </div>
 
@@ -231,11 +269,11 @@ export default function Dashboard() {
                 <div>
                   <h3 className="text-base font-black font-['Outfit'] text-slate-950">Hydration Status</h3>
                   <p className="text-[11px] text-slate-800/80 mt-0.5 max-w-[200px]">
-                    Drinking enough water daily boosts your focus and muscle recovery.
+                    Personalized target based on your body weight & activity level.
                   </p>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-[#FEF08A] text-slate-950 font-extrabold text-[10px] shadow-sm flex items-center gap-1">
-                  <span>Well Done</span>
+                  <span>{todayTracker.water >= targetWater ? 'Goal Met' : 'In Progress'}</span>
                   <span>👍</span>
                 </span>
               </div>
@@ -244,7 +282,7 @@ export default function Dashboard() {
               <div className="my-6 p-4 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/40">
                 <div className="grid grid-cols-6 gap-2">
                   {Array.from({ length: 24 }).map((_, i) => {
-                    const filled = i < Math.round((todayTracker.water / 3.0) * 24)
+                    const filled = i < Math.round((todayTracker.water / targetWater) * 24)
                     return (
                       <div
                         key={i}
@@ -288,7 +326,7 @@ export default function Dashboard() {
                   {todayTracker.water.toFixed(2)}L
                 </div>
                 <div className="text-[10px] font-bold text-slate-800/80 uppercase tracking-wider mt-1">
-                  / Day target
+                  / {targetWater}L Target
                 </div>
               </div>
             </div>
@@ -314,7 +352,7 @@ export default function Dashboard() {
                   Experience the Goodness of Deep Sleep
                 </h3>
                 <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                  Discover tips and techniques for deeper REM cycles. Wake up refreshed and ready for high-output training.
+                  Target sleep calibrated for high-output muscle recovery and hormonal balance.
                 </p>
               </div>
             </div>
@@ -397,7 +435,7 @@ export default function Dashboard() {
                   <TrendingUp className="w-4 h-4 text-emerald-600" />
                   <span className="text-xs font-bold text-slate-700">Body Weight</span>
                 </div>
-                <span className="text-xs font-bold text-slate-500">188 cm Tall body</span>
+                <span className="text-xs font-bold text-slate-500">{userMetrics.height} cm Height</span>
               </div>
 
               <div className="text-3xl font-black font-['Outfit'] text-slate-950 mt-1">
@@ -405,7 +443,7 @@ export default function Dashboard() {
               </div>
 
               <div className="text-[11px] text-slate-500 mt-0.5">
-                Target range: 68 kg - 84 kg
+                Target: {userMetrics.goal === 'lose_weight' ? 'Fat Loss Focus' : userMetrics.goal === 'build_muscle' ? 'Hypertrophy Focus' : 'Fitness Baseline'}
               </div>
 
               {/* Smooth Wavy SVG Curve Line */}
