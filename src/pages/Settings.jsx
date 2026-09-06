@@ -450,11 +450,11 @@ export default function Settings() {
     <>
       <DashboardNavbar />
       <FitnessChatbot />
-      <div className="settings-page-pro">
+      <div className="settings-page-pro min-h-screen bg-[#F8FAFC] text-slate-900 pb-24 lg:pl-32 pt-8 px-4 lg:px-8">
         <div className="settings-container-pro">
           <div className="settings-header-pro">
-            <h1>⚙️ Settings</h1>
-            <p>Manage your account and preferences</p>
+            <h1 className="text-3xl font-black text-slate-950 font-['Outfit']">⚙️ Settings</h1>
+            <p className="text-slate-500 font-medium">Manage your personal profile, fitness preferences, and account security</p>
           </div>
 
           {loading ? (
@@ -617,7 +617,7 @@ export default function Settings() {
                           <label>Food Allergies</label>
                           <div style={{display:'flex', flexWrap:'wrap', gap:'10px', marginTop:'10px'}}>
                             {['dairy', 'eggs', 'nuts', 'soy', 'shellfish', 'gluten'].map(allergen => (
-                              <label key={allergen} style={{display:'flex', alignItems:'center', gap:'5px', padding:'8px 12px', background:'rgba(255,255,255,0.05)', borderRadius:'8px', cursor:'pointer'}}>
+                              <label key={allergen} style={{display:'flex', alignItems:'center', gap:'8px', padding:'8px 14px', background:'#F8FAFC', border:'1.5px solid #CBD5E1', borderRadius:'10px', cursor:'pointer', color:'#0F172A', fontWeight: 600}}>
                                 <input 
                                   type="checkbox" 
                                   checked={settings.allergens.includes(allergen)}
@@ -627,6 +627,7 @@ export default function Settings() {
                                       : settings.allergens.filter(a => a !== allergen)
                                     setSettings({...settings, allergens: updated})
                                   }}
+                                  style={{accentColor: '#0F172A'}}
                                 />
                                 <span style={{textTransform:'capitalize'}}>{allergen}</span>
                               </label>
@@ -663,23 +664,23 @@ export default function Settings() {
                             { key: 'weeklyReports', icon: '📊', label: 'Weekly Reports', desc: 'Weekly summary of your journey' }
                           ].map(item => (
                             <div key={item.key} style={{
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              borderRadius: '12px',
-                              padding: '15px',
+                              background: '#F8FAFC',
+                              border: '1.5px solid #E2E8F0',
+                              borderRadius: '16px',
+                              padding: '16px',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '12px',
-                              transition: 'all 0.3s ease',
+                              gap: '14px',
+                              transition: 'all 0.2s ease',
                               cursor: 'pointer'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                             onClick={() => setSettings({...settings, notifications: {...settings.notifications, [item.key]: !settings.notifications[item.key]}})}>
                               <div style={{fontSize: '1.8rem', flexShrink: 0}}>{item.icon}</div>
                               <div style={{flex: 1, minWidth: 0}}>
-                                <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '0.95rem', fontWeight: '500', marginBottom: '3px'}}>{item.label}</div>
-                                <div style={{color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem'}}>{item.desc}</div>
+                                <div style={{color: '#0F172A', fontSize: '0.95rem', fontWeight: '700', marginBottom: '3px'}}>{item.label}</div>
+                                <div style={{color: '#64748B', fontSize: '0.825rem'}}>{item.desc}</div>
                               </div>
                               <label className="switch-pro" style={{margin: 0}} onClick={(e) => e.stopPropagation()}>
                                 <input type="checkbox" checked={settings.notifications[item.key]} onChange={(e) => setSettings({...settings, notifications: {...settings.notifications, [item.key]: e.target.checked}})} />
@@ -692,20 +693,20 @@ export default function Settings() {
                       
                       {/* Pause All */}
                       <div style={{
-                        background: settings.notifications.paused ? 'rgba(255,107,53,0.1)' : 'rgba(37,211,102,0.1)',
-                        border: `2px solid ${settings.notifications.paused ? 'rgba(255,107,53,0.3)' : 'rgba(37,211,102,0.3)'}`,
-                        borderRadius: '12px',
-                        padding: '18px',
+                        background: settings.notifications.paused ? '#FFF7ED' : '#F0FDF4',
+                        border: `1.5px solid ${settings.notifications.paused ? '#FDBA74' : '#86EFAC'}`,
+                        borderRadius: '16px',
+                        padding: '18px 20px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '15px'
+                        gap: '16px'
                       }}>
                         <div style={{fontSize: '2rem'}}>{settings.notifications.paused ? '⏸️' : '▶️'}</div>
                         <div style={{flex: 1}}>
-                          <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '1rem', fontWeight: '600', marginBottom: '4px'}}>
+                          <div style={{color: '#0F172A', fontSize: '1rem', fontWeight: '800', marginBottom: '3px'}}>
                             {settings.notifications.paused ? 'All Notifications Paused' : 'All Notifications Active'}
                           </div>
-                          <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem'}}>
+                          <div style={{color: '#64748B', fontSize: '0.85rem', fontWeight: '500'}}>
                             {settings.notifications.paused ? 'Click to resume all browser notifications' : 'Click to pause all browser notifications temporarily'}
                           </div>
                         </div>
@@ -713,22 +714,24 @@ export default function Settings() {
                           onClick={() => setSettings({...settings, notifications: {...settings.notifications, paused: !settings.notifications.paused}})}
                           style={{
                             padding: '10px 20px',
-                            borderRadius: '8px',
+                            borderRadius: '12px',
                             border: 'none',
-                            background: settings.notifications.paused ? 'rgba(37,211,102,0.2)' : 'rgba(255,107,53,0.2)',
-                            color: '#fff',
-                            fontWeight: '600',
+                            background: '#0F172A',
+                            color: settings.notifications.paused ? '#FDBA74' : '#D4F63D',
+                            fontWeight: '700',
+                            fontSize: '0.9rem',
                             cursor: 'pointer',
-                            transition: 'all 0.3s ease'
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 4px 10px rgba(15, 23, 42, 0.15)'
                           }}
                         >
                           {settings.notifications.paused ? '▶️ Resume' : '⏸️ Pause'}
                         </button>
                       </div>
                       
-                      <div style={{marginTop: '20px', padding: '15px', background: 'rgba(20,225,255,0.1)', borderRadius: '10px', border: '1px solid rgba(20,225,255,0.3)'}}>
-                        <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', margin: 0}}>
-                          💡 <strong>Note:</strong> For WhatsApp notifications, go to the WhatsApp tab. These settings control browser push notifications only.
+                      <div style={{marginTop: '20px', padding: '16px 20px', background: '#EFF6FF', borderRadius: '14px', border: '1.5px solid #BFDBFE'}}>
+                        <p style={{color: '#1E3A8A', fontSize: '0.9rem', margin: 0, fontWeight: '500'}}>
+                          💡 <strong>Note:</strong> For WhatsApp notifications, visit the WhatsApp tab. These toggles manage your direct in-browser push alerts.
                         </p>
                       </div>
                     </div>
@@ -737,13 +740,13 @@ export default function Settings() {
                   {activeTab === 'whatsapp' && (
                     <div className="content-section">
                       <h2>💬 WhatsApp Notifications</h2>
-                      <div className="info-box-pro" style={{background: 'rgba(37,211,102,0.1)', border: '2px solid rgba(37,211,102,0.3)', borderRadius: '12px', padding: '20px', marginBottom: '25px'}}>
+                      <div className="info-box-pro" style={{background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: '16px', padding: '20px', marginBottom: '25px'}}>
                         <div style={{display: 'flex', alignItems: 'start', gap: '15px'}}>
                           <div style={{fontSize: '2rem'}}>💬</div>
                           <div>
-                            <h3 style={{color: '#25d366', marginBottom: '8px', fontSize: '1.1rem'}}>Get Fitness Updates on WhatsApp</h3>
-                            <p style={{color: 'rgba(255,255,255,0.8)', lineHeight: '1.6', marginBottom: '12px'}}>Receive workout reminders, progress updates, and motivational messages directly on WhatsApp.</p>
-                            <ul style={{color: 'rgba(255,255,255,0.7)', paddingLeft: '20px', lineHeight: '1.8'}}>
+                            <h3 style={{color: '#15803D', marginBottom: '6px', fontSize: '1.1rem', fontWeight: '800'}}>Get Fitness Updates on WhatsApp</h3>
+                            <p style={{color: '#166534', lineHeight: '1.6', marginBottom: '10px', fontSize: '0.9rem'}}>Receive workout reminders, progress updates, and motivational messages directly on WhatsApp.</p>
+                            <ul style={{color: '#15803D', paddingLeft: '20px', lineHeight: '1.7', fontSize: '0.85rem'}}>
                               <li>Workout & pre-workout reminders</li>
                               <li>Sleep & hydration reminders</li>
                               <li>Meal logging reminders</li>
@@ -761,7 +764,7 @@ export default function Settings() {
                           <>
                             <div className="form-grid-pro">
                               <div className="input-group-pro full">
-                                <label>📱 WhatsApp Number {changingNumber && <span style={{color: '#ff6b35'}}>(Changing)</span>}</label>
+                                <label>📱 WhatsApp Number {changingNumber && <span style={{color: '#EA580C'}}>(Changing)</span>}</label>
                                 <div style={{display: 'flex', gap: '10px'}}>
                                   <input 
                                     type="tel" 
@@ -776,17 +779,17 @@ export default function Settings() {
                                       className="btn-primary-pro" 
                                       onClick={connectWhatsApp} 
                                       disabled={sendingOtp}
-                                      style={{whiteSpace: 'nowrap'}}
+                                      style={{whiteSpace: 'nowrap', marginTop: 0}}
                                     >
                                       {sendingOtp ? '⏳ Sending...' : '📤 Send OTP'}
                                     </button>
                                   )}
                                 </div>
-                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '8px', display: 'block'}}>Enter your WhatsApp number with country code (e.g., +92 for Pakistan)</small>
+                                <small style={{color: '#64748B', marginTop: '6px', display: 'block', fontWeight: 500}}>Enter your WhatsApp number with country code (e.g., +92 for Pakistan)</small>
                                 {changingNumber && (
                                   <button 
                                     onClick={() => { setChangingNumber(false); setNewWhatsappNumber(''); }}
-                                    style={{marginTop: '10px', background: 'transparent', border: 'none', color: '#ff6b35', cursor: 'pointer', textDecoration: 'underline'}}
+                                    style={{marginTop: '10px', background: 'transparent', border: 'none', color: '#EA580C', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600}}
                                   >
                                     Cancel Change
                                   </button>
@@ -811,15 +814,15 @@ export default function Settings() {
                                       className="btn-primary-pro" 
                                       onClick={verifyWhatsAppOtp}
                                       disabled={saving || whatsappOtp.length !== 6}
-                                      style={{whiteSpace: 'nowrap'}}
+                                      style={{whiteSpace: 'nowrap', marginTop: 0}}
                                     >
                                       {saving ? '⏳ Verifying...' : '✅ Verify'}
                                     </button>
                                   </div>
-                                  <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '8px', display: 'block'}}>Check your WhatsApp for the 6-digit OTP code (valid for 10 minutes)</small>
+                                  <small style={{color: '#64748B', marginTop: '6px', display: 'block', fontWeight: 500}}>Check your WhatsApp for the 6-digit OTP code (valid for 10 minutes)</small>
                                   <button 
                                     onClick={() => { setWhatsappOtpSent(false); setWhatsappOtp(''); }}
-                                    style={{marginTop: '10px', background: 'transparent', border: 'none', color: '#ff6b35', cursor: 'pointer', textDecoration: 'underline'}}
+                                    style={{marginTop: '10px', background: 'transparent', border: 'none', color: '#EA580C', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600}}
                                   >
                                     Change Number
                                   </button>
@@ -831,25 +834,25 @@ export default function Settings() {
                           <>
                             <div className="form-grid-pro">
                               <div className="input-group-pro full">
-                                <label>📱 Connected Number <span style={{color: '#25d366', marginLeft: '10px'}}>✓ Verified</span></label>
+                                <label>📱 Connected Number <span style={{color: '#16A34A', marginLeft: '10px', fontWeight: 700}}>✓ Verified</span></label>
                                 <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
                                   <input 
                                     type="tel" 
                                     value={whatsappSettings.phoneNumber}
                                     disabled
-                                    style={{flex: 1, opacity: 0.7}}
+                                    style={{flex: 1}}
                                   />
                                   <button 
-                                    className="btn-primary-pro" 
+                                    className="btn-edit-pro" 
                                     onClick={() => { setChangingNumber(true); setNewWhatsappNumber(''); }}
-                                    style={{whiteSpace: 'nowrap', background: 'rgba(255,107,53,0.2)', border: '2px solid rgba(255,107,53,0.4)'}}
+                                    style={{whiteSpace: 'nowrap'}}
                                   >
                                     🔄 Change Number
                                   </button>
                                   <button 
-                                    className="btn-primary-pro" 
+                                    className="btn-danger-pro" 
                                     onClick={disconnectWhatsApp}
-                                    style={{whiteSpace: 'nowrap', background: 'rgba(255,107,107,0.2)', border: '2px solid rgba(255,107,107,0.4)'}}
+                                    style={{whiteSpace: 'nowrap'}}
                                   >
                                     🔌 Disconnect
                                   </button>
@@ -865,7 +868,7 @@ export default function Settings() {
                                   value={whatsappSettings.reminderTimes.workout}
                                   onChange={(e) => setWhatsappSettings({...whatsappSettings, reminderTimes: {...whatsappSettings.reminderTimes, workout: e.target.value}})}
                                 />
-                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '5px', display: 'block'}}>24-hour format (e.g., 18:00 for 6 PM)</small>
+                                <small style={{color: '#64748B', marginTop: '5px', display: 'block', fontWeight: 500}}>24-hour format (e.g., 18:00 for 6 PM)</small>
                               </div>
                               <div className="input-group-pro">
                                 <label>😴 Sleep Reminder Time</label>
@@ -874,7 +877,7 @@ export default function Settings() {
                                   value={whatsappSettings.reminderTimes.sleep}
                                   onChange={(e) => setWhatsappSettings({...whatsappSettings, reminderTimes: {...whatsappSettings.reminderTimes, sleep: e.target.value}})}
                                 />
-                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '5px', display: 'block'}}>24-hour format (e.g., 22:00 for 10 PM)</small>
+                                <small style={{color: '#64748B', marginTop: '5px', display: 'block', fontWeight: 500}}>24-hour format (e.g., 22:00 for 10 PM)</small>
                               </div>
                               <div className="input-group-pro">
                                 <label>📊 Daily Report Time</label>
@@ -883,17 +886,17 @@ export default function Settings() {
                                   value={whatsappSettings.dailyReport.time}
                                   onChange={(e) => setWhatsappSettings({...whatsappSettings, dailyReport: {...whatsappSettings.dailyReport, time: e.target.value}})}
                                 />
-                                <small style={{color: 'rgba(255,255,255,0.6)', marginTop: '5px', display: 'block'}}>24-hour format (e.g., 20:00 for 8 PM)</small>
+                                <small style={{color: '#64748B', marginTop: '5px', display: 'block', fontWeight: 500}}>24-hour format (e.g., 20:00 for 8 PM)</small>
                               </div>
                             </div>
                             
                             <div style={{marginTop: '25px'}}>
-                              <h3 style={{marginBottom: '20px', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                              <h3 style={{marginBottom: '18px', color: '#0F172A', fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px'}}>
                                 <span>📬</span> Notification Preferences
                               </h3>
                               
                               {/* Compact Grid Layout */}
-                              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px'}}>
+                              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px'}}>
                                 {[
                                   { key: 'workoutEnabled', path: 'reminderTimes', icon: '🏋️', label: 'Workout Reminders', desc: 'At your workout time' },
                                   { key: 'preWorkout', path: 'reminderTimes', icon: '⏰', label: 'Pre-Workout Alert', desc: '30 mins before workout' },
@@ -905,18 +908,18 @@ export default function Settings() {
                                   { key: 'motivational', path: null, icon: '💪', label: 'Motivational', desc: 'Encouragement & alerts' }
                                 ].map(item => (
                                   <div key={item.key} style={{
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '12px',
-                                    padding: '15px',
+                                    background: '#F8FAFC',
+                                    border: '1.5px solid #E2E8F0',
+                                    borderRadius: '16px',
+                                    padding: '16px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '12px',
-                                    transition: 'all 0.3s ease',
+                                    gap: '14px',
+                                    transition: 'all 0.2s ease',
                                     cursor: 'pointer'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                                   onClick={() => {
                                     if (item.path) {
                                       setWhatsappSettings({
@@ -935,8 +938,8 @@ export default function Settings() {
                                   }}>
                                     <div style={{fontSize: '1.8rem', flexShrink: 0}}>{item.icon}</div>
                                     <div style={{flex: 1, minWidth: 0}}>
-                                      <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '0.95rem', fontWeight: '500', marginBottom: '3px'}}>{item.label}</div>
-                                      <div style={{color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem'}}>{item.desc}</div>
+                                      <div style={{color: '#0F172A', fontSize: '0.95rem', fontWeight: '700', marginBottom: '3px'}}>{item.label}</div>
+                                      <div style={{color: '#64748B', fontSize: '0.825rem'}}>{item.desc}</div>
                                     </div>
                                     <label className="switch-pro" style={{margin: 0}} onClick={(e) => e.stopPropagation()}>
                                       <input 
@@ -968,20 +971,20 @@ export default function Settings() {
                               {/* Pause All - Prominent */}
                               <div style={{
                                 marginTop: '20px',
-                                background: whatsappSettings.paused ? 'rgba(255,107,53,0.1)' : 'rgba(37,211,102,0.1)',
-                                border: `2px solid ${whatsappSettings.paused ? 'rgba(255,107,53,0.3)' : 'rgba(37,211,102,0.3)'}`,
-                                borderRadius: '12px',
-                                padding: '18px',
+                                background: whatsappSettings.paused ? '#FFF7ED' : '#F0FDF4',
+                                border: `1.5px solid ${whatsappSettings.paused ? '#FDBA74' : '#86EFAC'}`,
+                                borderRadius: '16px',
+                                padding: '18px 20px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '15px'
+                                gap: '16px'
                               }}>
                                 <div style={{fontSize: '2rem'}}>{whatsappSettings.paused ? '⏸️' : '▶️'}</div>
                                 <div style={{flex: 1}}>
-                                  <div style={{color: 'rgba(255,255,255,0.95)', fontSize: '1rem', fontWeight: '600', marginBottom: '4px'}}>
+                                  <div style={{color: '#0F172A', fontSize: '1rem', fontWeight: '800', marginBottom: '3px'}}>
                                     {whatsappSettings.paused ? 'Notifications Paused' : 'All Notifications Active'}
                                   </div>
-                                  <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem'}}>
+                                  <div style={{color: '#64748B', fontSize: '0.85rem', fontWeight: '500'}}>
                                     {whatsappSettings.paused ? 'Click to resume all reminders' : 'Click to pause all reminders temporarily'}
                                   </div>
                                 </div>
@@ -990,14 +993,16 @@ export default function Settings() {
                                   disabled={savingWhatsApp}
                                   style={{
                                     padding: '10px 20px',
-                                    borderRadius: '8px',
+                                    borderRadius: '12px',
                                     border: 'none',
-                                    background: whatsappSettings.paused ? 'rgba(37,211,102,0.2)' : 'rgba(255,107,53,0.2)',
-                                    color: '#fff',
-                                    fontWeight: '600',
+                                    background: '#0F172A',
+                                    color: whatsappSettings.paused ? '#FDBA74' : '#D4F63D',
+                                    fontWeight: '700',
+                                    fontSize: '0.9rem',
                                     cursor: savingWhatsApp ? 'not-allowed' : 'pointer',
                                     opacity: savingWhatsApp ? 0.5 : 1,
-                                    transition: 'all 0.3s ease'
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 4px 10px rgba(15, 23, 42, 0.15)'
                                   }}
                                 >
                                   {savingWhatsApp ? '⏳' : (whatsappSettings.paused ? '▶️ Resume' : '⏸️ Pause')}
@@ -1005,8 +1010,8 @@ export default function Settings() {
                               </div>
                             </div>
                             
-                            <div style={{marginTop: '20px', padding: '15px', background: 'rgba(20,225,255,0.1)', borderRadius: '10px', border: '1px solid rgba(20,225,255,0.3)'}}>
-                              <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', margin: 0}}>
+                            <div style={{marginTop: '20px', padding: '16px 20px', background: '#EFF6FF', borderRadius: '14px', border: '1.5px solid #BFDBFE'}}>
+                              <p style={{color: '#1E3A8A', fontSize: '0.9rem', margin: 0, fontWeight: '500'}}>
                                 💡 <strong>Note:</strong> Weekly reports are sent every Sunday at 8:00 PM automatically. Click "Save Changes" below to update your settings.
                               </p>
                             </div>
@@ -1102,7 +1107,7 @@ export default function Settings() {
               <button onClick={() => setShowExportModal(false)}>×</button>
             </div>
             <div className="modal-body-pro">
-              <p style={{marginBottom: '20px', color: '#ccc'}}>Choose the format for your data export. CSV can be opened in Excel.</p>
+              <p style={{marginBottom: '20px', color: '#64748B', fontSize: '0.9rem'}}>Choose the format for your data export. CSV can be easily opened in Excel or Google Sheets.</p>
               <div className="export-options">
                 <label className="export-option">
                   <input type="radio" name="format" value="json" checked={exportFormat === 'json'} onChange={(e) => setExportFormat(e.target.value)} />
@@ -1203,66 +1208,59 @@ export default function Settings() {
               {!isDeleting && <button onClick={() => setShowDeleteModal(false)}>×</button>}
             </div>
             <div className="modal-body-pro" style={{flex: 1, overflowY: 'auto', padding: '20px'}}>
-              <div className="warning-box-pro" style={{background: 'rgba(255,107,107,0.1)', border: '2px solid rgba(255,107,107,0.3)', borderRadius: '12px', padding: '20px', marginBottom: '20px'}}>
-                <p style={{marginBottom: '12px', fontWeight: 'bold', color: '#ff6b6b', fontSize: '1.1rem'}}>⚠️ Warning: This action cannot be undone!</p>
-                <p style={{marginBottom: '10px', color: 'rgba(255,255,255,0.9)'}}>This will permanently delete:</p>
-                <ul style={{textAlign: 'left', marginTop: '10px', paddingLeft: '20px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.8'}}>
+              <div className="warning-box-pro" style={{background: '#FEF2F2', border: '1.5px solid #FECACA', borderRadius: '14px', padding: '18px', marginBottom: '20px'}}>
+                <p style={{marginBottom: '8px', fontWeight: '800', color: '#DC2626', fontSize: '1rem'}}>⚠️ Warning: This action cannot be undone!</p>
+                <p style={{marginBottom: '8px', color: '#991B1B', fontWeight: 600, fontSize: '0.9rem'}}>This will permanently delete:</p>
+                <ul style={{textAlign: 'left', marginTop: '6px', paddingLeft: '20px', color: '#B91C1C', lineHeight: '1.7', fontSize: '0.85rem'}}>
                   <li>Your profile and account data</li>
-                  <li>All workout history and progress</li>
+                  <li>All workout history and progress logs</li>
                   <li>Nutrition logs and meal plans</li>
                   <li>Body measurements and photos</li>
                   <li>All saved exercises and favorites</li>
                 </ul>
               </div>
               
-              <div className="input-group-pro" style={{marginBottom: '20px'}}>
-                <label style={{display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.9)', fontWeight: '600'}}>Reason for leaving (Optional)</label>
+              <div className="input-group-pro" style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', marginBottom: '6px', color: '#334155', fontWeight: '700'}}>Reason for leaving (Optional)</label>
                 <textarea
                   value={deleteReason}
                   onChange={(e) => setDeleteReason(e.target.value)}
                   placeholder="Help us improve by telling us why you're leaving..."
                   rows="3"
-                  style={{width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)', color: '#fff', resize: 'vertical', fontSize: '0.95rem', fontFamily: 'inherit', transition: 'all 0.3s ease'}}
+                  style={{width: '100%', padding: '10px 14px', borderRadius: '12px', background: '#F8FAFC', border: '1.5px solid #CBD5E1', color: '#0F172A', resize: 'vertical', fontSize: '0.9rem', fontFamily: 'inherit'}}
                   disabled={isDeleting}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,107,53,0.5)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
               
-              <div className="input-group-pro" style={{marginBottom: '20px'}}>
-                <label style={{display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.9)', fontWeight: '600'}}>Enter your password to confirm <span style={{color: '#ff6b6b'}}>*</span></label>
+              <div className="input-group-pro" style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', marginBottom: '6px', color: '#334155', fontWeight: '700'}}>Enter your password to confirm <span style={{color: '#DC2626'}}>*</span></label>
                 <input 
                   type="password" 
                   value={deletePassword} 
                   onChange={(e) => setDeletePassword(e.target.value)} 
                   placeholder="Your password" 
                   disabled={isDeleting}
-                  style={{width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.95rem', transition: 'all 0.3s ease'}}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,107,53,0.5)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  style={{width: '100%', padding: '10px 14px', borderRadius: '12px', background: '#F8FAFC', border: '1.5px solid #CBD5E1', color: '#0F172A', fontSize: '0.9rem'}}
                 />
               </div>
               
               <div className="input-group-pro" style={{marginBottom: '0'}}>
-                <label style={{display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.9)', fontWeight: '600'}}>Type <strong style={{color: '#ff6b6b', fontSize: '1.1rem'}}>DELETE</strong> to confirm <span style={{color: '#ff6b6b'}}>*</span></label>
+                <label style={{display: 'block', marginBottom: '6px', color: '#334155', fontWeight: '700'}}>Type <strong style={{color: '#DC2626', fontSize: '1rem'}}>DELETE</strong> to confirm <span style={{color: '#DC2626'}}>*</span></label>
                 <input 
                   type="text" 
                   value={deleteConfirm} 
                   onChange={(e) => setDeleteConfirm(e.target.value)} 
                   placeholder="Type DELETE in capital letters" 
                   disabled={isDeleting}
-                  style={{width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.95rem', transition: 'all 0.3s ease'}}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,107,53,0.5)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  style={{width: '100%', padding: '10px 14px', borderRadius: '12px', background: '#F8FAFC', border: '1.5px solid #CBD5E1', color: '#0F172A', fontSize: '0.9rem'}}
                 />
               </div>
             </div>
-            <div className="modal-footer-pro" style={{flexShrink: 0, padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '12px', justifyContent: 'flex-end'}}>
+            <div className="modal-footer-pro" style={{flexShrink: 0, padding: '16px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '12px', justifyContent: 'flex-end', background: '#FAFAFA'}}>
               <button 
                 className="btn-cancel-pro" 
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
-                style={{padding: '12px 24px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '2px solid rgba(255,255,255,0.2)', fontWeight: '600', cursor: isDeleting ? 'not-allowed' : 'pointer', opacity: isDeleting ? 0.5 : 1, transition: 'all 0.3s ease'}}
               >
                 Cancel
               </button>
@@ -1270,7 +1268,6 @@ export default function Settings() {
                 className="btn-delete-pro" 
                 onClick={deleteAccount}
                 disabled={isDeleting || !deletePassword || deleteConfirm !== 'DELETE'}
-                style={{padding: '12px 24px', borderRadius: '10px', background: (isDeleting || !deletePassword || deleteConfirm !== 'DELETE') ? 'rgba(255,107,107,0.3)' : 'linear-gradient(135deg, #ff6b6b, #ff5252)', color: '#fff', border: 'none', fontWeight: '600', cursor: (isDeleting || !deletePassword || deleteConfirm !== 'DELETE') ? 'not-allowed' : 'pointer', opacity: (isDeleting || !deletePassword || deleteConfirm !== 'DELETE') ? 0.5 : 1, transition: 'all 0.3s ease'}}
               >
                 {isDeleting ? '⏳ Deleting...' : '🗑️ Delete My Account'}
               </button>
