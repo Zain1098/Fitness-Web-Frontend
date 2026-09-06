@@ -90,6 +90,17 @@ export function AuthProvider({ children }){
           const exp = r?.otp_expires_at ? Date.parse(r.otp_expires_at) : (Date.now()+2*60*1000)
           localStorage.setItem('auth_pending_email', u.email)
           localStorage.setItem('otp_expire_ts', String(exp))
+        } else if (r?.token && r?.user) {
+          localStorage.setItem('ff_token', r.token)
+          localStorage.setItem('ff_user', JSON.stringify(r.user))
+          setToken(r.token)
+          setUser(r.user)
+          logActivity('user_signup', 'User registered and auto-verified', 'auth', r.user)
+          if (!r.user.onboarding_completed) {
+            navigate('/onboarding')
+          } else {
+            navigate('/dashboard')
+          }
         }
         return r
       }catch(e){ 
