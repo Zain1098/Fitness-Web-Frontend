@@ -11,6 +11,41 @@ import { showToast } from '../components/Toast.jsx'
 import { logActivity } from '../utils/activityLogger.js'
 import './Progress.css'
 
+const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.75) => {
+  return new Promise((resolve) => {
+    if (!file || !file.type.startsWith('image/')) {
+      return resolve(null)
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        let width = img.width
+        let height = img.height
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width)
+            width = maxWidth
+          } else {
+            width = Math.round((width * maxHeight) / height)
+            height = maxHeight
+          }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.onerror = () => resolve(e.target.result)
+      img.src = e.target.result
+    }
+    reader.onerror = () => resolve(null)
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function Progress() {
   const { token, user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -817,15 +852,13 @@ export default function Progress() {
                         try {
                           const photoUrls = []
                           for (const file of files) {
-                            const reader = new FileReader()
-                            const base64 = await new Promise((resolve) => {
-                              reader.onloadend = () => resolve(reader.result)
-                              reader.readAsDataURL(file)
-                            })
-                            photoUrls.push({ url: base64, type: 'front' })
+                            const compressedBase64 = await compressImage(file)
+                            if (compressedBase64) {
+                              photoUrls.push({ url: compressedBase64, type: 'front' })
+                            }
                           }
                           setPhotos(photoUrls)
-                          setSuccess('Photos selected!')
+                          setSuccess('Photos selected and optimized!')
                           setTimeout(() => setSuccess(''), 2000)
                         } catch (err) {
                           setError('Failed to load photos')
