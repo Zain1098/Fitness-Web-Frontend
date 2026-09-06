@@ -827,12 +827,20 @@ export default function Exercises() {
       <DashboardNavbar />
       <FitnessChatbot />
       <Tutorial page="exercises" />
-      <div className="exercises-page">
-        <div className="exercises-container">
+      <div className="exercises-page min-h-screen bg-[#F8FAFC] text-slate-900 font-['Plus_Jakarta_Sans',sans-serif] pb-24 lg:pb-12 pt-4 sm:pt-6">
+        <div className="exercises-container lg:pl-32 px-4 sm:px-8 max-w-[1550px] mx-auto">
           {/* Header */}
-          <div className="exercises-header">
-            <h1>🏋️ Professional Exercise Hub</h1>
-            <p>Complete exercise library with workout planning and analytics</p>
+          <div className="exercises-header flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 text-left">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Workout & Movement Library</div>
+              <h1 className="text-3xl sm:text-4xl font-black font-['Outfit'] tracking-tight text-slate-950 flex items-center gap-3">
+                <span>Exercise Hub</span>
+                <span className="text-xs px-3 py-1 bg-[#D4F63D] text-[#0F172A] font-black rounded-full uppercase tracking-wider">
+                  Pro Library
+                </span>
+              </h1>
+              <p className="text-sm font-medium text-slate-500 mt-1">Complete movement library with custom workout planning and intelligent recommendations</p>
+            </div>
           </div>
 
           {/* Navigation Tabs */}

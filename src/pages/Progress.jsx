@@ -396,71 +396,40 @@ export default function Progress() {
         </div>
       )}
       
-      <div className="progress-page">
-        <div className="progress-container">
+      <div className="progress-page min-h-screen bg-[#F8FAFC] text-slate-900 font-['Plus_Jakarta_Sans',sans-serif] pb-24 lg:pb-12 pt-4 sm:pt-6">
+        <div className="progress-container lg:pl-32 px-4 sm:px-8 max-w-[1550px] mx-auto">
           {/* Header */}
-          <div className="progress-header">
+          <div className="progress-header flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 text-left">
             <div>
-              <h1>📈 Progress Tracker</h1>
-              <p>Track your fitness journey and celebrate your wins</p>
+              <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Performance Analytics</div>
+              <h1 className="text-3xl sm:text-4xl font-black font-['Outfit'] tracking-tight text-slate-950 flex items-center gap-3">
+                <span>Progress Tracker</span>
+                <span className="text-xs px-3 py-1 bg-[#D4F63D] text-[#0F172A] font-black rounded-full uppercase tracking-wider">
+                  Live Vitals
+                </span>
+              </h1>
+              <p className="text-sm font-medium text-slate-500 mt-1">Track your body metrics, consistency, and celebrate your wins</p>
             </div>
-            <div style={{display: 'flex', gap: '10px'}}>
+            <div className="flex items-center gap-3 flex-wrap">
               {!googleFitStatus.connected ? (
                 <button 
-                  className="googlefit-connect-btn"
                   onClick={() => setShowGoogleFitModal(true)}
-                  style={{
-                    padding: '10px 20px',
-                    background: 'linear-gradient(135deg, #4285f4, #34a853)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '0.9rem',
-                    transition: 'transform 0.3s',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all active:scale-95"
                 >
-                  📱 Connect Google Fit
+                  <span>📱 Connect Google Fit</span>
                 </button>
               ) : (
-                <div style={{display: 'flex', gap: '8px'}}>
+                <div className="flex items-center gap-2">
                   <button 
                     onClick={handleSync}
                     disabled={syncing}
-                    style={{
-                      padding: '10px 16px',
-                      background: 'rgba(66, 133, 244, 0.2)',
-                      border: '1px solid #4285f4',
-                      borderRadius: '8px',
-                      color: '#4285f4',
-                      fontWeight: '600',
-                      cursor: syncing ? 'not-allowed' : 'pointer',
-                      fontSize: '0.9rem',
-                      opacity: syncing ? 0.6 : 1,
-                      whiteSpace: 'nowrap'
-                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs hover:bg-blue-100 transition-colors disabled:opacity-60"
                   >
                     {syncing ? '🔄 Syncing...' : '🔄 Sync'}
                   </button>
                   <button 
                     onClick={handleDisconnect}
-                    style={{
-                      padding: '10px 16px',
-                      background: 'rgba(255, 107, 53, 0.2)',
-                      border: '1px solid #ff6b35',
-                      borderRadius: '8px',
-                      color: '#ff6b35',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
+                    className="p-2 rounded-2xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 transition-colors"
                     title="Disconnect Google Fit"
                   >
                     🔌

@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import DashboardNavbar from '../components/DashboardNavbar.jsx'
 const FitnessChatbot = lazy(() => import('../components/FitnessChatbot.jsx'))
 import Tutorial from '../components/Tutorial.jsx'
@@ -7,17 +7,35 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../api/client.js'
 import { googleFitApi } from '../api/googleFit.js'
 import { showToast } from '../components/Toast.jsx'
-import './DailyTracker.css'
+import {
+  CalendarCheck2,
+  Droplets,
+  Flame,
+  Moon,
+  Activity,
+  Check,
+  Save,
+  RefreshCw,
+  Sparkles,
+  Smile,
+  Zap,
+  TrendingUp,
+  X,
+  Smartphone,
+  ChevronRight,
+  Info
+} from 'lucide-react'
 
 export default function DailyTracker() {
   const { token, user } = useAuth()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [tracker, setTracker] = useState({
     water: 0,
     steps: 0,
     sleep: 0,
-    mood: '',
+    mood: 'great',
     energy: 5,
     workoutCompleted: false,
     mealsLogged: 0,
@@ -39,8 +57,31 @@ export default function DailyTracker() {
     try {
       setLoading(true)
       const data = await api(`/tracker?date=${selectedDate}`, { token })
-      if (data) {
-        setTracker(data)
+      if (data && !data.error) {
+        setTracker(prev => ({
+          ...prev,
+          water: data.water || 0,
+          steps: data.steps || 0,
+          sleep: data.sleep || 0,
+          mood: data.mood || 'great',
+          energy: data.energy || 5,
+          workoutCompleted: Boolean(data.workoutCompleted),
+          mealsLogged: data.mealsLogged || 0,
+          notes: data.notes || '',
+          dataSource: data.dataSource || 'manual'
+        }))
+      } else {
+        setTracker({
+          water: 0,
+          steps: 0,
+          sleep: 0,
+          mood: 'great',
+          energy: 5,
+          workoutCompleted: false,
+          mealsLogged: 0,
+          notes: '',
+          dataSource: 'manual'
+        })
       }
       await loadWeeklyStats()
     } catch (err) {
@@ -49,24 +90,24 @@ export default function DailyTracker() {
       setLoading(false)
     }
   }
-  
+
   const loadWeeklyStats = async () => {
     try {
       const data = await api('/tracker/list?limit=30', { token })
-      if (data && data.length > 0) {
+      if (Array.isArray(data) && data.length > 0) {
         const last7Days = data.slice(0, 7)
         const avgWater = (last7Days.reduce((sum, d) => sum + (d.water || 0), 0) / last7Days.length).toFixed(1)
         const avgSteps = Math.round(last7Days.reduce((sum, d) => sum + (d.steps || 0), 0) / last7Days.length)
         const avgSleep = (last7Days.reduce((sum, d) => sum + (d.sleep || 0), 0) / last7Days.length).toFixed(1)
         const workoutsCompleted = last7Days.filter(d => d.workoutCompleted).length
-        
+
         let currentStreak = 0
         const sortedData = [...data].sort((a, b) => new Date(b.date) - new Date(a.date))
         for (let i = 0; i < sortedData.length; i++) {
           if (sortedData[i].workoutCompleted) currentStreak++
           else break
         }
-        
+
         setWeeklyStats({ avgWater, avgSteps, avgSleep, workoutsCompleted })
         setStreak(currentStreak)
       }
@@ -79,11 +120,11 @@ export default function DailyTracker() {
     loadTracker()
     loadGoogleFitStatus()
   }, [selectedDate, token])
-  
+
   useEffect(() => {
     const googleFitParam = searchParams.get('googlefit')
     if (googleFitParam === 'connected') {
-      showToast('✅ Google Fit connected successfully!', 'success', 6000)
+      showToast('Google Fit connected successfully', 'success', 5000)
       setSearchParams({})
       handleSync()
     }
@@ -93,7 +134,7 @@ export default function DailyTracker() {
     if (!token) return
     try {
       const status = await googleFitApi.getStatus(token)
-      setGoogleFitStatus(status)
+      setGoogleFitStatus(status || { connected: false, lastSynced: null })
     } catch (err) {
       console.error('Failed to load Google Fit status:', err)
     }
@@ -105,7 +146,7 @@ export default function DailyTracker() {
       const { url } = await googleFitApi.getAuthUrl(token)
       window.location.href = url
     } catch (err) {
-      showToast('❌ Failed to connect Google Fit', 'error', 5000)
+      showToast('Failed to connect Google Fit', 'error', 5000)
     }
   }
 
@@ -114,43 +155,25 @@ export default function DailyTracker() {
     try {
       setSyncing(true)
       const result = await googleFitApi.sync(30, token)
-      const { summary } = result
-      
-      let message = `✅ Synced ${result.synced} days`
-      const details = []
-      if (summary.stepsCount > 0) details.push(`${summary.stepsCount} days steps`)
-      if (summary.caloriesCount > 0) details.push(`${summary.caloriesCount} days calories`)
-      if (summary.sleepCount > 0) details.push(`${summary.sleepCount} days sleep`)
-      if (summary.activeMinutesCount > 0) details.push(`${summary.activeMinutesCount} days activity`)
-      
-      if (details.length > 0) {
-        message += `: ${details.join(', ')}`
-      }
-      
-      showToast(message, 'success', 6000)
+      showToast(`Synced ${result.synced} days from Google Fit`, 'success', 5000)
       loadTracker()
       loadGoogleFitStatus()
     } catch (err) {
       const errorMsg = err.message || 'Sync failed'
-      if (errorMsg.includes('Token expired')) {
-        showToast('⚠️ Session expired. Please reconnect Google Fit.', 'warning', 6000)
-        setGoogleFitStatus({ connected: false, lastSynced: null })
-      } else {
-        showToast('❌ ' + errorMsg, 'error', 5000)
-      }
+      showToast(errorMsg, 'error', 5000)
     } finally {
       setSyncing(false)
     }
   }
 
   const handleDisconnect = async () => {
-    if (!confirm('Disconnect Google Fit? Your data will remain but won\'t sync anymore.')) return
+    if (!confirm('Disconnect Google Fit? Your previously synced data will remain.')) return
     try {
       await googleFitApi.disconnect(token)
       setGoogleFitStatus({ connected: false, lastSynced: null })
-      showToast('✅ Google Fit disconnected', 'success', 5000)
+      showToast('Google Fit disconnected', 'success', 4000)
     } catch (err) {
-      showToast('❌ Failed to disconnect', 'error', 5000)
+      showToast('Failed to disconnect', 'error', 4000)
     }
   }
 
@@ -164,19 +187,18 @@ export default function DailyTracker() {
         token
       })
 
-      if (res && (res.error || res.message)) {
+      if (res && (res.error || res.message) && res.error) {
         setError(res.error || res.message || 'Failed to save')
         setTimeout(() => setError(''), 3000)
       } else {
-        setSuccess('✅ Saved!')
-        setTimeout(() => setSuccess(''), 2000)
-        // Clear dashboard cache so fresh data loads
+        setSuccess('Daily vitals saved!')
+        setTimeout(() => setSuccess(''), 2500)
         sessionStorage.removeItem('dashboardCache')
         sessionStorage.removeItem('dashboardCacheTime')
       }
     } catch (err) {
       console.error('Save error:', err)
-      setError('Failed to save')
+      setError('Failed to save metrics')
       setTimeout(() => setError(''), 3000)
     } finally {
       setSaving(false)
@@ -184,475 +206,539 @@ export default function DailyTracker() {
   }
 
   const moods = [
+    { emoji: '🤩', label: 'Energized', value: 'energized' },
     { emoji: '😊', label: 'Great', value: 'great' },
     { emoji: '🙂', label: 'Good', value: 'good' },
     { emoji: '😐', label: 'Okay', value: 'okay' },
-    { emoji: '😔', label: 'Low', value: 'low' },
-    { emoji: '😫', label: 'Bad', value: 'bad' }
+    { emoji: '😴', label: 'Tired', value: 'tired' }
   ]
 
   if (!user) return null
 
   return (
-    <>
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-['Plus_Jakarta_Sans',sans-serif] pb-24 lg:pb-12">
+      {/* Floating Universal Sidebar Navigation */}
       <DashboardNavbar />
       <Suspense fallback={null}>
         <FitnessChatbot />
       </Suspense>
       <Tutorial page="dailyTracker" />
-      
+
       {/* Google Fit Setup Modal */}
       {showGoogleFitModal && (
-        <div className="googlefit-modal-overlay" onClick={() => setShowGoogleFitModal(false)}>
-          <div className="googlefit-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowGoogleFitModal(false)}>×</button>
-            
-            <div className="modal-icon">📱</div>
-            <h2>Connect Google Fit</h2>
-            <p className="modal-subtitle">Auto-sync your fitness data from Google Fit app</p>
-            
-            <div className="setup-steps">
-              <div className="setup-step">
-                <div className="step-number">1</div>
-                <div className="step-content">
-                  <h4>📲 Install Google Fit App</h4>
-                  <p>Download from <strong>Play Store</strong> (Android) or <strong>App Store</strong> (iPhone)</p>
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setShowGoogleFitModal(false)}
+        >
+          <div
+            className="relative w-full max-w-lg rounded-[2.5rem] bg-white border border-white shadow-2xl p-7 sm:p-9"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+              onClick={() => setShowGoogleFitModal(false)}
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                <Smartphone className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black font-['Outfit'] text-slate-950">Connect Google Fit</h2>
+                <p className="text-xs text-slate-500 font-medium">Automatic daily step & activity synchronization</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-6 text-xs text-slate-600">
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <span className="w-6 h-6 rounded-full bg-slate-950 text-[#D4F63D] font-black text-xs flex items-center justify-center shrink-0">1</span>
+                <div>
+                  <strong className="text-slate-900">Install Google Fit:</strong> Download from Play Store or iOS App Store.
                 </div>
               </div>
-              
-              <div className="setup-step">
-                <div className="step-number">2</div>
-                <div className="step-content">
-                  <h4>📧 Use Same Email</h4>
-                  <p>Login with <strong>same email</strong> you use on FitForge</p>
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <span className="w-6 h-6 rounded-full bg-slate-950 text-[#D4F63D] font-black text-xs flex items-center justify-center shrink-0">2</span>
+                <div>
+                  <strong className="text-slate-900">Sign in with Google:</strong> Ensure the Google account matches your profile.
                 </div>
               </div>
-              
-              <div className="setup-step">
-                <div className="step-number">3</div>
-                <div className="step-content">
-                  <h4>📊 Track in Google Fit</h4>
-                  <p>App will <strong>auto-track steps</strong>. Manually add <strong>weight & calories</strong> in app</p>
-                </div>
-              </div>
-              
-              <div className="setup-step">
-                <div className="step-number">4</div>
-                <div className="step-content">
-                  <h4>🔗 Connect & Sync</h4>
-                  <p>Click below to connect, then use <strong>🔄 Sync button</strong> to import data</p>
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <span className="w-6 h-6 rounded-full bg-slate-950 text-[#D4F63D] font-black text-xs flex items-center justify-center shrink-0">3</span>
+                <div>
+                  <strong className="text-slate-900">One-Click Sync:</strong> All steps, active minutes, and calories will sync seamlessly.
                 </div>
               </div>
             </div>
-            
-            <div className="benefits-section">
-              <h4>✨ Benefits</h4>
-              <div className="benefits-grid">
-                <div className="benefit-item">
-                  <span>👟</span>
-                  <span>Auto steps tracking</span>
-                </div>
-                <div className="benefit-item">
-                  <span>⚖️</span>
-                  <span>Weight sync</span>
-                </div>
-                <div className="benefit-item">
-                  <span>🔥</span>
-                  <span>Calories burned</span>
-                </div>
-                <div className="benefit-item">
-                  <span>💪</span>
-                  <span>Active minutes</span>
-                </div>
-              </div>
-            </div>
-            
-            <button className="connect-now-btn" onClick={handleConnectGoogleFit}>
-              🚀 Connect Google Fit Now
+
+            <button
+              onClick={handleConnectGoogleFit}
+              className="w-full py-3.5 rounded-full bg-slate-950 hover:bg-slate-800 text-[#D4F63D] font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2"
+            >
+              <span>Authorize & Connect Account</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
-      
-      <div className="daily-tracker-page">
-        <div className="tracker-container">
-          <div className="tracker-header">
-            <h1>📅 Daily Tracker</h1>
-            <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-              <input 
-                type="date" 
-                value={selectedDate} 
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="date-picker"
+
+      {/* Main Content Container */}
+      <main className="lg:pl-32 px-4 sm:px-8 pt-8 max-w-[1550px] mx-auto">
+        {/* ----------------- TOP HEADER BAR ----------------- */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/90 text-xs font-bold text-slate-700 mb-2">
+              <CalendarCheck2 className="w-3.5 h-3.5 text-slate-950" />
+              <span>Bio-Telemetry & Habits</span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight font-['Outfit'] text-slate-950">
+              Daily Activity & Vitals
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+              Log hydration, step targets, sleep recovery, and subjective readiness.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Date Picker Pill */}
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
                 max={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-4 py-2.5 rounded-full bg-white border border-slate-200/90 text-xs font-bold text-slate-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-slate-950 cursor-pointer"
               />
-              {!googleFitStatus.connected ? (
-                <button 
-                  className="googlefit-connect-btn"
-                  onClick={() => setShowGoogleFitModal(true)}
-                  style={{
-                    padding: '10px 20px',
-                    background: 'linear-gradient(135deg, #4285f4, #34a853)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '0.9rem',
-                    transition: 'transform 0.3s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-                >
-                  📱 Connect Google Fit
-                </button>
-              ) : (
-                <div style={{display: 'flex', gap: '8px'}}>
-                  <button 
-                    className="googlefit-sync-btn"
-                    onClick={handleSync}
-                    disabled={syncing}
-                    style={{
-                      padding: '10px 16px',
-                      background: 'rgba(66, 133, 244, 0.2)',
-                      border: '1px solid #4285f4',
-                      borderRadius: '8px',
-                      color: '#4285f4',
-                      fontWeight: '600',
-                      cursor: syncing ? 'not-allowed' : 'pointer',
-                      fontSize: '0.9rem',
-                      opacity: syncing ? 0.6 : 1
-                    }}
-                  >
-                    {syncing ? '🔄 Syncing...' : '🔄 Sync'}
-                  </button>
-                  <button 
-                    onClick={handleDisconnect}
-                    style={{
-                      padding: '10px 16px',
-                      background: 'rgba(255, 107, 53, 0.2)',
-                      border: '1px solid #ff6b35',
-                      borderRadius: '8px',
-                      color: '#ff6b35',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
-                    title="Disconnect Google Fit"
-                  >
-                    🔌
-                  </button>
-                </div>
-              )}
             </div>
-          </div>
 
-          {googleFitStatus.connected && googleFitStatus.lastSynced && (
-            <div style={{
-              padding: '14px 20px',
-              background: 'linear-gradient(135deg, rgba(66, 133, 244, 0.12), rgba(52, 168, 83, 0.08))',
-              border: '1px solid rgba(66, 133, 244, 0.25)',
-              borderRadius: '12px',
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '15px',
-              position: 'relative'
-            }}>
-              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                <span style={{fontSize: '1.5rem'}}>📱</span>
-                <div>
-                  <div style={{color: '#4285f4', fontWeight: '600', fontSize: '0.95rem', marginBottom: '3px'}}>
-                    Google Fit Connected
-                  </div>
-                  <div style={{color: '#999', fontSize: '0.8rem'}}>
-                    Last synced: {new Date(googleFitStatus.lastSynced).toLocaleString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric', 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </div>
-                </div>
-              </div>
-              <div 
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 193, 7, 0.2)',
-                  border: '2px solid #ffc107',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'help',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  color: '#ffc107',
-                  flexShrink: 0
-                }}
-                title="Google Fit data may take up to 24 hours to sync. Today's data might appear tomorrow."
+            {/* Google Fit Integration Pill */}
+            {!googleFitStatus.connected ? (
+              <button
+                onClick={() => setShowGoogleFitModal(true)}
+                className="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 text-xs font-bold shadow-2xs flex items-center gap-2 transition-all"
               >
-                i
-              </div>
-            </div>
-          )}
-
-          {success && <div role="status" aria-live="polite" className="message success">{success}</div>}
-          {error && <div role="status" aria-live="assertive" className="message error">{error}</div>}
-
-          {/* Weekly Insights */}
-          <div className="insights-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ margin: 0 }}>📊 Weekly Insights</h2>
-              <button 
-                className="analytics-link-btn"
-                data-tutorial="view-analytics"
-                onClick={() => window.location.href = '/tracker/analytics'}
-                style={{
-                  padding: '8px 16px',
-                  background: 'rgba(255, 107, 53, 0.2)',
-                  border: '1px solid #ff6b35',
-                  borderRadius: '8px',
-                  color: '#ff6b35',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: '600',
-                  transition: 'all 0.3s'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(255, 107, 53, 0.3)'}
-                onMouseLeave={(e) => e.target.style.background = 'rgba(255, 107, 53, 0.2)'}
-              >
-                📊 View Full Analytics
+                <Smartphone className="w-3.5 h-3.5 text-blue-600" />
+                <span>Connect Fit</span>
               </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSync}
+                  disabled={syncing}
+                  className="px-4 py-2.5 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+                  <span>{syncing ? 'Syncing...' : 'Sync Fit'}</span>
+                </button>
+                <button
+                  onClick={handleDisconnect}
+                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 flex items-center justify-center transition-colors"
+                  title="Disconnect Google Fit"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <button
+              onClick={saveTracker}
+              disabled={saving}
+              className="px-6 py-2.5 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] disabled:opacity-50 text-slate-950 text-xs font-black transition-all shadow-[0_4px_16px_rgba(212,246,61,0.35)] hover:scale-105 active:scale-95 flex items-center gap-1.5"
+            >
+              <Save className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{saving ? 'Saving...' : 'Save Vitals'}</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Feedback alerts */}
+        {error && (
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-semibold flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError('')} className="p-1 hover:bg-rose-100 rounded-full">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        {success && (
+          <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600" />
+              {success}
+            </span>
+            <button onClick={() => setSuccess('')} className="p-1 hover:bg-emerald-100 rounded-full">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* ----------------- 7-DAY INSIGHTS ROW ----------------- */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Avg Water</span>
+              <Droplets className="w-4 h-4 text-sky-500" />
             </div>
-            <div className="insights-grid">
-              {weeklyStats ? (
-                weeklyStats.avgWater > 0 || weeklyStats.avgSteps > 0 || weeklyStats.avgSleep > 0 ? (
-                  <>
-                    <div className="insight-card">
-                      <div className="insight-icon">💧</div>
-                      <div className="insight-value">{weeklyStats.avgWater}</div>
-                      <div className="insight-label">Avg Water/Day</div>
-                    </div>
-                    <div className="insight-card">
-                      <div className="insight-icon">👟</div>
-                      <div className="insight-value">{weeklyStats.avgSteps.toLocaleString()}</div>
-                      <div className="insight-label">Avg Steps/Day</div>
-                    </div>
-                    <div className="insight-card">
-                      <div className="insight-icon">😴</div>
-                      <div className="insight-value">{weeklyStats.avgSleep}h</div>
-                      <div className="insight-label">Avg Sleep/Night</div>
-                    </div>
-                    <div className="insight-card">
-                      <div className="insight-icon">💪</div>
-                      <div className="insight-value">{weeklyStats.workoutsCompleted}/7</div>
-                      <div className="insight-label">Workouts This Week</div>
-                    </div>
-                    <div className="insight-card highlight">
-                      <div className="insight-icon">🔥</div>
-                      <div className="insight-value">{streak}</div>
-                      <div className="insight-label">Day Streak</div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="empty-insights">
-                    <div className="empty-insights-icon">📊</div>
-                    <h3>Start Your Journey!</h3>
-                    <p>Fill in your daily stats below to see your weekly insights and build streaks! 🚀</p>
-                  </div>
-                )
-              ) : (
-                // skeletons while loading stats
-                <>
-                  <div className="insight-card skeleton" />
-                  <div className="insight-card skeleton" />
-                  <div className="insight-card skeleton" />
-                  <div className="insight-card skeleton" />
-                  <div className="insight-card skeleton" />
-                </>
-              )}
+            <div className="text-2xl font-black font-['Outfit'] text-slate-950">
+              {weeklyStats?.avgWater || tracker.water || 0}
+              <span className="text-xs font-semibold text-slate-400 ml-1">L/day</span>
             </div>
           </div>
 
-          <div className="tracker-grid">
-            {/* Water Intake */}
-            <div className="tracker-card" data-tutorial="water-intake">
-              <h3>💧 Water Intake</h3>
-              <div className="water-tracker">
-                <div className="water-display">{tracker.water} / 8 glasses</div>
-                <div className="water-glasses">
-                  {[...Array(8)].map((_, i) => (
-                    <button
-                      key={i}
-                      className={`glass ${i < tracker.water ? 'filled' : ''}`}
-                      onClick={() => setTracker({...tracker, water: i + 1})}
-                      aria-label={`Water glass ${i + 1}`}
-                      aria-pressed={i < tracker.water}
-                    >
-                      💧
-                    </button>
-                  ))}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Avg Steps</span>
+              <Activity className="w-4 h-4 text-indigo-500" />
+            </div>
+            <div className="text-2xl font-black font-['Outfit'] text-slate-950">
+              {(weeklyStats?.avgSteps || tracker.steps || 0).toLocaleString()}
+              <span className="text-xs font-semibold text-slate-400 ml-1">steps</span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Avg Sleep</span>
+              <Moon className="w-4 h-4 text-purple-500" />
+            </div>
+            <div className="text-2xl font-black font-['Outfit'] text-slate-950">
+              {weeklyStats?.avgSleep || tracker.sleep || 0}
+              <span className="text-xs font-semibold text-slate-400 ml-1">hrs</span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Workouts</span>
+              <Check className="w-4 h-4 text-emerald-500" />
+            </div>
+            <div className="text-2xl font-black font-['Outfit'] text-slate-950">
+              {weeklyStats?.workoutsCompleted || 0}
+              <span className="text-xs font-semibold text-slate-400 ml-1">/ 7 days</span>
+            </div>
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-[#D4F63D] uppercase tracking-wider">Consistency</span>
+              <Flame className="w-4 h-4 fill-[#D4F63D] text-[#D4F63D]" />
+            </div>
+            <div className="text-2xl font-black font-['Outfit'] text-white">
+              {streak} <span className="text-xs font-semibold text-slate-400 ml-1">Day Streak</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ----------------- DAILY VITALS LOGGING GRID ----------------- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Hydration Card (matches Dashboard style, 6 cols on lg) */}
+          <div className="lg:col-span-6 bg-gradient-to-br from-[#7dd3fc] to-[#38bdf8] text-slate-950 rounded-[2.5rem] p-7 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-black font-['Outfit'] text-slate-950">Hydration Status</h3>
+                  <p className="text-xs text-slate-800/80 mt-0.5">Target: 3.0 Liters (8 Glasses)</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-[#FEF08A] text-slate-950 font-black text-[11px] shadow-xs">
+                  {tracker.water >= 2.5 ? 'Optimal 👍' : `${tracker.water}L Logged`}
+                </span>
+              </div>
+
+              {/* Interactive 24-cup grid */}
+              <div className="my-5 p-4 rounded-2xl bg-white/35 backdrop-blur-sm border border-white/40">
+                <div className="grid grid-cols-8 gap-2">
+                  {Array.from({ length: 24 }).map((_, i) => {
+                    const filled = i < Math.round((Number(tracker.water) / 3.0) * 24)
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          const newWater = Number(((i + 1) * (3.0 / 24)).toFixed(2))
+                          setTracker(prev => ({ ...prev, water: newWater }))
+                        }}
+                        className={`h-7 rounded-lg transition-all flex items-center justify-center text-[11px] font-bold cursor-pointer ${
+                          filled
+                            ? 'bg-slate-950 text-[#D4F63D] shadow-xs scale-105'
+                            : 'bg-white/40 text-slate-700/50 hover:bg-white/60'
+                        }`}
+                        title={`Click to set hydration to ${(((i + 1) * 3.0) / 24).toFixed(2)}L`}
+                      >
+                        {filled ? '💧' : ''}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Steps */}
-            <div className="tracker-card">
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                <h3>👟 Steps</h3>
-                {tracker.dataSource === 'googlefit' && (
-                  <span style={{
-                    padding: '4px 10px',
-                    background: 'rgba(66, 133, 244, 0.2)',
-                    border: '1px solid #4285f4',
-                    borderRadius: '6px',
-                    color: '#4285f4',
-                    fontSize: '0.75rem',
-                    fontWeight: '600'
-                  }}>
-                    📱 Google Fit
-                  </span>
-                )}
+            {/* Quick Increment buttons */}
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-950/10">
+              <div className="text-xs font-bold text-slate-900">
+                Current Level: <span className="font-black text-slate-950 text-base">{tracker.water} L</span>
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTracker(prev => ({ ...prev, water: Number((Number(prev.water) + 0.25).toFixed(2)) }))}
+                  className="px-3 py-1.5 rounded-full bg-slate-950 text-white hover:bg-slate-800 text-xs font-bold shadow-xs transition-transform active:scale-95"
+                >
+                  +250 ml
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTracker(prev => ({ ...prev, water: Number((Number(prev.water) + 0.5).toFixed(2)) }))}
+                  className="px-3 py-1.5 rounded-full bg-slate-950 text-[#D4F63D] hover:bg-slate-800 text-xs font-black shadow-xs transition-transform active:scale-95"
+                >
+                  +500 ml
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Steps & Energy (6 cols on lg) */}
+          <div className="lg:col-span-6 bg-white border border-slate-200/90 rounded-[2.5rem] p-7 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-black font-['Outfit'] text-slate-950">Daily Step Count</h3>
+                  <p className="text-xs text-slate-500 font-medium">Goal: 10,000 steps per day</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <Activity className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Number Input & Progress */}
+              <div className="space-y-4 my-2">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={tracker.steps}
+                    onChange={(e) => setTracker(prev => ({ ...prev, steps: Number(e.target.value) || 0 }))}
+                    className="w-full text-3xl font-black font-['Outfit'] text-slate-950 bg-slate-50 px-4 py-2.5 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-950"
+                  />
+                  <span className="text-sm font-bold text-slate-400 shrink-0">steps</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-slate-500">
+                    <span>Progress</span>
+                    <span>{Math.round((Number(tracker.steps) / 10000) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="bg-indigo-600 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (Number(tracker.steps) / 10000) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="25000"
+                  step="500"
+                  value={tracker.steps}
+                  onChange={(e) => setTracker(prev => ({ ...prev, steps: Number(e.target.value) }))}
+                  className="w-full accent-slate-950 cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-400 font-medium pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span>Syncs automatically when Google Fit is connected</span>
+              <span className="font-bold text-indigo-600">Active</span>
+            </div>
+          </div>
+
+          {/* Sleep Recovery (6 cols on lg) */}
+          <div className="lg:col-span-6 bg-white border border-slate-200/90 rounded-[2.5rem] p-7 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-black font-['Outfit'] text-slate-950">Sleep & Circadian Rhythm</h3>
+                  <p className="text-xs text-slate-500 font-medium">Optimal athletic target: 7.5 – 8.5 hours</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Moon className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 my-4">
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  step="0.5"
+                  value={tracker.sleep}
+                  onChange={(e) => setTracker(prev => ({ ...prev, sleep: Number(e.target.value) || 0 }))}
+                  className="w-32 text-3xl font-black font-['Outfit'] text-slate-950 bg-slate-50 px-4 py-2.5 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-950 text-center"
+                />
+                <span className="text-sm font-bold text-slate-400">Hours Last Night</span>
+              </div>
+
               <input
-                type="number"
+                type="range"
                 min="0"
-                max="200000"
-                value={tracker.steps}
-                onChange={(e) => setTracker({...tracker, steps: Math.max(0, Number(e.target.value) || 0)})}
-                placeholder="0"
-                aria-label="Steps"
-                className="tracker-input large"
-              />
-              <div className="step-presets">
-                <button type="button" className="preset-btn" onClick={() => setTracker({...tracker, steps: 5000})}>5k</button>
-                <button type="button" className="preset-btn" onClick={() => setTracker({...tracker, steps: 10000})}>10k</button>
-              </div>
-              <div className="goal-indicator">
-                <div className="goal-bar">
-                  <div 
-                    className="goal-fill"
-                    style={{width: `${Math.min((tracker.steps / 10000) * 100, 100)}%`}}
-                  ></div>
-                </div>
-                <span className="goal-text">Goal: 10,000 steps</span>
-              </div>
-            </div>
-
-            {/* Sleep */}
-            <div className="tracker-card">
-              <h3>😴 Sleep Hours</h3>
-              <input
-                type="number"
+                max="14"
                 step="0.5"
-                min="0"
-                max="24"
                 value={tracker.sleep}
-                onChange={(e) => setTracker({...tracker, sleep: Math.max(0, Math.min(24, Number(e.target.value) || 0))})}
-                placeholder="0"
-                aria-label="Sleep hours"
-                className="tracker-input large"
+                onChange={(e) => setTracker(prev => ({ ...prev, sleep: Number(e.target.value) }))}
+                className="w-full accent-purple-600 cursor-pointer mb-2"
               />
-              <div className="sleep-quality">
-                {tracker.sleep >= 7 && tracker.sleep <= 9 && <span className="quality-badge good">✅ Optimal</span>}
-                {tracker.sleep > 0 && tracker.sleep < 7 && <span className="quality-badge warning">⚠️ Too Little</span>}
-                {tracker.sleep > 9 && <span className="quality-badge warning">⚠️ Too Much</span>}
-              </div>
             </div>
 
-            {/* Mood */}
-            <div className="tracker-card">
-              <h3>😊 Mood</h3>
-              <div className="mood-selector">
-                {moods.map(m => (
-                  <button
-                    key={m.value}
-                    className={`mood-btn ${tracker.mood === m.value ? 'active' : ''}`}
-                    onClick={() => setTracker({...tracker, mood: m.value})}
-                    aria-label={`Mood: ${m.label}`}
-                    aria-pressed={tracker.mood === m.value}
-                  >
-                    <span className="mood-emoji">{m.emoji}</span>
-                    <span className="mood-label">{m.label}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs font-bold text-slate-500">
+              <span>Sleep Score:</span>
+              <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-700 font-extrabold text-[11px]">
+                {tracker.sleep >= 7 ? 'Deep Recovery 💤' : 'Needs Optimization ⚠️'}
+              </span>
             </div>
+          </div>
 
-            {/* Energy Level */}
-            <div className="tracker-card">
-              <h3>⚡ Energy Level</h3>
-              <div className="energy-slider">
+          {/* Subjective Readiness & Mood (6 cols on lg) */}
+          <div className="lg:col-span-6 bg-white border border-slate-200/90 rounded-[2.5rem] p-7 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-black font-['Outfit'] text-slate-950">Daily Energy & Mood</h3>
+                  <p className="text-xs text-slate-500 font-medium">Subjective readiness score for training adaptation</p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Zap className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Mood Selector Pills */}
+              <div className="grid grid-cols-5 gap-2 my-4">
+                {moods.map((m) => {
+                  const isSelected = tracker.mood?.toLowerCase() === m.value
+                  return (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => setTracker(prev => ({ ...prev, mood: m.value }))}
+                      className={`p-2.5 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-slate-950 text-white border-slate-950 shadow-xs scale-105'
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      <span className="text-2xl">{m.emoji}</span>
+                      <span className="text-[10px] font-bold capitalize">{m.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Energy rating (1-10) */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold text-slate-500">
+                  <span>Readiness Energy:</span>
+                  <span className="text-slate-950 font-black">{tracker.energy} / 10</span>
+                </div>
                 <input
                   type="range"
                   min="1"
                   max="10"
                   value={tracker.energy}
-                  onChange={(e) => setTracker({...tracker, energy: Number(e.target.value)})}
-                  className="slider"
-                  aria-label="Energy level"
+                  onChange={(e) => setTracker(prev => ({ ...prev, energy: Number(e.target.value) }))}
+                  className="w-full accent-slate-950 cursor-pointer"
                 />
-                <div className="energy-display">{tracker.energy} / 10</div>
               </div>
             </div>
 
-            {/* Workout Status */}
-            <div className="tracker-card">
-              <h3>💪 Workout</h3>
-              <button
-                className={`toggle-btn ${tracker.workoutCompleted ? 'active' : ''}`}
-                onClick={() => setTracker({...tracker, workoutCompleted: !tracker.workoutCompleted})}
-              >
-                {tracker.workoutCompleted ? '✅ Completed' : '⭕ Not Done'}
-              </button>
-            </div>
-
-            {/* Meals Logged */}
-            <div className="tracker-card">
-              <h3>🍽️ Meals Logged</h3>
-              <div className="meals-counter">
-                <button 
-                  className="counter-btn"
-                  onClick={() => setTracker({...tracker, mealsLogged: Math.max(0, tracker.mealsLogged - 1)})}
-                  aria-label="Decrease meals logged"
-                >
-                  -
-                </button>
-                <span className="counter-value">{tracker.mealsLogged}</span>
-                <button 
-                  className="counter-btn"
-                  onClick={() => setTracker({...tracker, mealsLogged: Math.min(6, tracker.mealsLogged + 1)})}
-                  aria-label="Increase meals logged"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div className="tracker-card full-width">
-              <h3>📝 Daily Notes</h3>
-              <textarea
-                value={tracker.notes}
-                onChange={(e) => setTracker({...tracker, notes: e.target.value})}
-                placeholder="How was your day? Any achievements or challenges?"
-                className="tracker-textarea"
-                rows="4"
-              />
+            <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 font-medium">
+              High readiness days are recommended for maximum compound loads.
             </div>
           </div>
 
-          <button className="save-btn" onClick={saveTracker} disabled={loading || saving} aria-disabled={loading || saving}>
-            {saving ? (<span className="btn-content">Saving... <span className="spinner" aria-hidden="true"></span></span>) : '💾 Save Today\'s Tracker'}
-          </button>
+          {/* Habits & Reflection (12 cols) */}
+          <div className="lg:col-span-12 bg-white border border-slate-200/90 rounded-[2.5rem] p-7 shadow-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Checkboxes & Habits */}
+              <div className="space-y-4">
+                <h3 className="text-base font-black font-['Outfit'] text-slate-950">Daily Checkpoints</h3>
+
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/80 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={tracker.workoutCompleted}
+                    onChange={(e) => setTracker(prev => ({ ...prev, workoutCompleted: e.target.checked }))}
+                    className="w-5 h-5 rounded-lg accent-slate-950 cursor-pointer"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-slate-950">Completed Today's Training</div>
+                    <div className="text-[11px] text-slate-500">Adds towards your weekly consistency streak</div>
+                  </div>
+                </label>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-slate-950">Meals Logged</div>
+                    <div className="text-[11px] text-slate-500">Total nutrition checkpoints hit today</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTracker(prev => ({ ...prev, mealsLogged: Math.max(0, Number(prev.mealsLogged) - 1) }))}
+                      className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100"
+                    >
+                      -
+                    </button>
+                    <span className="text-base font-black text-slate-950 w-6 text-center">{tracker.mealsLogged}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTracker(prev => ({ ...prev, mealsLogged: Number(prev.mealsLogged) + 1 }))}
+                      className="w-8 h-8 rounded-full bg-slate-950 text-[#D4F63D] font-bold hover:bg-slate-800"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <h3 className="text-base font-black font-['Outfit'] text-slate-950 mb-3">Athletic Journal & Notes</h3>
+                <textarea
+                  rows={4}
+                  value={tracker.notes}
+                  onChange={(e) => setTracker(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Record how your body felt, muscle soreness, nutrition adherence, or energy milestones..."
+                  className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950"
+                />
+              </div>
+            </div>
+
+            {/* Bottom Save bar */}
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+              <button
+                type="button"
+                onClick={loadTracker}
+                className="px-5 py-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={saveTracker}
+                disabled={saving}
+                className="px-7 py-3 rounded-full bg-[#D4F63D] hover:bg-[#c3e626] disabled:opacity-50 text-slate-950 text-xs font-black transition-all shadow-[0_4px_16px_rgba(212,246,61,0.35)] hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                <Save className="w-4 h-4 stroke-[2.5]" />
+                <span>{saving ? 'Saving...' : 'Save Daily Checkpoint'}</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   )
 }
