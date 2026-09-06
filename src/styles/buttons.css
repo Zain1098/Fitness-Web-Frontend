@@ -93,10 +93,10 @@
 .btn-edit-pro,
 .btn-export-pro,
 .analytics-link-btn {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08)) !important;
-  border: 2px solid rgba(255, 255, 255, 0.2) !important;
-  color: #fff !important;
-  font-weight: 600 !important;
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: relative !important;
   overflow: hidden !important;

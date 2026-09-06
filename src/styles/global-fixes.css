@@ -148,10 +148,50 @@ textarea::placeholder {
 }
 
 /* ------------------------------------------------------------- */
-/* 5. Generic Utility Adjustments                               */
+/* 5. Button Text Contrast & Visibility Guarantees               */
 /* ------------------------------------------------------------- */
-button {
-  color: inherit;
+
+/* Neon lime buttons (#D4F63D) MUST always have dark slate text */
+button[class*="bg-[#D4F63D]"],
+button[class*="bg-lime"],
+.bg-\[\#D4F63D\] {
+  color: #020617 !important;
+}
+button[class*="bg-[#D4F63D]"] *,
+button[class*="bg-lime"] * {
+  color: #020617 !important;
+}
+
+/* Dark buttons (#0F172A / slate-900 / slate-950) MUST always have lime or white text */
+button[class*="bg-slate-900"]:not(:disabled),
+button[class*="bg-slate-950"]:not(:disabled) {
+  color: #D4F63D !important;
+}
+button[class*="bg-slate-900"]:not(:disabled) span,
+button[class*="bg-slate-950"]:not(:disabled) span {
+  color: #D4F63D !important;
+}
+
+/* White & light gray buttons MUST always have dark text */
+button[class*="bg-white"],
+button[class*="bg-slate-50"],
+button[class*="bg-slate-100"] {
+  color: #0F172A;
+}
+
+/* Disabled buttons: Always 100% readable, never washed out or invisible */
+button:disabled {
+  opacity: 1 !important;
+  background-color: #E2E8F0 !important;
+  color: #64748B !important;
+  border-color: #CBD5E1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+button:disabled * {
+  color: #64748B !important;
+  opacity: 1 !important;
 }
 
 li, a {

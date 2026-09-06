@@ -1937,31 +1937,34 @@
 .card-title h3, .card-title .card-sub { margin: 0; }
 .card-title h3 { color: #fff; font-size: 1.05rem; }
 .card-sub { color: #ffbca3; font-size: 0.8rem; margin-top: 4px; }
-.card-meta { color: #bdbdbd; font-size: 0.85rem; }
+.card-meta { color: #64748B !important; font-size: 0.85rem; font-weight: 600; }
 
 .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
 .card-stats-row { display: flex; gap: 12px; }
-.stat { background: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: 8px; flex: 1; }
-.stat-label { color: #aaa; font-size: 0.75rem; }
-.stat-value { color: #fff; font-weight: 700; font-size: 1.05rem; }
+.stat { background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; padding: 8px 10px; border-radius: 12px; flex: 1; }
+.stat-label { color: #64748B !important; font-size: 0.75rem; font-weight: 600; }
+.stat-value { color: #0F172A !important; font-weight: 800; font-size: 1.05rem; }
 
 .card-exercises { display: flex; flex-direction: column; gap: 8px; max-height: 120px; overflow: hidden; }
 .exercise-row { display:flex; justify-content: space-between; gap: 8px; align-items: center; }
-.exercise-name { color: #fff; font-weight: 600; }
-.exercise-meta { color: #bdbdbd; font-size: 0.85rem; }
-.more { color: #ff6b35; font-weight: 600; }
+.exercise-name { color: #0F172A !important; font-weight: 700; }
+.exercise-meta { color: #64748B !important; font-size: 0.85rem; font-weight: 500; }
+.more { color: #2563EB !important; font-weight: 700; }
 
-.card-footer { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.02); background: rgba(0,0,0,0.02); }
-.btn-card { flex: 1; padding: 10px 12px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; }
-.btn-start { background: linear-gradient(45deg,#4caf50,#66bb6a); color:#fff }
-.btn-edit { background: rgba(255,255,255,0.04); color:#fff }
-.btn-log { background: linear-gradient(45deg,#ffb74d,#ff8a65); color:#fff }
-.btn-delete { background: rgba(255,107,107,0.12); color:#ff6b6b }
+.card-footer { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid #E2E8F0; background: #F8FAFC; }
+.btn-card { flex: 1; padding: 10px 12px; border-radius: 12px; border: 1px solid transparent; cursor: pointer; font-weight: 800; font-size: 0.85rem; transition: all 0.2s ease; }
+.btn-start { background: #0F172A !important; color: #D4F63D !important; }
+.btn-start:hover { background: #1E293B !important; }
+.btn-edit { background: #FFFFFF !important; border: 1px solid #CBD5E1 !important; color: #0F172A !important; }
+.btn-edit:hover { background: #F1F5F9 !important; }
+.btn-log { background: #0F172A !important; color: #D4F63D !important; }
+.btn-delete { background: #FEE2E2 !important; border: 1px solid #FECACA !important; color: #DC2626 !important; }
+.btn-delete:hover { background: #FCA5A5 !important; }
 
 /* Empty state card */
-.empty-state-card { display:flex; flex-direction:column; align-items:center; gap:12px; padding:32px; border-radius:12px; background: rgba(255,255,255,0.02); }
+.empty-state-card { display:flex; flex-direction:column; align-items:center; gap:12px; padding:32px; border-radius:24px; background: #FFFFFF; border: 1px solid #E2E8F0; }
 .empty-icon-large { font-size:48px }
-.empty-state-btn { padding:10px 16px; border-radius:10px; background: linear-gradient(45deg,#ff6b35,#ff8c42); color:#fff; border:none }
+.empty-state-btn { padding:10px 20px; border-radius:9999px; background: #0F172A !important; color: #D4F63D !important; border:none; font-weight: 800; cursor: pointer; }
 
 /* Smart Weekly Planner */
 .planner-header {
